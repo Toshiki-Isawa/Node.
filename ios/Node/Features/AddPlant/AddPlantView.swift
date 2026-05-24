@@ -1,0 +1,209 @@
+import SwiftUI
+import UIKit
+
+struct AddPlantView: View {
+    @ObservedObject var viewModel: AddPlantViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var initialImage: UIImage?
+    @State private var showCamera = false
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: NodeSpacing.sp4) {
+                topBar
+                firstObservationSlot
+                formFields
+            }
+            .padding(.bottom, 140)
+        }
+        .background(NodeColor.graphite)
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraCaptureSheet { image in
+                initialImage = image
+            }
+        }
+    }
+
+    private var topBar: some View {
+        HStack {
+            Button { dismiss() } label: {
+                Image(systemName: "xmark")
+                    .foregroundStyle(NodeColor.fog)
+            }
+            Spacer()
+            Text("新規登録")
+                .font(NodeFont.text(NodeFont.title3, weight: .medium))
+                .foregroundStyle(NodeColor.bone)
+            Spacer()
+            Button("保存") { savePlant() }
+                .font(NodeFont.text(NodeFont.body, weight: .medium))
+                .foregroundStyle(viewModel.canSave ? NodeColor.moss : NodeColor.fossil)
+                .disabled(!viewModel.canSave)
+        }
+        .padding(.horizontal, NodeSpacing.sp4)
+        .padding(.top, 62)
+    }
+
+    private var firstObservationSlot: some View {
+        Button { showCamera = true } label: {
+            ZStack {
+                if let initialImage {
+                    Image(uiImage: initialImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    RoundedRectangle(cornerRadius: NodeRadius.lg)
+                        .fill(NodeColor.charcoal)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: NodeRadius.lg)
+                                .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+                                .foregroundStyle(NodeColor.stone)
+                        )
+                    VStack(spacing: NodeSpacing.sp3) {
+                        Image(systemName: "camera")
+                            .font(.system(size: 24, weight: .regular))
+                            .foregroundStyle(NodeColor.bone)
+                            .frame(width: 56, height: 56)
+                            .background(Circle().fill(NodeColor.bark))
+                            .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
+                        VStack(spacing: 6) {
+                            Text("最初の観測")
+                                .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                                .foregroundStyle(NodeColor.bone)
+                            MetaLabel(text: "タップして撮影 · 任意", color: NodeColor.fog, size: 9)
+                        }
+                    }
+                }
+            }
+            .aspectRatio(4 / 5, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, NodeSpacing.sp4)
+    }
+
+    private var formFields: some View {
+        VStack(spacing: NodeSpacing.sp4) {
+            NodeTextField(label: "植物名", isRequired: true, text: $viewModel.name, placeholder: "例: アガベ チタノタ")
+
+            NodeTextField(label: "学名 · クローン", hint: "任意", text: $viewModel.species, placeholder: "例: Agave titanota 'FO-076'")
+
+            VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+                MetaLabel(text: "カテゴリ", size: 9)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: NodeSpacing.sp2) {
+                        ForEach(PlantCategory.allCases) { cat in
+                            NodeChip(title: cat.rawValue, isSelected: viewModel.category == cat.rawValue) {
+                                viewModel.category = cat.rawValue
+                            }
+                        }
+                    }
+                }
+            }
+
+            NodeTextField(label: "メモ", hint: "任意", text: $viewModel.note, placeholder: "—")
+
+            bottomSaveButton
+        }
+        .padding(.horizontal, NodeSpacing.sp4)
+    }
+
+    private var bottomSaveButton: some View {
+        NodePrimaryButton("コレクションに追加") {
+            savePlant()
+        }
+        .disabled(!viewModel.canSave)
+        .opacity(viewModel.canSave ? 1 : 0.45)
+        .padding(.top, NodeSpacing.sp3)
+    }
+
+    private func savePlant() {
+        do {
+            _ = try viewModel.save(initialImage: initialImage)
+            dismiss()
+        } catch {
+            // silent — local save should rarely fail
+        }
+    }
+}
+
+/// Minimal camera sheet for first observation during plant registration.
+private struct CameraCaptureSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let onCapture: (UIImage) -> Void
+    @StateObject private var camera = CameraService()
+    @State private var showPhotoLibrary = false
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            if CameraService.usesPhotoLibraryFallback {
+                VStack(spacing: NodeSpacing.sp3) {
+                    Image(systemName: "photo.on.rectangle.angled")
+                        .font(.system(size: 40, weight: .light))
+                        .foregroundStyle(NodeColor.fog)
+                    MetaLabel(text: "シミュレータでは写真を選択", color: NodeColor.fog)
+                }
+            } else if camera.isAuthorized {
+                AVCameraPreviewView(session: camera.session)
+                    .ignoresSafeArea()
+            }
+            VStack {
+                HStack {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(NodeColor.bone)
+                            .padding()
+                    }
+                    Spacer()
+                }
+                Spacer()
+                Button {
+                    if CameraService.usesPhotoLibraryFallback {
+                        showPhotoLibrary = true
+                    } else {
+                        Task { await captureFromCamera() }
+                    }
+                } label: {
+                    Circle()
+                        .stroke(NodeColor.bone, lineWidth: 3)
+                        .frame(width: 72, height: 72)
+                        .overlay(
+                            Group {
+                                if CameraService.usesPhotoLibraryFallback {
+                                    Image(systemName: "photo")
+                                        .foregroundStyle(NodeColor.graphite)
+                                } else {
+                                    Circle().fill(NodeColor.bone).frame(width: 60, height: 60)
+                                }
+                            }
+                        )
+                }
+                .disabled(!CameraService.usesPhotoLibraryFallback && !camera.isCaptureReady)
+                .opacity(!CameraService.usesPhotoLibraryFallback && !camera.isCaptureReady ? 0.5 : 1)
+                .padding(.bottom, 40)
+            }
+        }
+        .task {
+            guard !CameraService.usesPhotoLibraryFallback else { return }
+            if await camera.requestAuthorization() {
+                try? camera.configure()
+                await camera.start()
+            }
+        }
+        .onDisappear { camera.stop() }
+        .sheet(isPresented: $showPhotoLibrary) {
+            PhotoLibraryPicker { image in
+                onCapture(image)
+                dismiss()
+            }
+        }
+    }
+
+    private func captureFromCamera() async {
+        guard camera.isCaptureReady else { return }
+        guard let image = try? await camera.capturePhoto() else { return }
+        onCapture(image)
+        dismiss()
+    }
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 28px; min-height: 240px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+  .grid { display: grid; grid-template-columns: 110px 1fr 110px; gap: 14px 18px; align-items: center; }
+  .name { font-family: var(--font-mono); font-size: 11px; color: var(--c-paper); }
+  .val  { font-family: var(--font-mono); font-size: 10px; color: var(--c-mist); text-align: right; }
+  .track { height: 14px; border-radius: 999px; background: var(--c-charcoal); position: relative; overflow: hidden; }
+  .ball { position: absolute; top: 0; left: 0; height: 14px; width: 14px; border-radius: 999px; background: var(--c-moss); }
+  @keyframes quietRun { 0%, 100% { left: 0; } 50% { left: calc(100% - 14px); } }
+  @keyframes enterRun { 0% { left: 0; } 100% { left: calc(100% - 14px); } }
+  .a-quiet  .ball { animation: quietRun var(--dur-base) var(--ease-quiet) infinite; }
+  .a-enter  .ball { animation: enterRun var(--dur-slow) var(--ease-enter) infinite alternate; }
+  .a-fast   .ball { animation: quietRun var(--dur-fast) var(--ease-quiet) infinite; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">モーション · 静か · 跳ねない</div>
+    <div class="grid">
+      <span class="name">quiet · 220ms</span><div class="track a-quiet"><div class="ball"></div></div><span class="val">0.32, 0.72, 0.24, 1</span>
+      <span class="name">enter · 480ms</span><div class="track a-enter"><div class="ball"></div></div><span class="val">0.16, 1, 0.3, 1</span>
+      <span class="name">fast · 120ms</span><div class="track a-fast"><div class="ball"></div></div><span class="val">押下フィードバック</span>
+    </div>
+  </div>
+</body>
+</html>

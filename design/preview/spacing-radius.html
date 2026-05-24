@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 28px; min-height: 200px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px; }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+  .row { display: flex; gap: 18px; align-items: flex-end; }
+  .token { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .box { width: 80px; height: 80px; background: var(--c-bark); border: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; }
+  .name { font-family: var(--font-mono); font-size: 10px; color: var(--c-fog); }
+  .val  { font-family: var(--font-mono); font-size: 9px; color: var(--c-mist); }
+  .inner { width: 60%; height: 60%; background: var(--c-moss); opacity: 0.85; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">角丸み · iOS 准拠スケール</div>
+    <div class="row">
+      <div class="token"><div class="box" style="border-radius:2px;"><div class="inner" style="border-radius:1px;"></div></div><div class="name">xs</div><div class="val">2</div></div>
+      <div class="token"><div class="box" style="border-radius:6px;"><div class="inner" style="border-radius:3px;"></div></div><div class="name">sm</div><div class="val">6</div></div>
+      <div class="token"><div class="box" style="border-radius:10px;"><div class="inner" style="border-radius:6px;"></div></div><div class="name">md · 写真</div><div class="val">10</div></div>
+      <div class="token"><div class="box" style="border-radius:14px;"><div class="inner" style="border-radius:9px;"></div></div><div class="name">lg</div><div class="val">14</div></div>
+      <div class="token"><div class="box" style="border-radius:20px;"><div class="inner" style="border-radius:12px;"></div></div><div class="name">xl</div><div class="val">20</div></div>
+      <div class="token"><div class="box" style="border-radius:28px;"><div class="inner" style="border-radius:17px;"></div></div><div class="name">2xl · シート</div><div class="val">28</div></div>
+      <div class="token"><div class="box" style="border-radius:999px;"><div class="inner" style="border-radius:999px;"></div></div><div class="name">ピル</div><div class="val">999</div></div>
+    </div>
+  </div>
+</body>
+</html>

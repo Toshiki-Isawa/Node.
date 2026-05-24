@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 24px; min-height: 200px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--hairline); color: var(--c-paper); }
+  .chip .dot { width: 6px; height: 6px; border-radius: 999px; }
+
+  .chip.synced  .dot { background: var(--c-moss); }
+  .chip.local   .dot { background: var(--c-olive); }
+  .chip.syncing .dot { background: var(--c-sync-active); animation: pulse 1.4s ease-in-out infinite; }
+  .chip.fail    .dot { background: var(--c-sync-fail); }
+  .chip.active  { background: color-mix(in oklab, var(--c-moss) 14%, transparent); border-color: color-mix(in oklab, var(--c-moss) 40%, transparent); color: var(--c-moss-soft); }
+  .chip.tag     { color: var(--c-fog); border-color: var(--hairline); }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--c-sync-active); } 50% { opacity: 0.6; box-shadow: 0 0 0 6px transparent; } }
+
+  .group { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">チップ · 同期状態</div>
+    <div class="group">
+      <span class="chip synced"><span class="dot"></span>同期済み</span>
+      <span class="chip local"><span class="dot"></span>ローカル · 3</span>
+      <span class="chip syncing"><span class="dot"></span>同期中</span>
+      <span class="chip fail"><span class="dot"></span>失敗</span>
+    </div>
+    <div class="label" style="margin-top: 6px;">チップ · 分類 · フィルター</div>
+    <div class="group">
+      <span class="chip active">アガベ · 8</span>
+      <span class="chip tag">ビカクシダ</span>
+      <span class="chip tag">塙根</span>
+      <span class="chip tag">アロイド</span>
+      <span class="chip tag">アーカイブ</span>
+    </div>
+  </div>
+</body>
+</html>

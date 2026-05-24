@@ -1,0 +1,16 @@
+# Xcode
+ios/DerivedData/
+ios/build/
+*.xcuserstate
+*.xcuserdata/
+ios/Node/Config/Secrets.xcconfig
+
+# macOS
+.DS_Store
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# Secret
+.secret

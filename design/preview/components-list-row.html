@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 24px; min-height: 220px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+  .stack { background: var(--c-charcoal); border-radius: 14px; overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--hairline); }
+  .row:last-child { border-bottom: 0; }
+  .thumb { width: 44px; height: 44px; flex: none; border-radius: 8px; background: linear-gradient(135deg, oklch(0.35 0.02 130), oklch(0.22 0.005 130)); border: 1px solid var(--hairline); }
+  .col { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .title { font-family: var(--font-text); font-size: 15px; color: var(--c-bone); }
+  .sub { font-family: var(--font-mono); font-size: 10px; color: var(--c-mist); letter-spacing: 0.04em; text-transform: uppercase; }
+  .meta { font-family: var(--font-mono); font-size: 10px; color: var(--c-fog); letter-spacing: 0.04em; }
+  .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--c-moss); }
+  .dot.local { background: var(--c-olive); }
+  .dot.fail { background: var(--c-sync-fail); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">リスト行 · コレクション</div>
+    <div class="stack">
+      <div class="row">
+        <div class="thumb"></div>
+        <div class="col">
+          <div class="title">アガベ チタノタ 'FO-076'</div>
+          <div class="sub">観測 142 · 412日</div>
+        </div>
+        <div class="meta"><span class="dot"></span></div>
+      </div>
+      <div class="row">
+        <div class="thumb" style="background: linear-gradient(135deg, oklch(0.3 0.02 140), oklch(0.18 0.005 130));"></div>
+        <div class="col">
+          <div class="title">ビカクシダ リドレイ</div>
+          <div class="sub">観測 86 · 240日</div>
+        </div>
+        <div class="meta"><span class="dot local"></span></div>
+      </div>
+      <div class="row">
+        <div class="thumb" style="background: linear-gradient(135deg, oklch(0.28 0.02 100), oklch(0.16 0.005 110));"></div>
+        <div class="col">
+          <div class="title">パキポディウム グラキリウス</div>
+          <div class="sub">観測 31 · 95日</div>
+        </div>
+        <div class="meta"><span class="dot fail"></span></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

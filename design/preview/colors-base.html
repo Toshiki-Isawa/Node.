@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 24px; min-height: 152px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; }
+  .swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .swatch { display: flex; flex-direction: column; gap: 6px; }
+  .chip { aspect-ratio: 1.6 / 1; border-radius: 8px; border: 1px solid var(--hairline); }
+  .name { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-fog); }
+  .hex  { font-family: var(--font-mono); font-size: 10px; color: var(--c-mist); }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">ベースカラー · グラファイト階調</div>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background: var(--c-void);"></div><div class="name">Void</div><div class="hex">0.12 / 130</div></div>
+      <div class="swatch"><div class="chip" style="background: var(--c-graphite);"></div><div class="name">Graphite</div><div class="hex">0.17 / 130</div></div>
+      <div class="swatch"><div class="chip" style="background: var(--c-charcoal);"></div><div class="name">Charcoal</div><div class="hex">0.21 / 130</div></div>
+      <div class="swatch"><div class="chip" style="background: var(--c-bark);"></div><div class="name">Bark</div><div class="hex">0.26 / 120</div></div>
+      <div class="swatch"><div class="chip" style="background: var(--c-stone);"></div><div class="name">Stone</div><div class="hex">0.34 / 120</div></div>
+      <div class="swatch"><div class="chip" style="background: var(--c-fossil);"></div><div class="name">Fossil</div><div class="hex">0.46 / 120</div></div>
+    </div>
+  </div>
+</body>
+</html>

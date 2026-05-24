@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 28px; min-height: 220px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .btn { border: none; cursor: pointer; font-family: var(--font-text); font-size: 14px; font-weight: 500; padding: 12px 20px; border-radius: 999px; transition: opacity var(--dur-fast) var(--ease-quiet), transform var(--dur-fast) var(--ease-quiet); letter-spacing: 0; }
+  .btn:active { transform: scale(0.985); opacity: 0.7; }
+  .btn.primary   { background: var(--c-moss); color: var(--c-graphite); font-weight: 600; }
+  .btn.secondary { background: transparent; color: var(--c-bone); border: 1px solid var(--hairline-strong); }
+  .btn.ghost     { background: transparent; color: var(--c-fog); }
+  .btn.danger    { background: transparent; color: var(--c-sync-fail); border: 1px solid color-mix(in oklab, var(--c-sync-fail) 30%, transparent); }
+  .btn.disabled  { background: var(--c-charcoal); color: var(--c-fossil); cursor: not-allowed; }
+  .btn .glyph    { width: 14px; height: 14px; display: inline-block; vertical-align: -2px; margin-right: 6px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">ボタン · ピルシェイプ</div>
+    <div class="row">
+      <button class="btn primary">観測する</button>
+      <button class="btn secondary">植物を追加</button>
+      <button class="btn ghost">キャンセル</button>
+      <button class="btn danger">アーカイブを削除</button>
+      <button class="btn disabled" disabled>同期済み</button>
+    </div>
+    <div class="row" style="margin-top: 6px;">
+      <button class="btn primary" style="padding: 8px 14px; font-size: 12px;">比較</button>
+      <button class="btn secondary" style="padding: 8px 14px; font-size: 12px;">クイックログ</button>
+      <button class="btn primary" style="padding: 16px 28px; font-size: 16px;">撮影</button>
+    </div>
+  </div>
+</body>
+</html>

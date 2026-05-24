@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 28px; min-height: 260px; box-sizing: border-box; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .col { display: flex; flex-direction: column; gap: 10px; }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+  .head { font-family: var(--font-display); font-size: 20px; color: var(--c-bone); letter-spacing: -0.01em; font-weight: 400; }
+  .pair { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 10px; }
+  .pair .lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .pair .ex  { font-family: var(--font-text); font-size: 14px; color: var(--c-bone); }
+  .yes { background: color-mix(in oklab, var(--c-moss) 10%, transparent); border: 1px solid color-mix(in oklab, var(--c-moss) 30%, transparent); }
+  .yes .lbl { color: var(--c-moss-soft); }
+  .no  { background: color-mix(in oklab, var(--c-sync-fail) 8%, transparent); border: 1px solid color-mix(in oklab, var(--c-sync-fail) 25%, transparent); }
+  .no .lbl  { color: color-mix(in oklab, var(--c-sync-fail) 80%, var(--c-bone)); }
+  .no .ex   { color: var(--c-fog); text-decoration: line-through; text-decoration-color: var(--c-stone); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="col">
+      <div class="label">ボイス · 採用する表現</div>
+      <div class="pair yes"><span class="lbl">空状態</span><span class="ex">観測はまだありません。</span></div>
+      <div class="pair yes"><span class="lbl">保存完了</span><span class="ex">観測しました · 19:42</span></div>
+      <div class="pair yes"><span class="lbl">セクション見出し</span><span class="ex">観測 · 142</span></div>
+      <div class="pair yes"><span class="lbl">課金訴求</span><span class="ex">長いアーカイブのために。</span></div>
+    </div>
+    <div class="col">
+      <div class="label">ボイス · 採用しない表現</div>
+      <div class="pair no"><span class="lbl">空状態</span><span class="ex">さあ、椟えを始めましょう！🌱</span></div>
+      <div class="pair no"><span class="lbl">保存完了</span><span class="ex">写真を保存しました！</span></div>
+      <div class="pair no"><span class="lbl">セクション見出し</span><span class="ex">マイプラント（142）</span></div>
+      <div class="pair no"><span class="lbl">課金訴求</span><span class="ex">いますぐアップグレード！期間限定</span></div>
+    </div>
+  </div>
+</body>
+</html>

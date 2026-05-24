@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 24px; min-height: 220px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+  .tabbar { background: color-mix(in oklab, var(--c-void) 60%, transparent); backdrop-filter: blur(20px); border: 1px solid var(--hairline); border-radius: 999px; padding: 6px; display: flex; gap: 4px; align-self: stretch; max-width: 540px; }
+  .tab { flex: 1; padding: 10px 14px; border-radius: 999px; font-family: var(--font-text); font-size: 12px; color: var(--c-fog); text-align: center; cursor: pointer; transition: all var(--dur-base) var(--ease-quiet); display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .tab.active { background: var(--c-bark); color: var(--c-bone); }
+  .tab .glyph { width: 14px; height: 14px; }
+
+  .segmented { display: flex; background: var(--c-charcoal); border-radius: 10px; padding: 3px; gap: 2px; max-width: 380px; }
+  .seg { flex: 1; padding: 8px 10px; text-align: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-fog); border-radius: 8px; cursor: pointer; }
+  .seg.active { background: var(--c-bark); color: var(--c-bone); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">タブバー · 写真の上でブラー</div>
+    <div class="tabbar">
+      <div class="tab active"><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9.5L12 3l9 6.5V21H3z"/></svg>コレクション</div>
+      <div class="tab"><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="4"/><rect x="3" y="6" width="18" height="14" rx="2"/></svg>観測</div>
+      <div class="tab"><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 12h10M4 18h16"/></svg>タイムライン</div>
+      <div class="tab"><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>比較</div>
+    </div>
+    <div class="label" style="margin-top: 4px;">セグメント · タイムラインの粒度</div>
+    <div class="segmented">
+      <div class="seg active">日</div>
+      <div class="seg">週</div>
+      <div class="seg">月</div>
+      <div class="seg">全体</div>
+    </div>
+  </div>
+</body>
+</html>

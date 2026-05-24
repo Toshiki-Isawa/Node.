@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Node. — iOS UI kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  @keyframes nodePulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 oklch(0.70 0.05 200 / 0.5); }
+    50%      { opacity: 0.55; box-shadow: 0 0 0 6px transparent; }
+  }
+  html, body { margin: 0; padding: 0; background: var(--c-void); min-height: 100vh; }
+  body {
+    font-family: var(--font-text);
+    color: var(--c-bone);
+    padding: 56px 0 80px;
+  }
+  .kit-header { padding: 0 56px 56px; max-width: 1600px; margin: 0 auto; }
+  .kit-header .word { font-family: var(--font-display); font-size: 56px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; }
+  .kit-header .word .dot { color: var(--c-moss); }
+  .kit-header .sub { color: var(--c-fog); font-size: 14px; margin-top: 12px; max-width: 560px; line-height: 1.5; }
+  .kit-header .meta { color: var(--c-mist); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 24px; }
+
+  .stage {
+    display: flex;
+    gap: 48px;
+    padding: 0 56px;
+    overflow-x: auto;
+    align-items: flex-start;
+  }
+  .device-col { display: flex; flex-direction: column; align-items: center; gap: 18px; flex: none; }
+  .device-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-fog); }
+  .device-label b { color: var(--c-bone); font-weight: 500; }
+
+  /* hide scrollbar */
+  .stage::-webkit-scrollbar { height: 8px; }
+  .stage::-webkit-scrollbar-thumb { background: var(--c-stone); border-radius: 999px; }
+</style>
+</head>
+<body>
+  <div class="kit-header">
+    <div class="word" data-screen-label="00 Kit">Node<span class="dot">.</span></div>
+    <div class="sub">iOS UI キット。観測フローの主要 5 画面。一番左の端末はインタラクティブに動作します — 植物をタップして詳細へ、<b style="color:var(--c-bone)">観測</b> でカメラを起動、<b style="color:var(--c-bone)">比較</b> で成長区間をスクラブできます。</div>
+    <div class="meta">PHASE 0 · コレクション · 詳細 · カメラ · 比較 · クイックログ</div>
+  </div>
+
+  <div class="stage" id="stage"></div>
+
+  <!-- React -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="shared.jsx"></script>
+  <script type="text/babel" src="CollectionScreen.jsx"></script>
+  <script type="text/babel" src="PlantDetailScreen.jsx"></script>
+  <script type="text/babel" src="CameraScreen.jsx"></script>
+  <script type="text/babel" src="CompareScreen.jsx"></script>
+  <script type="text/babel" src="QuickLogScreen.jsx"></script>
+  <script type="text/babel" src="AddPlantScreen.jsx"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Wrap a screen in iOS frame, dark mode
+    function Phone({ label, idx, children }) {
+      return (
+        <div className="device-col" data-screen-label={`0${idx} ${label}`}>
+          <IOSDevice dark={true} width={360} height={780}>
+            {children}
+          </IOSDevice>
+          <div className="device-label"><b>{label}</b></div>
+        </div>
+      );
+    }
+
+    function InteractivePhone() {
+      const [route, setRoute] = useState({ name: 'collection' });
+      const goPlant = (id) => setRoute({ name: 'plant', id });
+      const goCamera = () => setRoute({ name: 'camera', id: route.id || 'agave' });
+      const goCompare = () => setRoute({ name: 'compare', id: route.id || 'agave' });
+      const goAdd = () => setRoute({ name: 'add' });
+      const goBack = () => setRoute({ name: 'collection' });
+
+      let inner;
+      if (route.name === 'collection')    inner = <CollectionScreen onPlantTap={goPlant} onAddPlant={goAdd} />;
+      else if (route.name === 'plant')    inner = <PlantDetailScreen plantId={route.id} onBack={goBack} onCompare={goCompare} />;
+      else if (route.name === 'camera')   inner = <CameraScreen plantId={route.id} onClose={goBack} onShutter={goBack} />;
+      else if (route.name === 'compare')  inner = <CompareScreen plantId={route.id} onBack={() => setRoute({ name: 'plant', id: route.id })} />;
+      else if (route.name === 'add')      inner = <AddPlantScreen onBack={goBack} onSave={goBack} />;
+
+      // Make tab bar wired
+      // We inject a click-handler wrapper for the Observe tab
+      return (
+        <div className="device-col" data-screen-label="01 Live">
+          <IOSDevice dark={true} width={360} height={780}>
+            <div style={{ position: 'relative', height: '100%' }}>
+              {inner}
+              {/* Floating Observe shortcut layered over everything except camera */}
+              {route.name === 'collection' && (
+                <div onClick={goCamera} style={{
+                  position: 'absolute', left: '50%', bottom: 36, transform: 'translateX(-50%)',
+                  width: 64, height: 30, cursor: 'pointer',
+                }}/>
+              )}
+              {route.name === 'plant' && (
+                <div onClick={goCamera} style={{
+                  position: 'absolute', left: '50%', bottom: 36, transform: 'translateX(-50%)',
+                  width: 64, height: 30, cursor: 'pointer',
+                }}/>
+              )}
+            </div>
+          </IOSDevice>
+          <div className="device-label"><b>ライブ</b> · ＋で新規登録、植物をタップして観測 / 比較へ</div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <React.Fragment>
+          <InteractivePhone />
+          <Phone label="コレクション" idx={2}><CollectionScreen onPlantTap={()=>{}}/></Phone>
+          <Phone label="詳細" idx={3}><PlantDetailScreen plantId="plat"/></Phone>
+          <Phone label="カメラ" idx={4}><CameraScreen plantId="agave"/></Phone>
+          <Phone label="比較" idx={5}><CompareScreen plantId="mons"/></Phone>
+          <Phone label="クイックログ" idx={6}><QuickLogScreen plantId="eucho"/></Phone>
+          <Phone label="新規登録" idx={7}><AddPlantScreen/></Phone>
+        </React.Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('stage')).render(<App />);
+  </script>
+</body>
+</html>

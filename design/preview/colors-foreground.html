@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 24px; min-height: 152px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; }
+  .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .swatch { display: flex; flex-direction: column; gap: 6px; }
+  .chip { aspect-ratio: 2 / 1; border-radius: 8px; border: 1px solid var(--hairline); display: flex; align-items: flex-end; padding: 8px; }
+  .chip-text { font-family: var(--font-text); font-size: 11px; color: var(--c-bone); }
+  .name { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-fog); }
+  .hex  { font-family: var(--font-mono); font-size: 10px; color: var(--c-mist); }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">テキストカラー · ボーン階調</div>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background: var(--c-bone);"><span class="chip-text" style="color: var(--c-graphite);">Aa</span></div><div class="name">Bone</div><div class="hex">本文</div></div>
+      <div class="swatch"><div class="chip" style="background: var(--c-paper);"><span class="chip-text" style="color: var(--c-graphite);">Aa</span></div><div class="name">Paper</div><div class="hex">説明文</div></div>
+      <div class="swatch"><div class="chip" style="background: var(--c-fog);"><span class="chip-text" style="color: var(--c-graphite);">Aa</span></div><div class="name">Fog</div><div class="hex">キャプション</div></div>
+      <div class="swatch"><div class="chip" style="background: var(--c-mist);"><span class="chip-text" style="color: var(--c-graphite);">Aa</span></div><div class="name">Mist</div><div class="hex">メタ</div></div>
+    </div>
+  </div>
+</body>
+</html>

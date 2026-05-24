@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 28px; min-height: 220px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px; background: var(--c-graphite); }
+  .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-mist); }
+  .row { display: flex; gap: 28px; }
+  .token { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .surface { width: 130px; height: 90px; background: var(--c-charcoal); border-radius: 10px; }
+  .photo { width: 130px; height: 90px; background:
+    linear-gradient(135deg, oklch(0.35 0.02 130) 0%, oklch(0.22 0.005 130) 100%);
+    border-radius: 10px;
+  }
+  .name { font-family: var(--font-mono); font-size: 10px; color: var(--c-fog); }
+  .val  { font-family: var(--font-mono); font-size: 9px; color: var(--c-mist); text-align: center; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">エレベーション · ダークでは控えめに</div>
+    <div class="row">
+      <div class="token"><div class="surface" style="box-shadow: var(--shadow-1);"></div><div class="name">shadow-1</div><div class="val">内側細線</div></div>
+      <div class="token"><div class="surface" style="box-shadow: var(--shadow-2);"></div><div class="name">shadow-2</div><div class="val">カード · 標準</div></div>
+      <div class="token"><div class="surface" style="box-shadow: var(--shadow-3);"></div><div class="name">shadow-3</div><div class="val">シート · メニュー</div></div>
+      <div class="token"><div class="photo" style="box-shadow: var(--shadow-photo);"></div><div class="name">shadow-photo</div><div class="val">写真専用 · 60px</div></div>
+    </div>
+  </div>
+</body>
+</html>

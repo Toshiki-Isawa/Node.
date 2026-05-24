@@ -1,0 +1,40 @@
+---
+alwaysApply: false
+---
+# Node. Project Rules
+
+## Design Philosophy
+
+- Botanical Archive
+- Quiet Luxury
+- Observation First
+- Photo-centric UI
+- Dark UI
+
+## SwiftUI Rules
+
+- Prefer small composable views
+- Use MVVM
+- Avoid massive View files
+- Async/await first
+- Local-first architecture
+
+## UX Principles
+
+- Never block observation flow
+- No loading interruptions
+- Fast camera flow
+- Silent transitions
+
+## Architecture
+
+- SwiftUI
+- SwiftData
+- Supabase
+- Cloudflare R2
+
+## Code Style
+
+- Feature-based folders
+- Reusable components
+- Minimal business logic in View

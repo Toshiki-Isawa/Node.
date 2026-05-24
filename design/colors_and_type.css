@@ -1,0 +1,199 @@
+/* =========================================================================
+   Node. — Botanical Archive design tokens
+   Dark-first, photo-led, quiet luxury.
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ---------- Color: Base (Graphite ladder) ---------------------------- */
+  --c-void:        oklch(0.12 0.005 130);   /* #0a0b0a — pure black, behind photos */
+  --c-graphite:    oklch(0.17 0.005 130);   /* #14161a — app background */
+  --c-charcoal:    oklch(0.21 0.005 130);   /* #1d1f1c — surface */
+  --c-bark:        oklch(0.26 0.006 120);   /* #272a26 — elevated surface */
+  --c-stone:       oklch(0.34 0.006 120);   /* #3a3d39 — divider, hairline */
+  --c-fossil:      oklch(0.46 0.006 120);   /* #535751 — disabled */
+
+  /* ---------- Color: Foreground (Bone ladder) -------------------------- */
+  --c-bone:        oklch(0.93 0.008 95);    /* #ece9df — primary text */
+  --c-paper:       oklch(0.86 0.008 95);    /* #d6d3c8 — secondary text */
+  --c-fog:         oklch(0.70 0.008 110);   /* #adb0a6 — tertiary text / captions */
+  --c-mist:        oklch(0.56 0.008 110);   /* #878a82 — quiet labels */
+
+  /* ---------- Color: Botanical accents (chroma locked at 0.05) --------- */
+  --c-moss:        oklch(0.58 0.05 135);    /* #7e9270 — primary accent */
+  --c-moss-deep:   oklch(0.42 0.05 135);    /* #5a6c4f — pressed / hover-dark */
+  --c-moss-soft:   oklch(0.72 0.04 135);    /* #a8b89d — tint surface */
+  --c-olive:       oklch(0.62 0.05 105);    /* #9a9670 — secondary accent */
+  --c-sage:        oklch(0.74 0.03 130);    /* #b2b8aa — muted accent / borders */
+
+  /* ---------- Color: Semantic / sync state ----------------------------- */
+  --c-sync-local:  oklch(0.62 0.05 105);    /* olive — local_only */
+  --c-sync-active: oklch(0.70 0.05 200);    /* steel-blue — syncing */
+  --c-sync-done:   oklch(0.58 0.05 135);    /* moss — synced */
+  --c-sync-fail:   oklch(0.62 0.10 35);     /* rust — failed */
+
+  /* ---------- Surface / structural ------------------------------------- */
+  --surface-app:        var(--c-graphite);
+  --surface-card:       var(--c-charcoal);
+  --surface-elevated:   var(--c-bark);
+  --surface-overlay:    color-mix(in oklab, var(--c-void) 80%, transparent);
+  --hairline:           color-mix(in oklab, var(--c-bone) 8%, transparent);
+  --hairline-strong:    color-mix(in oklab, var(--c-bone) 14%, transparent);
+
+  /* ---------- Type: families ------------------------------------------- */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                  "Helvetica Neue", "Noto Sans JP", sans-serif;
+  --font-text:    -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                  "Helvetica Neue", "Noto Sans JP", sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono",
+                  "Menlo", monospace;
+
+  /* ---------- Type: scale (compact, quiet) ---------------------------- */
+  --t-display-xl: 56px;
+  --t-display:    40px;
+  --t-title-1:    28px;
+  --t-title-2:    22px;
+  --t-title-3:    17px;   /* iOS title default */
+  --t-body:       15px;
+  --t-callout:    14px;
+  --t-caption:    12px;
+  --t-micro:      10px;   /* metadata, timestamps */
+
+  --lh-display:   1.05;
+  --lh-tight:     1.15;
+  --lh-body:      1.45;
+  --lh-loose:     1.6;
+
+  --ls-display:   -0.025em;
+  --ls-title:     -0.01em;
+  --ls-body:       0em;
+  --ls-meta:       0.04em;    /* uppercase metadata */
+  --ls-mono:       0.02em;
+
+  --fw-light:     300;
+  --fw-regular:   400;
+  --fw-medium:    500;
+  --fw-semibold:  600;
+
+  /* ---------- Spacing (4px base) -------------------------------------- */
+  --sp-0:  0;
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+
+  /* ---------- Radius -------------------------------------------------- */
+  --r-xs: 2px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+  --r-pill: 999px;
+
+  /* ---------- Shadow / elevation (subtle in dark) --------------------- */
+  --shadow-0: none;
+  --shadow-1: 0 1px 0 0 var(--hairline) inset;
+  --shadow-2: 0 4px 16px -4px rgba(0,0,0,0.5),
+              0 0 0 1px var(--hairline) inset;
+  --shadow-3: 0 12px 40px -8px rgba(0,0,0,0.65),
+              0 0 0 1px var(--hairline) inset;
+  --shadow-photo: 0 18px 60px -16px rgba(0,0,0,0.8);
+
+  /* ---------- Motion -------------------------------------------------- */
+  --ease-quiet:   cubic-bezier(0.32, 0.72, 0.24, 1);
+  --ease-enter:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit:    cubic-bezier(0.7, 0, 0.84, 0);
+  --dur-fast:     120ms;
+  --dur-base:     220ms;
+  --dur-slow:     480ms;
+}
+
+/* =========================================================================
+   Semantic primitives
+   ========================================================================= */
+
+html, body {
+  background: var(--surface-app);
+  color: var(--c-bone);
+  font-family: var(--font-text);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--ls-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.display-xl, .display, h1, .h1 {
+  font-family: var(--font-display);
+  letter-spacing: var(--ls-display);
+  line-height: var(--lh-display);
+  font-weight: var(--fw-light);
+  color: var(--c-bone);
+}
+
+.display-xl { font-size: var(--t-display-xl); }
+.display, h1, .h1 { font-size: var(--t-display); }
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-title-1);
+  font-weight: var(--fw-regular);
+  letter-spacing: var(--ls-title);
+  line-height: var(--lh-tight);
+  color: var(--c-bone);
+}
+
+h3, .h3 {
+  font-family: var(--font-display);
+  font-size: var(--t-title-2);
+  font-weight: var(--fw-regular);
+  letter-spacing: var(--ls-title);
+  line-height: var(--lh-tight);
+}
+
+h4, .h4 {
+  font-family: var(--font-text);
+  font-size: var(--t-title-3);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0;
+  line-height: var(--lh-tight);
+}
+
+p, .body {
+  font-family: var(--font-text);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: var(--c-paper);
+}
+
+.caption {
+  font-family: var(--font-text);
+  font-size: var(--t-caption);
+  line-height: 1.4;
+  color: var(--c-fog);
+}
+
+.meta {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-mist);
+}
+
+code, .mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  letter-spacing: var(--ls-mono);
+  color: var(--c-paper);
+}

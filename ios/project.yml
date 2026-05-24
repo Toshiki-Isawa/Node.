@@ -1,0 +1,70 @@
+name: Node
+options:
+  bundleIdPrefix: app.node
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: 2.0.0
+
+configs:
+  Debug: debug
+  Release: release
+
+configFiles:
+  Debug: Node/Config/Secrets.xcconfig
+  Release: Node/Config/Secrets.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1"
+    SUPPORTS_MACCATALYST: NO
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  Node:
+    type: application
+    platform: iOS
+    sources:
+      - path: Node
+        excludes:
+          - Config/Secrets.example.xcconfig
+    configFiles:
+      Debug: Node/Config/Secrets.xcconfig
+      Release: Node/Config/Secrets.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.node.ios
+        INFOPLIST_KEY_CFBundleDisplayName: Node.
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSCameraUsageDescription: "観測写真を撮影するためにカメラへのアクセスが必要です。"
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: "タイムラプスを写真ライブラリに保存するために必要です。"
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "観測写真を保存・共有するために必要です。"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: Node/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
+    dependencies:
+      - package: Supabase
+        product: Supabase
+    entitlements:
+      path: Node/Node.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
+
+schemes:
+  Node:
+    build:
+      targets:
+        Node: all
+    run:
+      config: Debug

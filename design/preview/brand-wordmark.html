@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; }
+  .card { padding: 40px 32px; min-height: 220px; box-sizing: border-box; display: flex; align-items: center; gap: 64px; }
+  .mark { font-family: var(--font-display); font-size: 88px; font-weight: 300; letter-spacing: -0.04em; line-height: 1; color: var(--c-bone); }
+  .mark .dot { color: var(--c-moss); }
+  .mark.alt .nodemark { display: inline-block; width: 0.14em; height: 0.14em; background: var(--c-moss); border-radius: 50%; vertical-align: baseline; transform: translateY(-0.05em); margin-left: 0.02em; }
+  .col { display: flex; flex-direction: column; gap: 12px; }
+  .tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-mist); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="col">
+      <div class="tag">プライマリ · 88PX</div>
+      <div class="mark">Node<span class="dot">.</span></div>
+    </div>
+    <div class="col">
+      <div class="tag">ノードマーク バリアント</div>
+      <div class="mark alt">Node<span class="nodemark"></span></div>
+    </div>
+  </div>
+</body>
+</html>
