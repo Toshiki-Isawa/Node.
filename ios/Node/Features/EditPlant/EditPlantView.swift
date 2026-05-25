@@ -64,6 +64,8 @@ struct EditPlantView: View {
                 }
             }
 
+            WateringIntervalSection(intervalDays: $viewModel.wateringIntervalDays)
+
             acquiredAtSection
 
             NodePrimaryButton("変更を保存") {

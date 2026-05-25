@@ -10,6 +10,9 @@ packages:
   Supabase:
     url: https://github.com/supabase/supabase-swift
     from: 2.0.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: 8.0.0
 
 configs:
   Debug: debug
@@ -55,6 +58,8 @@ targets:
     dependencies:
       - package: Supabase
         product: Supabase
+      - package: GoogleSignIn
+        product: GoogleSignIn
     entitlements:
       path: Node/Node.entitlements
       properties:
@@ -68,3 +73,4 @@ schemes:
         Node: all
     run:
       config: Debug
+      storeKitConfiguration: Node/Config/Products.storekit

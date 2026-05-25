@@ -1,9 +1,18 @@
+import SwiftData
 import SwiftUI
 
 struct TimelineView: View {
     @ObservedObject var viewModel: TimelineViewModel
     let imageStore: ImageStore
+    let observationImageService: ObservationImageService
+    let modelContext: ModelContext
+    let syncEngine: SyncEngine
+    var onBack: () -> Void
     var onPlantTap: (Plant) -> Void
+
+    @State private var deleteTarget: DeleteRecordTarget?
+    @State private var pendingDeleteEntry: TimelineViewModel.TimelineEntry?
+    @State private var editObservationTarget: TimelineObservationEditTarget?
 
     var body: some View {
         ScrollView {
@@ -21,6 +30,20 @@ struct TimelineView: View {
                             timelineCard(item)
                         }
                         .buttonStyle(.plain)
+                        .contextMenu {
+                            if case .observation(let plant, let observation) = item {
+                                Button("日時を変更") {
+                                    editObservationTarget = TimelineObservationEditTarget(
+                                        plant: plant,
+                                        observation: observation
+                                    )
+                                }
+                            }
+                            Button("削除", role: .destructive) {
+                                pendingDeleteEntry = item
+                                deleteTarget = viewModel.deleteTarget(for: item)
+                            }
+                        }
                     }
                 }
             }
@@ -30,14 +53,70 @@ struct TimelineView: View {
         }
         .background(NodeColor.graphite)
         .onAppear { viewModel.reload() }
+        .confirmationDialog(
+            deleteTarget?.title ?? "",
+            isPresented: Binding(
+                get: { deleteTarget != nil },
+                set: { if !$0 {
+                    deleteTarget = nil
+                    pendingDeleteEntry = nil
+                } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("削除", role: .destructive) {
+                if let pendingDeleteEntry {
+                    try? viewModel.delete(pendingDeleteEntry)
+                }
+                deleteTarget = nil
+                pendingDeleteEntry = nil
+            }
+            Button("キャンセル", role: .cancel) {
+                deleteTarget = nil
+                pendingDeleteEntry = nil
+            }
+        } message: {
+            if let deleteTarget {
+                Text(deleteTarget.message)
+            }
+        }
+        .sheet(item: $editObservationTarget) { target in
+            EditObservationSheet(
+                viewModel: EditObservationViewModel(
+                    plant: target.plant,
+                    observation: target.observation,
+                    modelContext: modelContext,
+                    syncEngine: syncEngine
+                ),
+                imageStore: imageStore,
+                observationImageService: observationImageService
+            )
+            .presentationDetents([.fraction(0.58), .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NodeColor.charcoal)
+            .onDisappear {
+                viewModel.reload()
+            }
+        }
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-            MetaLabel(text: "タイムライン")
-            Text("植物の時間を見る")
-                .font(NodeFont.display(NodeFont.title1, weight: .light))
-                .foregroundStyle(NodeColor.bone)
+        VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
+            Button(action: onBack) {
+                Image(systemName: "chevron.left")
+                    .foregroundStyle(NodeColor.bone)
+                    .frame(width: 36, height: 36)
+                    .background(NodeColor.charcoal)
+                    .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
+                    .clipShape(Circle())
+            }
+
+            VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+                MetaLabel(text: "タイムライン")
+                Text("植物の時間を見る")
+                    .font(NodeFont.display(NodeFont.title1, weight: .light))
+                    .foregroundStyle(NodeColor.bone)
+            }
         }
         .padding(.bottom, NodeSpacing.sp2)
     }
@@ -70,7 +149,7 @@ struct TimelineView: View {
             cardHeader(plantName: plant.name, syncStatus: observation.syncStatus, badge: "観測")
 
             PhotoCard(
-                imagePath: observation.thumbnailPath.isEmpty ? observation.localImagePath : observation.thumbnailPath,
+                imagePath: observationImageService.displayThumbnailPath(for: observation),
                 imageStore: imageStore,
                 aspectRatio: 16 / 10,
                 overlay: AnyView(
@@ -156,7 +235,7 @@ struct TimelineView: View {
     }
 
     private func formattedDateTime(_ date: Date) -> String {
-        date.formatted(.dateTime.year().month().day()) + " · " + date.formatted(date: .omitted, time: .shortened)
+        date.nodeYearMonthDayTime()
     }
 
     private func plant(for item: TimelineViewModel.TimelineEntry) -> Plant {
@@ -164,5 +243,17 @@ struct TimelineView: View {
         case .observation(let plant, _): plant
         case .growthLog(let plant, _): plant
         }
+    }
+}
+
+private struct TimelineObservationEditTarget: Identifiable {
+    let id: UUID
+    let plant: Plant
+    let observation: PlantObservation
+
+    init(plant: Plant, observation: PlantObservation) {
+        self.id = observation.id
+        self.plant = plant
+        self.observation = observation
     }
 }

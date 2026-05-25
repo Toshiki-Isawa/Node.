@@ -1,6 +1,8 @@
 import AuthenticationServices
 import CryptoKit
 import Foundation
+import GoogleSignIn
+import UIKit
 
 @MainActor
 final class AuthViewModel: ObservableObject {
@@ -14,6 +16,10 @@ final class AuthViewModel: ObservableObject {
     private let supabaseService: SupabaseService
     private let syncEngine: SyncEngine
 
+    var isGoogleSignInAvailable: Bool {
+        SupabaseConfig.googleIOSClientID != nil
+    }
+
     init(supabaseService: SupabaseService, syncEngine: SyncEngine) {
         self.supabaseService = supabaseService
         self.syncEngine = syncEngine
@@ -25,6 +31,7 @@ final class AuthViewModel: ObservableObject {
         guard !isOfflineMode else { return }
         if supabaseService.isAuthenticated {
             hasEnteredApp = true
+            await syncEngine.processQueue()
         }
     }
 
@@ -61,9 +68,48 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
+    func signInWithGoogle() async {
+        guard let clientID = SupabaseConfig.googleIOSClientID else {
+            errorMessage = "Google サインインが設定されていません。"
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
+
+        guard let presenter = Self.topViewController() else {
+            errorMessage = "Google サインイン画面を表示できませんでした。"
+            return
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presenter)
+            guard let idToken = result.user.idToken?.tokenString else {
+                errorMessage = "Google サインインに失敗しました。"
+                return
+            }
+            let accessToken = result.user.accessToken.tokenString
+            try await supabaseService.signInWithGoogle(idToken: idToken, accessToken: accessToken)
+            isOfflineMode = false
+            hasEnteredApp = true
+            await syncEngine.processQueue()
+        } catch {
+            let nsError = error as NSError
+            if nsError.domain == GIDSignInError.errorDomain,
+               nsError.code == GIDSignInError.Code.canceled.rawValue {
+                return
+            }
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func signOut() async {
         do {
             try await supabaseService.signOut()
+            GIDSignIn.sharedInstance.signOut()
             isOfflineMode = false
             hasEnteredApp = false
         } catch {
@@ -97,5 +143,24 @@ final class AuthViewModel: ObservableObject {
         let data = Data(input.utf8)
         let hashed = SHA256.hash(data: data)
         return hashed.compactMap { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func topViewController(base: UIViewController? = nil) -> UIViewController? {
+        let base = base ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first { $0.isKeyWindow }?
+            .rootViewController
+
+        if let nav = base as? UINavigationController {
+            return topViewController(base: nav.visibleViewController)
+        }
+        if let tab = base as? UITabBarController {
+            return topViewController(base: tab.selectedViewController)
+        }
+        if let presented = base?.presentedViewController {
+            return topViewController(base: presented)
+        }
+        return base
     }
 }

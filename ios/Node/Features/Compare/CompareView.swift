@@ -4,24 +4,23 @@ struct CompareView: View {
     @ObservedObject var viewModel: CompareViewModel
     let imageStore: ImageStore
     var onBack: () -> Void
-    var onSelectPlant: () -> Void
+    var onTimelapse: () -> Void
 
     var body: some View {
         ScrollView {
             VStack(spacing: NodeSpacing.sp5) {
                 header
 
-                if viewModel.plant == nil {
-                    EmptyStateView(message: "植物を選択してください。")
-                    Button("植物を選ぶ", action: onSelectPlant)
-                        .font(NodeFont.text(NodeFont.callout))
-                        .foregroundStyle(NodeColor.moss)
-                } else if viewModel.sortedObservations.count < 2 {
+                if viewModel.sortedObservations.count < 2 {
                     EmptyStateView(message: "比較には2回以上の観測が必要です。")
                 } else {
+                    if let error = viewModel.imageLoadError {
+                        MetaLabel(text: error, color: NodeColor.syncFail)
+                    }
                     comparisonStack
                     intervalCard
                     scrubberCard
+                    timelapseSection
                 }
             }
             .padding(.horizontal, NodeSpacing.sp4)
@@ -29,6 +28,9 @@ struct CompareView: View {
             .padding(.bottom, 120)
         }
         .background(NodeColor.void)
+        .task(id: viewModel.afterIndex) {
+            await viewModel.loadComparisonImages()
+        }
     }
 
     private var header: some View {
@@ -59,24 +61,37 @@ struct CompareView: View {
         VStack(spacing: 0) {
             comparePanel(
                 label: "BEFORE",
+                imagePath: viewModel.beforeImagePath,
                 observation: viewModel.beforeObservation,
                 subtitle: "入手日"
             )
             Rectangle().fill(NodeColor.stone).frame(height: 1)
             comparePanel(
                 label: "AFTER",
+                imagePath: viewModel.afterImagePath,
                 observation: viewModel.afterObservation,
                 subtitle: "今日"
             )
         }
         .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
         .overlay(RoundedRectangle(cornerRadius: NodeRadius.lg).stroke(NodeColor.hairline, lineWidth: 1))
+        .overlay {
+            if viewModel.isLoadingImages {
+                ProgressView()
+                    .tint(NodeColor.moss)
+            }
+        }
     }
 
-    private func comparePanel(label: String, observation: PlantObservation?, subtitle: String) -> some View {
+    private func comparePanel(
+        label: String,
+        imagePath: String?,
+        observation: PlantObservation?,
+        subtitle: String
+    ) -> some View {
         ZStack(alignment: .topLeading) {
             PhotoCard(
-                imagePath: observation?.localImagePath,
+                imagePath: imagePath,
                 imageStore: imageStore,
                 aspectRatio: 4 / 3,
                 cornerRadius: 0
@@ -97,7 +112,7 @@ struct CompareView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     if let observation {
                         MetaLabel(
-                            text: observation.createdAt.formatted(.dateTime.year().month().day()),
+                            text: observation.createdAt.nodeYearMonthDay(),
                             color: NodeColor.fog,
                             size: 9
                         )
@@ -197,5 +212,52 @@ struct CompareView: View {
         .background(NodeColor.charcoal)
         .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
         .overlay(RoundedRectangle(cornerRadius: NodeRadius.lg).stroke(NodeColor.hairline, lineWidth: 1))
+    }
+
+    @ViewBuilder
+    private var timelapseSection: some View {
+        if viewModel.sortedObservations.count >= TimelapseRequirements.minimumObservations {
+            NodeSecondaryButton("タイムラプス", systemImage: "film", action: onTimelapse)
+        } else {
+            VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
+                HStack(spacing: 6) {
+                    Image(systemName: "film")
+                    Text("タイムラプス")
+                        .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                }
+                .foregroundStyle(NodeColor.fog)
+
+                Text("タイムラプスには\(TimelapseRequirements.minimumObservations)回以上の観測が必要です。")
+                    .font(NodeFont.text(NodeFont.caption))
+                    .foregroundStyle(NodeColor.fog)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: NodeSpacing.sp4) {
+                    timelapseStatusItem(
+                        label: "現在",
+                        value: "\(viewModel.sortedObservations.count)回"
+                    )
+                    timelapseStatusItem(
+                        label: "あと",
+                        value: "\(max(0, TimelapseRequirements.minimumObservations - viewModel.sortedObservations.count))回"
+                    )
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(18)
+            .background(NodeColor.charcoal)
+            .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
+            .overlay(RoundedRectangle(cornerRadius: NodeRadius.lg).stroke(NodeColor.hairline, lineWidth: 1))
+        }
+    }
+
+    private func timelapseStatusItem(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            MetaLabel(text: label, size: 9)
+            Text(value)
+                .font(NodeFont.text(NodeFont.title3, weight: .medium))
+                .foregroundStyle(NodeColor.bone)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

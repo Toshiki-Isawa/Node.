@@ -42,9 +42,11 @@ final class TimelineViewModel: ObservableObject {
     @Published private(set) var allItems: [TimelineEntry] = []
 
     private let modelContext: ModelContext
+    private let recordDeletionService: RecordDeletionService
 
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, recordDeletionService: RecordDeletionService) {
         self.modelContext = modelContext
+        self.recordDeletionService = recordDeletionService
         reload()
     }
 
@@ -88,5 +90,24 @@ final class TimelineViewModel: ObservableObject {
         }
 
         allItems = (observations + logs).sorted { $0.createdAt > $1.createdAt }
+    }
+
+    func delete(_ entry: TimelineEntry) throws {
+        switch entry {
+        case .observation(let plant, let observation):
+            try recordDeletionService.deleteObservation(observation, from: plant)
+        case .growthLog(let plant, let log):
+            try recordDeletionService.deleteGrowthLog(log, from: plant)
+        }
+        reload()
+    }
+
+    func deleteTarget(for entry: TimelineEntry) -> DeleteRecordTarget {
+        switch entry {
+        case .observation(_, let observation):
+            return .observation(observation)
+        case .growthLog(_, let log):
+            return .growthLog(log)
+        }
     }
 }

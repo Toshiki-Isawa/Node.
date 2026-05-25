@@ -5,6 +5,17 @@ enum SyncStatus: String, Codable, CaseIterable {
     case syncing = "syncing"
     case synced = "synced"
     case failed = "failed"
+    case syncPausedStorageLimit = "sync_paused_storage_limit"
+
+    var label: String {
+        switch self {
+        case .localOnly: return "ローカル"
+        case .syncing: return "同期中"
+        case .synced: return "同期済み"
+        case .failed: return "失敗"
+        case .syncPausedStorageLimit: return "容量上限"
+        }
+    }
 }
 
 enum GrowthLogType: String, Codable, CaseIterable, Identifiable {
@@ -55,20 +66,39 @@ enum PlantCategory: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+enum WateringInterval: Int, CaseIterable, Identifiable {
+    case threeDays = 3
+    case weekly = 7
+    case biweekly = 14
+    case threeWeeks = 21
+    case monthly = 30
+
+    var id: Int { rawValue }
+
+    var label: String { "\(rawValue)日" }
+
+    static func isPreset(_ days: Int) -> Bool {
+        allCases.contains { $0.rawValue == days }
+    }
+}
+
 enum AppTab: String, CaseIterable, Identifiable {
     case collection
     case timeline
     case shoot
-    case compare
 
     var id: String { rawValue }
+
+    /// タブバー表示順（観測ボタンを中央に配置）
+    static var tabBarItems: [AppTab] {
+        [.collection, .shoot, .timeline]
+    }
 
     var label: String {
         switch self {
         case .collection: return "コレクション"
         case .timeline: return "タイムライン"
         case .shoot: return "観測"
-        case .compare: return "比較"
         }
     }
 
@@ -77,39 +107,28 @@ enum AppTab: String, CaseIterable, Identifiable {
         case .collection: return "square.grid.2x2"
         case .timeline: return "clock"
         case .shoot: return "camera"
-        case .compare: return "square.split.2x1"
         }
     }
 }
 
-enum TimelapseJobStatus: String, Codable {
-    case pending
-    case processing
-    case completed
-    case failed
+enum AppNavigationRoute: Hashable {
+    case plant(UUID)
+    case compare(UUID)
 }
 
-struct TimelapseJob: Codable, Identifiable {
-    let id: String
-    let status: TimelapseJobStatus
-    let outputURL: String?
-    let error: String?
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case status
-        case outputURL = "outputURL"
-        case error
-    }
-}
-
-struct TimelapseCreateResponse: Codable {
-    let jobId: String
+enum TimelapseRequirements {
+    static let minimumObservations = 5
 }
 
 struct PresignedUploadResponse: Codable {
     let uploadURL: String
     let objectKey: String
+}
+
+struct PresignedDownloadResponse: Codable {
+    let downloadURL: String
+    let objectKey: String
+    let expiresIn: Int?
 }
 
 struct RemotePlant: Codable, Identifiable {

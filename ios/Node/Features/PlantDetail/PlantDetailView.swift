@@ -5,23 +5,121 @@ struct PlantDetailView: View {
     @Bindable var plant: Plant
     @ObservedObject var viewModel: PlantDetailViewModel
     let imageStore: ImageStore
+    let observationImageService: ObservationImageService
+    let modelContext: ModelContext
+    let syncEngine: SyncEngine
     var onBack: () -> Void
     var onEdit: () -> Void
     var onObserve: () -> Void
     var onCompare: () -> Void
     var onQuickLog: () -> Void
-    var onTimelapse: () -> Void
+
+    @State private var showCompareRequirement = false
+    @State private var deleteTarget: DeleteRecordTarget?
+    @State private var editObservationTarget: ObservationEditTarget?
+    @State private var editGrowthLogTarget: GrowthLogEditTarget?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                heroSection
-                actionRow
-                timelineSection
+        ZStack(alignment: .top) {
+            ScrollView {
+                VStack(spacing: 0) {
+                    heroSection
+                    actionRow
+                    careCalendarSection
+                    timelineSection
+                }
+                .padding(.bottom, 130)
             }
-            .padding(.bottom, 130)
+            .background(NodeColor.graphite)
+            .ignoresSafeArea(edges: .top)
+
+            topBar
         }
         .background(NodeColor.graphite)
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showCompareRequirement) {
+            CompareRequirementSheet(
+                plantName: plant.name,
+                observationCount: plant.observationCount,
+                onObserve: onObserve
+            )
+            .presentationDetents([.fraction(0.52)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NodeColor.charcoal)
+        }
+        .confirmationDialog(
+            deleteTarget?.title ?? "",
+            isPresented: Binding(
+                get: { deleteTarget != nil },
+                set: { if !$0 { deleteTarget = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("削除", role: .destructive) {
+                guard let deleteTarget else { return }
+                try? viewModel.delete(deleteTarget)
+                self.deleteTarget = nil
+            }
+            Button("キャンセル", role: .cancel) {
+                deleteTarget = nil
+            }
+        } message: {
+            if let deleteTarget {
+                Text(deleteTarget.message)
+            }
+        }
+        .sheet(item: $editObservationTarget) { target in
+            EditObservationSheet(
+                viewModel: EditObservationViewModel(
+                    plant: plant,
+                    observation: target.observation,
+                    modelContext: modelContext,
+                    syncEngine: syncEngine
+                ),
+                imageStore: imageStore,
+                observationImageService: observationImageService
+            )
+            .presentationDetents([.fraction(0.58), .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NodeColor.charcoal)
+        }
+        .sheet(item: $editGrowthLogTarget) { target in
+            EditGrowthLogSheet(
+                viewModel: EditGrowthLogViewModel(
+                    plant: plant,
+                    log: target.log,
+                    modelContext: modelContext,
+                    syncEngine: syncEngine
+                )
+            )
+            .presentationDetents([.fraction(0.62), .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NodeColor.charcoal)
+        }
+    }
+
+    private var topBar: some View {
+        HStack {
+            Button(action: onBack) {
+                Image(systemName: "chevron.left")
+                    .foregroundStyle(NodeColor.bone)
+                    .frame(width: 36, height: 36)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+            }
+            Spacer()
+            Button(action: onEdit) {
+                Image(systemName: "square.and.pencil")
+                    .foregroundStyle(NodeColor.bone)
+                    .frame(width: 36, height: 36)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+            }
+        }
+        .padding(.horizontal, NodeSpacing.sp4)
+        .padding(.top, 62)
+        .padding(.bottom, NodeSpacing.sp2)
     }
 
     private var heroSection: some View {
@@ -42,45 +140,20 @@ struct PlantDetailView: View {
             .frame(height: 380)
 
             VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                HStack {
-                    Button(action: onBack) {
-                        Image(systemName: "chevron.left")
-                            .foregroundStyle(NodeColor.bone)
-                            .frame(width: 36, height: 36)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
-                    }
-                    Spacer()
-                    Button(action: onEdit) {
-                        Image(systemName: "square.and.pencil")
-                            .foregroundStyle(NodeColor.bone)
-                            .frame(width: 36, height: 36)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
-                    }
+                MetaLabel(text: "\(plant.dayCount)日目 · 観測 \(plant.observationCount)回")
+                Text(plant.name)
+                    .font(NodeFont.display(32, weight: .light))
+                    .tracking(-0.5)
+                    .foregroundStyle(NodeColor.bone)
+                if !plant.species.isEmpty {
+                    Text(plant.species)
+                        .font(NodeFont.display(15, weight: .light))
+                        .italic()
+                        .foregroundStyle(NodeColor.fog)
                 }
-                .padding(.horizontal, NodeSpacing.sp4)
-                .padding(.top, 62)
-
-                Spacer()
-
-                VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                    MetaLabel(text: "\(plant.dayCount)日目 · 観測 \(plant.observationCount)回")
-                    Text(plant.name)
-                        .font(NodeFont.display(32, weight: .light))
-                        .tracking(-0.5)
-                        .foregroundStyle(NodeColor.bone)
-                    if !plant.species.isEmpty {
-                        Text(plant.species)
-                            .font(NodeFont.display(15, weight: .light))
-                            .italic()
-                            .foregroundStyle(NodeColor.fog)
-                    }
-                }
-                .padding(.horizontal, NodeSpacing.sp5)
-                .padding(.bottom, NodeSpacing.sp5)
             }
-            .frame(height: 380)
+            .padding(.horizontal, NodeSpacing.sp5)
+            .padding(.bottom, NodeSpacing.sp5)
         }
     }
 
@@ -88,12 +161,24 @@ struct PlantDetailView: View {
         VStack(spacing: NodeSpacing.sp2) {
             NodePrimaryButton("観測する", systemImage: "camera", action: onObserve)
             HStack(spacing: NodeSpacing.sp2) {
-                NodeSecondaryButton("比較する", systemImage: "square.split.2x1", action: onCompare)
+                NodeSecondaryButton("比較する", systemImage: "square.split.2x1") {
+                    if plant.observationCount >= 2 {
+                        onCompare()
+                    } else {
+                        showCompareRequirement = true
+                    }
+                }
                 NodeSecondaryButton("クイックログ", systemImage: "doc.text", action: onQuickLog)
             }
         }
         .padding(.horizontal, NodeSpacing.sp4)
         .padding(.vertical, NodeSpacing.sp4)
+    }
+
+    private var careCalendarSection: some View {
+        CareCalendarView(viewModel: viewModel)
+            .padding(.horizontal, NodeSpacing.sp4)
+            .padding(.bottom, NodeSpacing.sp4)
     }
 
     private var timelineSection: some View {
@@ -115,32 +200,23 @@ struct PlantDetailView: View {
                         ObservationTimelineRow(
                             observation: observation,
                             imageStore: imageStore,
-                            isLast: index == items.count - 1
+                            observationImageService: observationImageService,
+                            isLast: index == items.count - 1,
+                            onEditDate: {
+                                editObservationTarget = ObservationEditTarget(observation: observation)
+                            },
+                            onDelete: { deleteTarget = .observation(observation) }
                         )
                     case .growthLog(let log):
                         GrowthLogTimelineRow(
                             log: log,
-                            isLast: index == items.count - 1
+                            isLast: index == items.count - 1,
+                            onEdit: {
+                                editGrowthLogTarget = GrowthLogEditTarget(log: log)
+                            },
+                            onDelete: { deleteTarget = .growthLog(log) }
                         )
                     }
-                }
-
-                if plant.observationCount >= 2 {
-                    Button(action: onTimelapse) {
-                        HStack {
-                            Image(systemName: "film")
-                            Text("タイムラプス")
-                                .font(NodeFont.text(NodeFont.callout, weight: .medium))
-                        }
-                        .foregroundStyle(NodeColor.mossSoft)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, NodeSpacing.sp3)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: NodeRadius.lg)
-                                .stroke(NodeColor.hairline, lineWidth: 1)
-                        )
-                    }
-                    .padding(.top, NodeSpacing.sp2)
                 }
             }
         }
@@ -165,6 +241,8 @@ struct PlantDetailView: View {
 struct GrowthLogTimelineRow: View {
     let log: GrowthLog
     var isLast: Bool
+    var onEdit: () -> Void
+    var onDelete: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: NodeSpacing.sp4) {
@@ -195,7 +273,7 @@ struct GrowthLogTimelineRow: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     MetaLabel(
-                        text: log.type.label.uppercased() + " · " + log.createdAt.formatted(.dateTime.month().day()) + " · " + log.createdAt.formatted(date: .omitted, time: .shortened),
+                        text: log.type.label.uppercased() + " · " + log.createdAt.nodeMonthDayTime(),
                         color: NodeColor.olive,
                         size: 9
                     )
@@ -209,7 +287,14 @@ struct GrowthLogTimelineRow: View {
                             .foregroundStyle(NodeColor.paper)
                     }
                 }
-                Spacer()
+
+                Spacer(minLength: 0)
+
+                TimelineRowActionsMenu(
+                    editLabel: "編集",
+                    onEdit: onEdit,
+                    onDelete: onDelete
+                )
             }
         }
     }
@@ -218,7 +303,10 @@ struct GrowthLogTimelineRow: View {
 struct ObservationTimelineRow: View {
     let observation: PlantObservation
     let imageStore: ImageStore
+    let observationImageService: ObservationImageService
     var isLast: Bool
+    var onEditDate: () -> Void
+    var onDelete: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: NodeSpacing.sp4) {
@@ -235,14 +323,14 @@ struct ObservationTimelineRow: View {
 
             HStack(spacing: NodeSpacing.sp3) {
                 ObservationThumbnail(
-                    imagePath: observation.thumbnailPath.isEmpty ? observation.localImagePath : observation.thumbnailPath,
+                    imagePath: observationImageService.displayThumbnailPath(for: observation),
                     imageStore: imageStore,
                     size: 72
                 )
 
                 VStack(alignment: .leading, spacing: 4) {
                     MetaLabel(
-                        text: observation.createdAt.formatted(.dateTime.month().day()) + " · " + observation.createdAt.formatted(date: .omitted, time: .shortened),
+                        text: observation.createdAt.nodeMonthDayTime(),
                         color: NodeColor.fog,
                         size: 9
                     )
@@ -252,8 +340,56 @@ struct ObservationTimelineRow: View {
                             .foregroundStyle(NodeColor.paper)
                     }
                 }
-                Spacer()
+
+                Spacer(minLength: 0)
+
+                TimelineRowActionsMenu(
+                    editLabel: "日時を変更",
+                    onEdit: onEditDate,
+                    onDelete: onDelete
+                )
             }
         }
+    }
+}
+
+private struct TimelineRowActionsMenu: View {
+    let editLabel: String
+    let onEdit: () -> Void
+    let onDelete: () -> Void
+
+    var body: some View {
+        Menu {
+            Button(editLabel, action: onEdit)
+            Button("削除", role: .destructive, action: onDelete)
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(NodeColor.fog)
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(NodeColor.bark))
+                .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct ObservationEditTarget: Identifiable {
+    let id: UUID
+    let observation: PlantObservation
+
+    init(observation: PlantObservation) {
+        self.id = observation.id
+        self.observation = observation
+    }
+}
+
+private struct GrowthLogEditTarget: Identifiable {
+    let id: UUID
+    let log: GrowthLog
+
+    init(log: GrowthLog) {
+        self.id = log.id
+        self.log = log
     }
 }

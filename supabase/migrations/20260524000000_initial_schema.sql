@@ -33,23 +33,9 @@ create table if not exists public.growth_logs (
     updated_at timestamptz not null default now()
 );
 
-create table if not exists public.timelapse_jobs (
-    id uuid primary key default gen_random_uuid(),
-    user_id uuid not null references auth.users(id) on delete cascade,
-    plant_id uuid not null references public.plants(id) on delete cascade,
-    observation_ids uuid[] not null,
-    status text not null default 'pending'
-        check (status in ('pending', 'processing', 'completed', 'failed')),
-    output_url text,
-    error text,
-    created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now()
-);
-
 alter table public.plants enable row level security;
 alter table public.observations enable row level security;
 alter table public.growth_logs enable row level security;
-alter table public.timelapse_jobs enable row level security;
 
 create policy "plants_select_own" on public.plants
     for select using (auth.uid() = user_id);
@@ -117,13 +103,6 @@ create policy "growth_logs_delete_own" on public.growth_logs
             where p.id = growth_logs.plant_id and p.user_id = auth.uid()
         )
     );
-
-create policy "timelapse_jobs_select_own" on public.timelapse_jobs
-    for select using (auth.uid() = user_id);
-create policy "timelapse_jobs_insert_own" on public.timelapse_jobs
-    for insert with check (auth.uid() = user_id);
-create policy "timelapse_jobs_update_own" on public.timelapse_jobs
-    for update using (auth.uid() = user_id);
 
 create index if not exists idx_plants_user_id on public.plants(user_id);
 create index if not exists idx_observations_plant_id on public.observations(plant_id);

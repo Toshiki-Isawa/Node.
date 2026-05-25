@@ -5,6 +5,7 @@ struct AddPlantView: View {
     @ObservedObject var viewModel: AddPlantViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var initialImage: UIImage?
+    @State private var initialImageFromLibrary = false
     @State private var showCamera = false
 
     var body: some View {
@@ -12,14 +13,31 @@ struct AddPlantView: View {
             VStack(spacing: NodeSpacing.sp4) {
                 topBar
                 firstObservationSlot
+
+                if initialImage != nil, initialImageFromLibrary {
+                    NodeRecordDateSection(
+                        date: $viewModel.initialObservationAt,
+                        range: viewModel.initialObservationAtRange,
+                        label: "観測日時"
+                    )
+                    .padding(.horizontal, NodeSpacing.sp4)
+                }
+
                 formFields
             }
             .padding(.bottom, 140)
         }
         .background(NodeColor.graphite)
         .fullScreenCover(isPresented: $showCamera) {
-            CameraCaptureSheet { image in
+            CameraCaptureSheet { image, creationDate in
                 initialImage = image
+                if creationDate != nil {
+                    initialImageFromLibrary = true
+                    viewModel.applyLibraryPhotoDate(creationDate)
+                } else {
+                    initialImageFromLibrary = false
+                    viewModel.initialObservationAt = .now
+                }
             }
         }
     }
@@ -101,6 +119,11 @@ struct AddPlantView: View {
                 }
             }
 
+            WateringIntervalSection(
+                intervalDays: $viewModel.wateringIntervalDays,
+                footerHint: "コレクションで水やり優先順に並びます"
+            )
+
             NodeTextField(label: "メモ", hint: "任意", text: $viewModel.note, placeholder: "—")
 
             bottomSaveButton
@@ -119,7 +142,10 @@ struct AddPlantView: View {
 
     private func savePlant() {
         do {
-            _ = try viewModel.save(initialImage: initialImage)
+            _ = try viewModel.save(
+                initialImage: initialImage,
+                useCustomObservationDate: initialImageFromLibrary
+            )
             dismiss()
         } catch {
             // silent — local save should rarely fail
@@ -130,7 +156,7 @@ struct AddPlantView: View {
 /// Minimal camera sheet for first observation during plant registration.
 private struct CameraCaptureSheet: View {
     @Environment(\.dismiss) private var dismiss
-    let onCapture: (UIImage) -> Void
+    let onCapture: (UIImage, Date?) -> Void
     @StateObject private var camera = CameraService()
     @State private var showPhotoLibrary = false
 
@@ -193,8 +219,8 @@ private struct CameraCaptureSheet: View {
         }
         .onDisappear { camera.stop() }
         .sheet(isPresented: $showPhotoLibrary) {
-            PhotoLibraryPicker { image in
-                onCapture(image)
+            PhotoLibraryPicker { picked in
+                onCapture(picked.image, picked.creationDate)
                 dismiss()
             }
         }
@@ -203,7 +229,7 @@ private struct CameraCaptureSheet: View {
     private func captureFromCamera() async {
         guard camera.isCaptureReady else { return }
         guard let image = try? await camera.capturePhoto() else { return }
-        onCapture(image)
+        onCapture(image, nil)
         dismiss()
     }
 }

@@ -5,6 +5,16 @@ final class CompareViewModel: ObservableObject {
     @Published var plant: Plant?
     @Published var beforeIndex: Int = 0
     @Published var afterIndex: Int = 0
+    @Published private(set) var beforeImagePath: String?
+    @Published private(set) var afterImagePath: String?
+    @Published private(set) var isLoadingImages = false
+    @Published var imageLoadError: String?
+
+    private let observationImageService: ObservationImageService
+
+    init(observationImageService: ObservationImageService) {
+        self.observationImageService = observationImageService
+    }
 
     var sortedObservations: [PlantObservation] {
         guard let plant else { return [] }
@@ -28,6 +38,30 @@ final class CompareViewModel: ObservableObject {
         let count = plant?.observations.count ?? 0
         beforeIndex = 0
         afterIndex = max(0, count - 1)
+        Task { await loadComparisonImages() }
+    }
+
+    func loadComparisonImages() async {
+        guard let before = beforeObservation, let after = afterObservation else {
+            beforeImagePath = nil
+            afterImagePath = nil
+            return
+        }
+
+        isLoadingImages = true
+        imageLoadError = nil
+        defer { isLoadingImages = false }
+
+        do {
+            async let beforePath = observationImageService.ensureOriginalPath(for: before)
+            async let afterPath = observationImageService.ensureOriginalPath(for: after)
+            beforeImagePath = try await beforePath
+            afterImagePath = try await afterPath
+        } catch {
+            beforeImagePath = nil
+            afterImagePath = nil
+            imageLoadError = error.localizedDescription
+        }
     }
 
     var intervalDays: Int {

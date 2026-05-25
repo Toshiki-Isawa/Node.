@@ -1,0 +1,143 @@
+{
+  "identifier" : "Products",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "ja_JP",
+    "_storefront" : "JPN",
+    "_storeKitConfigurationLocale" : "ja_JP",
+    "_storeKitConfigurationStorefront" : "JPN",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "node_archive",
+      "localizations" : [
+
+      ],
+      "name" : "Archive",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "480",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "node_archive_monthly",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "植物の時間を残す。Original 同期と 50GB Archive。",
+              "displayName" : "Archive",
+              "locale" : "ja"
+            }
+          ],
+          "productID" : "app.node.archive.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Archive Monthly",
+          "subscriptionGroupID" : "node_archive",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "node_conservatory",
+      "localizations" : [
+
+      ],
+      "name" : "Conservatory",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "980",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "node_conservatory_monthly",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "コレクションを永久保存。500GB Archive。",
+              "displayName" : "Conservatory",
+              "locale" : "ja"
+            }
+          ],
+          "productID" : "app.node.conservatory.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Conservatory Monthly",
+          "subscriptionGroupID" : "node_conservatory",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

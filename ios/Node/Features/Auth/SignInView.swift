@@ -37,6 +37,26 @@ struct SignInView: View {
                     .frame(height: 50)
                     .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
 
+                    if viewModel.isGoogleSignInAvailable {
+                        Button {
+                            Task { await viewModel.signInWithGoogle() }
+                        } label: {
+                            HStack(spacing: NodeSpacing.sp2) {
+                                Image(systemName: "g.circle.fill")
+                                    .font(.system(size: 18, weight: .regular))
+                                Text("Google で続ける")
+                                    .font(NodeFont.text(NodeFont.callout, weight: .semibold))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .foregroundStyle(NodeColor.graphite)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
+                        }
+                        .buttonStyle(NodePressStyle())
+                        .disabled(viewModel.isLoading)
+                    }
+
                     Button("オフラインで続ける") {
                         viewModel.continueOffline()
                     }

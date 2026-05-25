@@ -11,6 +11,8 @@ ios/Node/Config/Secrets.xcconfig
 # Supabase local
 supabase/.branches
 supabase/.temp
+supabase/functions/.env
 
 # Secret
 .secret
+.env

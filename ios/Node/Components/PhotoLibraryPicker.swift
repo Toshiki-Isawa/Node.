@@ -1,10 +1,17 @@
+import Photos
 import PhotosUI
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
-/// シミュレータなど AVFoundation カメラが使えない環境向けのフォールバック。
+struct PickedPhoto {
+    let image: UIImage
+    let creationDate: Date?
+}
+
+/// 写真ライブラリから画像を1枚選択する。
 struct PhotoLibraryPicker: UIViewControllerRepresentable {
-    let onImage: (UIImage) -> Void
+    let onPick: (PickedPhoto) -> Void
     @Environment(\.dismiss) private var dismiss
 
     func makeUIViewController(context: Context) -> PHPickerViewController {
@@ -30,19 +37,56 @@ struct PhotoLibraryPicker: UIViewControllerRepresentable {
         }
 
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-            guard let provider = results.first?.itemProvider,
-                  provider.canLoadObject(ofClass: UIImage.self) else {
+            guard let result = results.first else {
                 parent.dismiss()
                 return
             }
-            provider.loadObject(ofClass: UIImage.self) { object, _ in
+
+            let creationDate = Self.creationDate(for: result)
+
+            loadImage(from: result.itemProvider) { image in
                 Task { @MainActor in
-                    if let image = object as? UIImage {
-                        self.parent.onImage(image)
+                    if let image {
+                        self.parent.onPick(PickedPhoto(image: image, creationDate: creationDate))
                     }
                     self.parent.dismiss()
                 }
             }
+        }
+
+        private static func creationDate(for result: PHPickerResult) -> Date? {
+            guard let assetId = result.assetIdentifier else { return nil }
+            let assets = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil)
+            return assets.firstObject?.creationDate
+        }
+
+        private func loadImage(from provider: NSItemProvider, completion: @escaping (UIImage?) -> Void) {
+            if provider.canLoadObject(ofClass: UIImage.self) {
+                provider.loadObject(ofClass: UIImage.self) { object, _ in
+                    completion(object as? UIImage)
+                }
+                return
+            }
+
+            let typeIdentifiers = [
+                UTType.image.identifier,
+                UTType.heic.identifier,
+                UTType.jpeg.identifier,
+                UTType.png.identifier,
+            ]
+
+            for typeIdentifier in typeIdentifiers where provider.hasItemConformingToTypeIdentifier(typeIdentifier) {
+                provider.loadDataRepresentation(forTypeIdentifier: typeIdentifier) { data, _ in
+                    guard let data else {
+                        completion(nil)
+                        return
+                    }
+                    completion(UIImage(data: data))
+                }
+                return
+            }
+
+            completion(nil)
         }
     }
 }

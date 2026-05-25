@@ -11,7 +11,7 @@ max_rows = 1000
 [db]
 port = 54322
 shadow_port = 54320
-major_version = 15
+major_version = 17
 
 [studio]
 enabled = true
@@ -26,9 +26,18 @@ enable_signup = true
 
 [auth.external.apple]
 enabled = true
+client_id = "app.node.ios"
+# ネイティブ Sign In（iOS SDK）のみ。OAuth Secret は不要
+secret = ""
+
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)"
+skip_nonce_check = true
 
 [functions.r2-presign-upload]
 verify_jwt = true
 
-[functions.generate-timelapse]
+[functions.r2-presign-download]
 verify_jwt = true

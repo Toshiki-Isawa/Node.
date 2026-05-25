@@ -8,23 +8,39 @@ struct RootView: View {
     @State private var selectedTab: AppTab = .collection
     @State private var showCamera = false
     @State private var showAddPlant = false
-    @State private var navigationPath: [UUID] = []
+    @State private var navigationPath: [AppNavigationRoute] = []
     @State private var quickLogTarget: PlantSheetTarget?
+    @State private var showBulkQuickLog = false
     @State private var editPlantTarget: PlantSheetTarget?
     @State private var timelapseTarget: PlantSheetTarget?
-    @State private var showPlantPicker = false
+    @State private var showSettings = false
 
     @StateObject private var collectionViewModel: CollectionViewModel
     @StateObject private var timelineViewModel: TimelineViewModel
-    @StateObject private var compareViewModel = CompareViewModel()
+    @StateObject private var compareViewModel: CompareViewModel
     @StateObject private var cameraViewModel: CameraViewModel
+    @StateObject private var settingsViewModel: SettingsViewModel
 
     init(modelContext: ModelContext, environment: AppEnvironment) {
         _collectionViewModel = StateObject(wrappedValue: CollectionViewModel(modelContext: modelContext))
-        _timelineViewModel = StateObject(wrappedValue: TimelineViewModel(modelContext: modelContext))
+        _timelineViewModel = StateObject(wrappedValue: TimelineViewModel(
+            modelContext: modelContext,
+            recordDeletionService: environment.recordDeletionService
+        ))
+        _compareViewModel = StateObject(wrappedValue: CompareViewModel(
+            observationImageService: environment.observationImageService
+        ))
         _cameraViewModel = StateObject(wrappedValue: CameraViewModel(
             modelContext: modelContext,
             imageStore: environment.imageStore,
+            observationImageService: environment.observationImageService,
+            syncEngine: environment.syncEngine
+        ))
+        _settingsViewModel = StateObject(wrappedValue: SettingsViewModel(
+            modelContext: modelContext,
+            imageStore: environment.imageStore,
+            planService: environment.planService,
+            subscriptionService: environment.subscriptionService,
             syncEngine: environment.syncEngine
         ))
     }
@@ -43,16 +59,25 @@ struct RootView: View {
         NavigationStack(path: $navigationPath) {
             ZStack(alignment: .bottom) {
                 tabContent
-                NodeTabBar(selectedTab: $selectedTab) {
+                NodeTabBar(selectedTab: selectedTabBinding) {
                     cameraViewModel.reloadPlants()
                     showCamera = true
                 }
             }
-            .navigationDestination(for: UUID.self) { plantId in
-                if let plant = fetchPlant(id: plantId) {
-                    plantDetail(for: plant)
-                } else {
-                    EmptyStateView(message: "Plant not found.")
+            .navigationDestination(for: AppNavigationRoute.self) { route in
+                switch route {
+                case .plant(let plantId):
+                    if let plant = fetchPlant(id: plantId) {
+                        plantDetail(for: plant)
+                    } else {
+                        EmptyStateView(message: "Plant not found.")
+                    }
+                case .compare(let plantId):
+                    if let plant = fetchPlant(id: plantId) {
+                        compareView(for: plant)
+                    } else {
+                        EmptyStateView(message: "Plant not found.")
+                    }
                 }
             }
         }
@@ -106,68 +131,124 @@ struct RootView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(NodeColor.charcoal)
         }
+        .sheet(isPresented: $showBulkQuickLog) {
+            BulkQuickLogSheet(
+                viewModel: BulkQuickLogViewModel(
+                    modelContext: modelContext,
+                    syncEngine: environment.syncEngine
+                ),
+                onObserveAfterSave: {
+                    cameraViewModel.reloadPlants()
+                    showCamera = true
+                }
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NodeColor.charcoal)
+            .onDisappear {
+                collectionViewModel.reload()
+                timelineViewModel.reload()
+            }
+        }
         .sheet(item: $timelapseTarget) { target in
             TimelapseView(
-                viewModel: PlantDetailViewModel(plant: target.plant),
+                viewModel: PlantDetailViewModel(
+                    plant: target.plant,
+                    recordDeletionService: environment.recordDeletionService,
+                    observationImageService: environment.observationImageService
+                ),
                 timelapseService: environment.timelapseService,
+                planService: environment.planService,
                 imageStore: environment.imageStore
             )
         }
-        .confirmationDialog("比較する植物", isPresented: $showPlantPicker, titleVisibility: .visible) {
-            ForEach(collectionViewModel.plants, id: \.id) { plant in
-                Button(plant.name) {
-                    compareViewModel.configure(plant: plant)
-                    selectedTab = .compare
-                }
-            }
+        .sheet(isPresented: $showSettings) {
+            SettingsView(
+                viewModel: settingsViewModel,
+                planService: environment.planService
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NodeColor.graphite)
         }
+    }
+
+    private func openCompare(for plant: Plant) {
+        compareViewModel.configure(plant: plant)
+        navigationPath.append(.compare(plant.id))
+    }
+
+    /// タブ切り替え時に NavigationStack の詳細画面を残さない
+    private func selectTab(_ tab: AppTab) {
+        navigationPath.removeAll()
+        selectedTab = tab
+    }
+
+    private var selectedTabBinding: Binding<AppTab> {
+        Binding(
+            get: { selectedTab },
+            set: { selectTab($0) }
+        )
     }
 
     @ViewBuilder
     private var tabContent: some View {
         switch selectedTab {
-        case .collection:
+        case .collection, .shoot:
             CollectionView(
                 viewModel: collectionViewModel,
+                planService: environment.planService,
                 imageStore: environment.imageStore,
-                onPlantTap: { plant in navigationPath.append(plant.id) },
-                onAddPlant: { showAddPlant = true }
+                observationImageService: environment.observationImageService,
+                onPlantTap: { plant in navigationPath.append(.plant(plant.id)) },
+                onAddPlant: { showAddPlant = true },
+                onBulkQuickLog: { showBulkQuickLog = true },
+                onSettings: { showSettings = true }
             )
         case .timeline:
             TimelineView(
                 viewModel: timelineViewModel,
                 imageStore: environment.imageStore,
-                onPlantTap: { plant in navigationPath.append(plant.id) }
+                observationImageService: environment.observationImageService,
+                modelContext: modelContext,
+                syncEngine: environment.syncEngine,
+                onBack: { selectTab(.collection) },
+                onPlantTap: { plant in navigationPath.append(.plant(plant.id)) }
             )
-        case .shoot:
-            CollectionView(
-                viewModel: collectionViewModel,
-                imageStore: environment.imageStore,
-                onPlantTap: { plant in navigationPath.append(plant.id) },
-                onAddPlant: { showAddPlant = true }
-            )
-        case .compare:
-            CompareView(
-                viewModel: compareViewModel,
-                imageStore: environment.imageStore,
-                onBack: { selectedTab = .collection },
-                onSelectPlant: { showPlantPicker = true }
-            )
-            .onAppear {
-                if compareViewModel.plant == nil {
-                    compareViewModel.configure(plant: collectionViewModel.plants.first)
-                }
+        }
+    }
+
+    @ViewBuilder
+    private func compareView(for plant: Plant) -> some View {
+        CompareView(
+            viewModel: compareViewModel,
+            imageStore: environment.imageStore,
+            onBack: { navigationPath.removeLast() },
+            onTimelapse: {
+                timelapseTarget = PlantSheetTarget(plant: plant)
             }
+        )
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            compareViewModel.configure(plant: plant)
         }
     }
 
     @ViewBuilder
     private func plantDetail(for plant: Plant) -> some View {
-        let detailVM = PlantDetailViewModel(plant: plant)
+        let detailVM = PlantDetailViewModel(
+            plant: plant,
+            recordDeletionService: environment.recordDeletionService,
+            observationImageService: environment.observationImageService
+        )
         PlantDetailView(
             plant: plant,
             viewModel: detailVM,
             imageStore: environment.imageStore,
+            observationImageService: environment.observationImageService,
+            modelContext: modelContext,
+            syncEngine: environment.syncEngine,
             onBack: { navigationPath.removeLast() },
             onEdit: {
                 editPlantTarget = PlantSheetTarget(plant: plant)
@@ -178,14 +259,10 @@ struct RootView: View {
                 showCamera = true
             },
             onCompare: {
-                compareViewModel.configure(plant: plant)
-                selectedTab = .compare
+                openCompare(for: plant)
             },
             onQuickLog: {
                 quickLogTarget = PlantSheetTarget(plant: plant)
-            },
-            onTimelapse: {
-                timelapseTarget = PlantSheetTarget(plant: plant)
             }
         )
     }

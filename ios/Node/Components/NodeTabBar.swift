@@ -6,7 +6,7 @@ struct NodeTabBar: View {
 
     var body: some View {
         HStack(spacing: NodeSpacing.sp1) {
-            ForEach(AppTab.allCases) { tab in
+            ForEach(AppTab.tabBarItems) { tab in
                 if tab == .shoot {
                     shootButton
                 } else {

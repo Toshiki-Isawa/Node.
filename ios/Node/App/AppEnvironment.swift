@@ -29,8 +29,12 @@ enum ModelContainerFactory {
 @MainActor
 final class AppEnvironment: ObservableObject {
     let imageStore: ImageStore
+    let observationImageService: ObservationImageService
     let supabaseService: SupabaseService
+    let subscriptionService: SubscriptionService
+    let planService: PlanService
     let syncEngine: SyncEngine
+    let recordDeletionService: RecordDeletionService
     let cameraService: CameraService
     let timelapseService: TimelapseService
 
@@ -39,21 +43,56 @@ final class AppEnvironment: ObservableObject {
     init(modelContext: ModelContext) {
         let imageStore = ImageStore()
         let supabaseService = SupabaseService()
+        let observationImageService = ObservationImageService(
+            imageStore: imageStore,
+            supabaseService: supabaseService
+        )
+        let subscriptionService = SubscriptionService()
+        let planService = PlanService(
+            supabaseService: supabaseService,
+            subscriptionService: subscriptionService
+        )
         let syncEngine = SyncEngine(
             modelContext: modelContext,
             imageStore: imageStore,
+            observationImageService: observationImageService,
+            supabaseService: supabaseService,
+            planService: planService
+        )
+        planService.syncEngine = syncEngine
+        let recordDeletionService = RecordDeletionService(
+            modelContext: modelContext,
+            imageStore: imageStore,
+            observationImageService: observationImageService,
             supabaseService: supabaseService
         )
         let authViewModel = AuthViewModel(supabaseService: supabaseService, syncEngine: syncEngine)
 
         self.imageStore = imageStore
+        self.observationImageService = observationImageService
         self.supabaseService = supabaseService
+        self.subscriptionService = subscriptionService
+        self.planService = planService
         self.syncEngine = syncEngine
+        self.recordDeletionService = recordDeletionService
         self.cameraService = CameraService()
-        self.timelapseService = TimelapseService(supabaseService: supabaseService)
+        self.timelapseService = TimelapseService(
+            imageStore: imageStore,
+            observationImageService: observationImageService
+        )
         self.authViewModel = authViewModel
 
         authViewModel.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+
+        subscriptionService.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+
+        planService.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)

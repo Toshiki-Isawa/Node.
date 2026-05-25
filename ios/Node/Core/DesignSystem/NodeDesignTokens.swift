@@ -29,6 +29,7 @@ enum NodeColor {
     static let syncActive = Color(red: 0.580, green: 0.667, blue: 0.749) // --c-sync-active
     static let syncDone = moss
     static let syncFail = Color(red: 0.749, green: 0.478, blue: 0.369) // --c-sync-fail
+    static let syncPaused = Color(red: 0.667, green: 0.580, blue: 0.420) // storage limit
 
     // Structural
     static let hairline = bone.opacity(0.08)

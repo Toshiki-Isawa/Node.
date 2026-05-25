@@ -14,9 +14,7 @@ final class CollectionViewModel: ObservableObject {
     }
 
     func reload() {
-        let descriptor = FetchDescriptor<Plant>(
-            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
-        )
+        let descriptor = FetchDescriptor<Plant>()
         plants = (try? modelContext.fetch(descriptor)) ?? []
     }
 
@@ -27,8 +25,18 @@ final class CollectionViewModel: ObservableObject {
     }
 
     var filteredPlants: [Plant] {
-        guard selectedCategory != "すべて" else { return plants }
-        return plants.filter { $0.category == selectedCategory }
+        let base: [Plant]
+        if selectedCategory == "すべて" {
+            base = plants
+        } else {
+            base = plants.filter { $0.category == selectedCategory }
+        }
+        return base.sorted { lhs, rhs in
+            let leftPriority = lhs.wateringSortPriority
+            let rightPriority = rhs.wateringSortPriority
+            if leftPriority != rightPriority { return leftPriority > rightPriority }
+            return lhs.updatedAt > rhs.updatedAt
+        }
     }
 
     var totalObservations: Int {

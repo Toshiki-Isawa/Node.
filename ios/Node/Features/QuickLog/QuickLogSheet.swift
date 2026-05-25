@@ -154,9 +154,9 @@ struct QuickLogSheet: View {
     }
 
     private var recordButtonTitle: String {
-        let time = viewModel.recordedAt.formatted(date: .omitted, time: .shortened)
+        let time = viewModel.recordedAt.nodeTime()
         if viewModel.isRecordingInPast {
-            let date = viewModel.recordedAt.formatted(.dateTime.month().day())
+            let date = viewModel.recordedAt.nodeMonthDay()
             return "記録する · \(date) \(time)"
         }
         return "記録する · \(time)"
@@ -176,7 +176,7 @@ struct QuickLogSheet: View {
     }
 }
 
-private struct QuickLogTypeCell: View {
+struct QuickLogTypeCell: View {
     let type: GrowthLogType
     let isSelected: Bool
     let action: () -> Void

@@ -7,6 +7,7 @@ struct CameraView: View {
     var onClose: () -> Void
 
     @State private var showPhotoLibrary = false
+    @State private var captureTask: Task<Void, Never>?
 
     var body: some View {
         ZStack {
@@ -31,7 +32,7 @@ struct CameraView: View {
                     .allowsHitTesting(false)
             }
 
-            framingOverlay
+            cameraOverlayLayer
 
             if viewModel.showFlash {
                 NodeColor.bone.opacity(0.06)
@@ -44,6 +45,10 @@ struct CameraView: View {
                 Spacer()
                 bottomChrome
             }
+
+            if viewModel.isBusy {
+                captureBusyOverlay
+            }
         }
         .task {
             guard !CameraService.usesPhotoLibraryFallback else { return }
@@ -52,41 +57,171 @@ struct CameraView: View {
                 await cameraService.start()
             }
         }
-        .onDisappear { cameraService.stop() }
+        .onAppear { viewModel.prepareForSession() }
+        .onDisappear {
+            cancelActiveCapture()
+            cameraService.stop()
+        }
         .sheet(isPresented: $showPhotoLibrary) {
-            PhotoLibraryPicker { image in
-                Task { await viewModel.saveObservation(image: image) }
+            PhotoLibraryPicker { picked in
+                viewModel.stageLibraryImport(image: picked.image, creationDate: picked.creationDate)
             }
+        }
+        .sheet(isPresented: libraryImportSheetPresented) {
+            LibraryObservationImportSheet(
+                viewModel: viewModel,
+                onSaved: { saved in
+                    if saved {
+                        handleSavedCapture(true)
+                    }
+                }
+            )
+            .presentationDetents([.fraction(0.62), .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NodeColor.charcoal)
         }
     }
 
-    private var framingOverlay: some View {
-        GeometryReader { geo in
-            let insetX = geo.size.width * 0.10
-            let insetTop = geo.size.height * 0.14
-            let insetBottom = geo.size.height * 0.22
-            let frame = CGRect(
-                x: insetX,
-                y: insetTop,
-                width: geo.size.width - insetX * 2,
-                height: geo.size.height - insetTop - insetBottom
+    private var libraryImportSheetPresented: Binding<Bool> {
+        Binding(
+            get: { viewModel.pendingLibraryImage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    viewModel.cancelLibraryImport()
+                }
+            }
+        )
+    }
+
+    private var captureBusyOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.55)
+                .ignoresSafeArea()
+
+            VStack(spacing: NodeSpacing.sp4) {
+                ProgressView()
+                    .tint(NodeColor.moss)
+                    .scaleEffect(1.1)
+
+                MetaLabel(text: viewModel.capturePhase.statusText, color: NodeColor.fog, size: 9)
+
+                Button(action: cancelActiveCapture) {
+                    Text("キャンセル")
+                        .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                        .foregroundStyle(NodeColor.bone)
+                        .padding(.horizontal, NodeSpacing.sp5)
+                        .padding(.vertical, 10)
+                        .background(
+                            Capsule()
+                                .stroke(NodeColor.hairlineStrong, lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(NodeSpacing.sp6)
+            .background(
+                RoundedRectangle(cornerRadius: NodeRadius.xl)
+                    .fill(NodeColor.charcoal.opacity(0.92))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: NodeRadius.xl)
+                            .stroke(NodeColor.hairline, lineWidth: 1)
+                    )
             )
+        }
+    }
+
+    private func startCaptureFlow() {
+        captureTask?.cancel()
+        cameraService.cancelCapture()
+
+        captureTask = Task {
+            viewModel.setCapturePhase(.capturing)
+
+            guard !Task.isCancelled, let image = try? await cameraService.capturePhoto() else {
+                viewModel.resetCaptureState()
+                return
+            }
+
+            viewModel.setCapturePhase(.saving)
+            let saved = await viewModel.saveObservation(image: image)
+
+            guard !Task.isCancelled else {
+                viewModel.resetCaptureState()
+                return
+            }
+
+            viewModel.resetCaptureState()
+            handleSavedCapture(saved)
+        }
+    }
+
+    private func cancelActiveCapture() {
+        captureTask?.cancel()
+        cameraService.cancelCapture()
+        viewModel.resetCaptureState()
+        captureTask = nil
+    }
+
+    private func closeCamera() {
+        cancelActiveCapture()
+        onClose()
+    }
+
+    private func handleSavedCapture(_ saved: Bool) {
+        guard saved else { return }
+        if viewModel.captureMode == .single {
+            onClose()
+        }
+    }
+
+    private func cameraFrame(in size: CGSize) -> CGRect {
+        let insetX = size.width * 0.10
+        let insetTop = size.height * 0.14
+        let insetBottom = size.height * 0.22
+        return CGRect(
+            x: insetX,
+            y: insetTop,
+            width: size.width - insetX * 2,
+            height: size.height - insetTop - insetBottom
+        )
+    }
+
+    private var cameraOverlayLayer: some View {
+        GeometryReader { geo in
+            let frame = cameraFrame(in: geo.size)
 
             ZStack {
-                if cameraService.showGrid {
-                    GridOverlay(frame: frame)
+                Group {
+                    if cameraService.showGrid {
+                        GridOverlay(frame: frame)
+                    }
+                    ReticleOverlay(frame: frame)
+                    LevelIndicator(roll: cameraService.rollDegrees)
+                        .position(x: geo.size.width / 2, y: frame.minY - 28)
                 }
-                ReticleOverlay(frame: frame)
-                LevelIndicator(roll: cameraService.rollDegrees)
-                    .position(x: geo.size.width / 2, y: insetTop - 28)
+                .allowsHitTesting(false)
+
+                Button {
+                    cameraService.showGrid.toggle()
+                } label: {
+                    Image(systemName: "square.grid.3x3")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundStyle(cameraService.showGrid ? NodeColor.moss : NodeColor.bone)
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .position(x: frame.maxX - 22, y: frame.midY)
+                .disabled(viewModel.isBusy)
+                .opacity(viewModel.isBusy ? 0.5 : 1)
             }
         }
-        .allowsHitTesting(false)
     }
 
     private var topChrome: some View {
         HStack {
-            Button(action: onClose) {
+            Button(action: closeCamera) {
                 Image(systemName: "xmark")
                     .font(.system(size: 18, weight: .regular))
                     .foregroundStyle(NodeColor.bone)
@@ -119,12 +254,14 @@ struct CameraView: View {
 
     private var bottomChrome: some View {
         VStack(spacing: NodeSpacing.sp4) {
+            captureModePicker
+
             if !viewModel.plants.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: NodeSpacing.sp2) {
                         ForEach(viewModel.plants, id: \.id) { plant in
                             Button {
-                                viewModel.selectedPlant = plant
+                                viewModel.selectPlant(plant)
                             } label: {
                                 Text(plant.name)
                                     .font(NodeFont.text(12, weight: .medium))
@@ -141,15 +278,62 @@ struct CameraView: View {
                 }
             }
 
-            HStack(spacing: NodeSpacing.sp8) {
-                toolButton("square.grid.3x3") { cameraService.showGrid.toggle() }
+            HStack(spacing: NodeSpacing.sp6) {
+                toolButton("photo.on.rectangle.angled") {
+                    showPhotoLibrary = true
+                }
+                .disabled(viewModel.isBusy)
+                .opacity(viewModel.isBusy ? 0.5 : 1)
                 shutterButton
-                toolButton("arrow.triangle.2.circlepath.camera") {
-                    try? cameraService.flipCamera()
+                if !CameraService.usesPhotoLibraryFallback {
+                    toolButton("arrow.triangle.2.circlepath.camera") {
+                        try? cameraService.flipCamera()
+                    }
+                    .disabled(viewModel.isBusy)
+                    .opacity(viewModel.isBusy ? 0.5 : 1)
+                } else {
+                    Color.clear.frame(width: 44, height: 44)
                 }
             }
             .padding(.bottom, 40)
         }
+    }
+
+    private var captureModePicker: some View {
+        VStack(spacing: NodeSpacing.sp2) {
+            HStack(spacing: NodeSpacing.sp2) {
+                ForEach(CameraCaptureMode.allCases) { mode in
+                    Button {
+                        viewModel.captureMode = mode
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: mode.systemImage)
+                                .font(.system(size: 12, weight: .medium))
+                            Text(mode.label)
+                                .font(NodeFont.text(12, weight: .medium))
+                        }
+                        .padding(.horizontal, NodeSpacing.sp3)
+                        .padding(.vertical, 8)
+                        .foregroundStyle(viewModel.captureMode == mode ? NodeColor.graphite : NodeColor.bone)
+                        .background(
+                            Capsule().fill(viewModel.captureMode == mode ? NodeColor.moss : NodeColor.charcoal.opacity(0.8))
+                        )
+                        .overlay(
+                            Capsule().stroke(
+                                viewModel.captureMode == mode ? NodeColor.moss.opacity(0.5) : NodeColor.hairline,
+                                lineWidth: 1
+                            )
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            MetaLabel(text: viewModel.captureModeHint, color: NodeColor.fog, size: 9)
+        }
+        .padding(.horizontal, NodeSpacing.sp4)
+        .disabled(viewModel.isBusy)
+        .opacity(viewModel.isBusy ? 0.6 : 1)
     }
 
     private func toolButton(_ symbol: String, action: @escaping () -> Void) -> some View {
@@ -176,7 +360,7 @@ struct CameraView: View {
             if CameraService.usesPhotoLibraryFallback {
                 showPhotoLibrary = true
             } else {
-                Task { await capture() }
+                startCaptureFlow()
             }
         } label: {
             ZStack {
@@ -194,14 +378,85 @@ struct CameraView: View {
             }
         }
         .buttonStyle(NodePressStyle())
-        .disabled(!CameraService.usesPhotoLibraryFallback && !cameraService.isCaptureReady)
-        .opacity(!CameraService.usesPhotoLibraryFallback && !cameraService.isCaptureReady ? 0.5 : 1)
+        .disabled(viewModel.isBusy || (!CameraService.usesPhotoLibraryFallback && !cameraService.isCaptureReady))
+        .opacity(viewModel.isBusy || (!CameraService.usesPhotoLibraryFallback && !cameraService.isCaptureReady) ? 0.5 : 1)
+    }
+}
+
+private struct LibraryObservationImportSheet: View {
+    @ObservedObject var viewModel: CameraViewModel
+    var onSaved: (Bool) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var isSaving = false
+
+    var body: some View {
+        VStack(spacing: NodeSpacing.sp4) {
+            Capsule()
+                .fill(NodeColor.stone)
+                .frame(width: 36, height: 4)
+                .frame(maxWidth: .infinity)
+
+            VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+                MetaLabel(text: viewModel.selectedPlant?.name.uppercased() ?? "PLANT", size: 9)
+                Text("ライブラリから観測")
+                    .font(NodeFont.display(NodeFont.title3, weight: .light))
+                    .foregroundStyle(NodeColor.bone)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let image = viewModel.pendingLibraryImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
+            }
+
+            NodeRecordDateSection(
+                date: $viewModel.observedAt,
+                range: viewModel.observedAtRange,
+                label: "観測日時"
+            )
+
+            if let error = viewModel.errorMessage {
+                MetaLabel(text: error, color: NodeColor.syncFail)
+            }
+
+            Spacer(minLength: 0)
+
+            VStack(spacing: NodeSpacing.sp2) {
+                NodePrimaryButton(saveButtonTitle, systemImage: "square.and.arrow.down") {
+                    Task {
+                        isSaving = true
+                        let saved = await viewModel.savePendingLibraryImport()
+                        isSaving = false
+                        if saved {
+                            dismiss()
+                            onSaved(true)
+                        }
+                    }
+                }
+                .disabled(isSaving || viewModel.selectedPlant == nil)
+                .opacity(isSaving || viewModel.selectedPlant == nil ? 0.45 : 1)
+
+                NodeSecondaryButton("キャンセル") {
+                    viewModel.cancelLibraryImport()
+                    dismiss()
+                }
+                .disabled(isSaving)
+            }
+        }
+        .padding(.horizontal, NodeSpacing.sp5)
+        .padding(.top, 10)
+        .padding(.bottom, NodeSpacing.sp4)
     }
 
-    private func capture() async {
-        guard cameraService.isCaptureReady else { return }
-        guard let image = try? await cameraService.capturePhoto() else { return }
-        await viewModel.saveObservation(image: image)
+    private var saveButtonTitle: String {
+        let time = viewModel.observedAt.nodeTime()
+        if viewModel.isObservingInPast {
+            return "記録する · \(viewModel.observedAt.nodeMonthDay()) \(time)"
+        }
+        return "記録する · \(time)"
     }
 }
 

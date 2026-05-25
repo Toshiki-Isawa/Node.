@@ -9,6 +9,8 @@ final class Plant {
     var species: String
     var category: String
     var acquiredAt: Date
+    /// 水やり間隔（日数）。nil の場合は頻度未設定。
+    var wateringIntervalDays: Int?
     var createdAt: Date
     var updatedAt: Date
 
@@ -25,6 +27,7 @@ final class Plant {
         species: String = "",
         category: String = PlantCategory.other.rawValue,
         acquiredAt: Date = .now,
+        wateringIntervalDays: Int? = nil,
         createdAt: Date = .now,
         updatedAt: Date = .now,
         observations: [PlantObservation] = [],
@@ -36,6 +39,7 @@ final class Plant {
         self.species = species
         self.category = category
         self.acquiredAt = acquiredAt
+        self.wateringIntervalDays = wateringIntervalDays
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.observations = observations
@@ -53,11 +57,37 @@ final class Plant {
     }
 
     var aggregateSyncStatus: SyncStatus {
-        let statuses = observations.map(\.syncStatus)
+        let statuses = observations.map(\.syncStatus) + growthLogs.map(\.syncStatus)
         if statuses.contains(.failed) { return .failed }
+        if statuses.contains(.syncPausedStorageLimit) { return .syncPausedStorageLimit }
         if statuses.contains(.syncing) { return .syncing }
         if statuses.contains(.localOnly) { return .localOnly }
-        return observations.isEmpty ? .synced : .synced
+        return statuses.isEmpty ? .synced : .synced
+    }
+
+    var lastWateredAt: Date {
+        growthLogs.filter { $0.type == .water }.map(\.createdAt).max() ?? acquiredAt
+    }
+
+    var daysSinceLastWater: Int {
+        Calendar.current.dateComponents([.day], from: lastWateredAt, to: .now).day ?? 0
+    }
+
+    var needsWatering: Bool {
+        guard let interval = wateringIntervalDays, interval > 0 else { return false }
+        return daysSinceLastWater >= interval
+    }
+
+    /// コレクション並び替え用。値が大きいほど水やり優先。未設定は Int.min。
+    var wateringSortPriority: Int {
+        guard let interval = wateringIntervalDays, interval > 0 else { return Int.min }
+        return daysSinceLastWater - interval
+    }
+
+    var wateringStatusLabel: String? {
+        guard needsWatering else { return nil }
+        let overdue = daysSinceLastWater - (wateringIntervalDays ?? 0)
+        return overdue > 0 ? "\(overdue)日超過" : "水やり"
     }
 }
 

@@ -143,6 +143,13 @@ final class CameraService: NSObject, ObservableObject {
         }
     }
 
+    func cancelCapture() {
+        if let continuation = captureContinuation {
+            captureContinuation = nil
+            continuation.resume(throwing: CameraError.cancelled)
+        }
+    }
+
     func capturePhoto() async throws -> UIImage {
         if Self.usesPhotoLibraryFallback {
             throw CameraError.usePhotoLibrary
@@ -217,6 +224,7 @@ enum CameraError: Error, LocalizedError {
     case captureFailed
     case notReady
     case usePhotoLibrary
+    case cancelled
 
     var errorDescription: String? {
         switch self {
@@ -224,6 +232,7 @@ enum CameraError: Error, LocalizedError {
         case .captureFailed: return "撮影に失敗しました。"
         case .notReady: return "カメラの準備ができていません。少し待ってから再試行してください。"
         case .usePhotoLibrary: return "写真ライブラリから選択してください。"
+        case .cancelled: return nil
         }
     }
 }

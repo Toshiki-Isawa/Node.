@@ -13,6 +13,15 @@ enum SupabaseConfig {
     static var anonKey: String {
         Bundle.main.infoDictionary?["SUPABASE_ANON_KEY"] as? String ?? "placeholder"
     }
+
+    static var googleIOSClientID: String? {
+        guard let raw = Bundle.main.infoDictionary?["GOOGLE_IOS_CLIENT_ID"] as? String,
+              !raw.isEmpty,
+              !raw.contains("your-google-ios-client-id") else {
+            return nil
+        }
+        return raw
+    }
 }
 
 @MainActor
@@ -61,6 +70,17 @@ final class SupabaseService: ObservableObject {
         self.session = session
     }
 
+    func signInWithGoogle(idToken: String, accessToken: String) async throws {
+        let session = try await client.auth.signInWithIdToken(
+            credentials: OpenIDConnectCredentials(
+                provider: .google,
+                idToken: idToken,
+                accessToken: accessToken
+            )
+        )
+        self.session = session
+    }
+
     func signOut() async throws {
         try await client.auth.signOut()
         session = nil
@@ -69,7 +89,9 @@ final class SupabaseService: ObservableObject {
     // MARK: - Database
 
     func upsertPlant(_ plant: Plant) async throws {
-        guard let userId else { return }
+        guard let userId else {
+            throw SyncError.notAuthenticated
+        }
         struct Payload: Encodable {
             let id: UUID
             let user_id: UUID
@@ -77,6 +99,7 @@ final class SupabaseService: ObservableObject {
             let species: String?
             let category: String?
             let acquired_at: Date
+            let watering_interval_days: Int?
             let created_at: Date
             let updated_at: Date
         }
@@ -87,6 +110,7 @@ final class SupabaseService: ObservableObject {
             species: plant.species.isEmpty ? nil : plant.species,
             category: plant.category,
             acquired_at: plant.acquiredAt,
+            watering_interval_days: plant.wateringIntervalDays,
             created_at: plant.createdAt,
             updated_at: plant.updatedAt
         )
@@ -115,6 +139,13 @@ final class SupabaseService: ObservableObject {
         try await client.from("observations").upsert(payload).execute()
     }
 
+    func deleteObservation(id: UUID) async throws {
+        try await client.from("observations")
+            .delete()
+            .eq("id", value: id.uuidString)
+            .execute()
+    }
+
     func upsertGrowthLog(_ log: GrowthLog) async throws {
         struct Payload: Encodable {
             let id: UUID
@@ -135,28 +166,129 @@ final class SupabaseService: ObservableObject {
         try await client.from("growth_logs").upsert(payload).execute()
     }
 
+    func deleteGrowthLog(id: UUID) async throws {
+        try await client.from("growth_logs")
+            .delete()
+            .eq("id", value: id.uuidString)
+            .execute()
+    }
+
     // MARK: - R2 Presigned Upload
 
     func requestPresignedUpload(
         observationId: UUID,
-        contentType: String = "image/jpeg"
+        contentType: String = "image/jpeg",
+        byteSize: Int
     ) async throws -> PresignedUploadResponse {
         struct Body: Encodable {
             let observation_id: String
             let content_type: String
+            let byte_size: Int
         }
-        let response: PresignedUploadResponse = try await client.functions.invoke(
-            "r2-presign-upload",
+        do {
+            let response: PresignedUploadResponse = try await client.functions.invoke(
+                "r2-presign-upload",
+                options: .init(body: Body(
+                    observation_id: observationId.uuidString,
+                    content_type: contentType,
+                    byte_size: byteSize
+                ))
+            )
+            return response
+        } catch {
+            if Self.isStorageLimitError(error) {
+                throw SyncError.storageLimitExceeded
+            }
+            throw error
+        }
+    }
+
+    private static func isStorageLimitError(_ error: Error) -> Bool {
+        String(describing: error).contains("storage_limit_exceeded")
+    }
+
+    func fetchUserPlan() async throws -> UserPlan {
+        guard isAuthenticated else {
+            throw SyncError.notAuthenticated
+        }
+        let value: String = try await client.rpc("get_user_plan").execute().value
+        return UserPlan.fromServerValue(value)
+    }
+
+    func syncPremiumSubscription(
+        productId: String,
+        transactionId: String,
+        originalTransactionId: String,
+        expiresAt: Date?,
+        environment: String
+    ) async throws {
+        struct Body: Encodable {
+            let product_id: String
+            let transaction_id: String
+            let original_transaction_id: String
+            let expires_at: String?
+            let environment: String
+        }
+
+        struct Response: Decodable {
+            let plan: String
+            let active: Bool
+        }
+
+        let _: Response = try await client.functions.invoke(
+            "sync-premium",
             options: .init(body: Body(
-                observation_id: observationId.uuidString,
-                content_type: contentType
+                product_id: productId,
+                transaction_id: transactionId,
+                original_transaction_id: originalTransactionId,
+                expires_at: expiresAt.map { ISO8601DateFormatter().string(from: $0) },
+                environment: environment
             ))
         )
-        return response
+    }
+
+    func fetchStorageUsageBytes() async throws -> Int64 {
+        guard isAuthenticated else {
+            throw SyncError.notAuthenticated
+        }
+        let value: Int64 = try await client.rpc("get_storage_usage_bytes").execute().value
+        return value
+    }
+
+    func registerStorageObject(
+        observationId: UUID,
+        objectKey: String,
+        byteSize: Int,
+        contentType: String
+    ) async throws {
+        guard let userId else {
+            throw SyncError.notAuthenticated
+        }
+        struct Payload: Encodable {
+            let user_id: UUID
+            let observation_id: UUID
+            let object_key: String
+            let byte_size: Int
+            let content_type: String
+        }
+        try await client.from("storage_objects")
+            .upsert(
+                Payload(
+                    user_id: userId,
+                    observation_id: observationId,
+                    object_key: objectKey,
+                    byte_size: byteSize,
+                    content_type: contentType
+                ),
+                onConflict: "object_key"
+            )
+            .execute()
     }
 
     func uploadToPresignedURL(_ data: Data, uploadURL: String, contentType: String = "image/jpeg") async throws {
-        guard let url = URL(string: uploadURL) else { return }
+        guard let url = URL(string: uploadURL), url.host != nil else {
+            throw URLError(.badURL)
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue(contentType, forHTTPHeaderField: "Content-Type")
@@ -166,26 +298,27 @@ final class SupabaseService: ObservableObject {
         }
     }
 
-    // MARK: - Timelapse
-
-    func createTimelapseJob(plantId: UUID, observationIds: [UUID]) async throws -> TimelapseCreateResponse {
+    func requestPresignedDownload(observationId: UUID) async throws -> PresignedDownloadResponse {
         struct Body: Encodable {
-            let plant_id: String
-            let observation_ids: [String]
+            let observation_id: String
         }
+
         return try await client.functions.invoke(
-            "generate-timelapse",
-            options: .init(body: Body(
-                plant_id: plantId.uuidString,
-                observation_ids: observationIds.map(\.uuidString)
-            ))
+            "r2-presign-download",
+            options: .init(body: Body(observation_id: observationId.uuidString))
         )
     }
 
-    func fetchTimelapseJob(jobId: String) async throws -> TimelapseJob {
-        try await client.functions.invoke(
-            "generate-timelapse",
-            options: .init(body: ["job_id": jobId])
-        )
+    func downloadFromPresignedURL(_ downloadURL: String) async throws -> Data {
+        guard let url = URL(string: downloadURL), url.host != nil else {
+            throw URLError(.badURL)
+        }
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw ObservationImageError.downloadFailed
+        }
+        return data
     }
+
 }

@@ -2,22 +2,71 @@ import Foundation
 import SwiftData
 import UIKit
 
+enum CameraCaptureMode: String, CaseIterable, Identifiable {
+    case single
+    case continuous
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .single: return "シングル"
+        case .continuous: return "連続"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .single: return "1.circle"
+        case .continuous: return "square.stack.3d.up.fill"
+        }
+    }
+}
+
 @MainActor
 final class CameraViewModel: ObservableObject {
     @Published var selectedPlant: Plant?
     @Published var plants: [Plant] = []
     @Published var note = ""
+    @Published var observedAt = Date.now
+    @Published private(set) var pendingLibraryImage: UIImage?
     @Published var showFlash = false
     @Published var lastSavedAt: Date?
     @Published var errorMessage: String?
+    @Published var captureMode: CameraCaptureMode = .single
+    @Published private(set) var capturePhase: CameraCapturePhase = .idle
+    @Published private(set) var sessionSaveCount = 0
+
+    enum CameraCapturePhase: Equatable {
+        case idle
+        case capturing
+        case saving
+
+        var statusText: String {
+            switch self {
+            case .idle: return ""
+            case .capturing: return "撮影中..."
+            case .saving: return "保存中..."
+            }
+        }
+    }
+
+    var isBusy: Bool { capturePhase != .idle }
 
     private let modelContext: ModelContext
     private let imageStore: ImageStore
+    private let observationImageService: ObservationImageService
     private let syncEngine: SyncEngine
 
-    init(modelContext: ModelContext, imageStore: ImageStore, syncEngine: SyncEngine) {
+    init(
+        modelContext: ModelContext,
+        imageStore: ImageStore,
+        observationImageService: ObservationImageService,
+        syncEngine: SyncEngine
+    ) {
         self.modelContext = modelContext
         self.imageStore = imageStore
+        self.observationImageService = observationImageService
         self.syncEngine = syncEngine
         reloadPlants()
     }
@@ -28,26 +77,113 @@ final class CameraViewModel: ObservableObject {
         if selectedPlant == nil {
             selectedPlant = plants.first
         }
+        clampObservedAt()
     }
 
     func selectPlant(_ plant: Plant) {
         selectedPlant = plant
+        clampObservedAt()
+    }
+
+    func prepareForSession() {
+        captureMode = .single
+        sessionSaveCount = 0
+        observedAt = .now
+        pendingLibraryImage = nil
+        errorMessage = nil
+        resetCaptureState()
+    }
+
+    func setCapturePhase(_ phase: CameraCapturePhase) {
+        capturePhase = phase
+    }
+
+    func resetCaptureState() {
+        capturePhase = .idle
+    }
+
+    var captureModeHint: String {
+        switch captureMode {
+        case .single:
+            return "1枚で終了"
+        case .continuous:
+            return sessionSaveCount > 0 ? "連続 · \(sessionSaveCount)枚" : "連続撮影"
+        }
     }
 
     var previousObservationImagePath: String? {
-        guard let plant = selectedPlant else { return nil }
-        return plant.latestObservation?.localImagePath
+        guard let plant = selectedPlant,
+              let observation = plant.latestObservation else { return nil }
+        return observationImageService.displayThumbnailPath(for: observation)
     }
 
-    func saveObservation(image: UIImage) async {
+    var observedAtRange: ClosedRange<Date> {
+        guard let plant = selectedPlant else {
+            let now = Date.now
+            return now ... now
+        }
+        return plant.acquiredAt ... Date.now
+    }
+
+    var isObservingInPast: Bool {
+        observedAt.timeIntervalSinceNow < -60
+    }
+
+    func resetObservedAtToNow() {
+        observedAt = .now
+    }
+
+    func applyLibraryPhotoDate(_ date: Date?) {
+        guard let date else { return }
+        clampObservedAt(to: date)
+    }
+
+    func stageLibraryImport(image: UIImage, creationDate: Date?) {
+        pendingLibraryImage = image
+        observedAt = .now
+        applyLibraryPhotoDate(creationDate)
+    }
+
+    func cancelLibraryImport() {
+        pendingLibraryImage = nil
+        observedAt = .now
+    }
+
+    @discardableResult
+    func savePendingLibraryImport() async -> Bool {
+        guard let image = pendingLibraryImage else { return false }
+        let saved = await saveObservation(image: image, observedAt: observedAt)
+        if saved {
+            pendingLibraryImage = nil
+        }
+        return saved
+    }
+
+    func clampObservedAt(to preferred: Date? = nil) {
+        let range = observedAtRange
+        guard range.lowerBound <= range.upperBound else { return }
+        let candidate = preferred ?? observedAt
+        observedAt = min(max(candidate, range.lowerBound), range.upperBound)
+    }
+
+    @discardableResult
+    func saveObservation(image: UIImage, observedAt: Date = .now) async -> Bool {
+        guard !Task.isCancelled else { return false }
         guard let plant = selectedPlant else {
             errorMessage = "植物を選択してください。"
-            return
+            return false
+        }
+
+        guard observedAtRange.contains(observedAt) else {
+            errorMessage = "観測日時が不正です。"
+            return false
         }
 
         showFlash = true
         try? await Task.sleep(for: .milliseconds(60))
         showFlash = false
+
+        guard !Task.isCancelled else { return false }
 
         let observationId = UUID()
 
@@ -56,16 +192,22 @@ final class CameraViewModel: ObservableObject {
                 try imageStore.saveOriginal(image, observationId: observationId)
             }.value
 
+            guard !Task.isCancelled else { return false }
+
             let thumbPath = try await Task.detached(priority: .utility) { [imageStore] in
                 try imageStore.generateThumbnail(from: image, observationId: observationId)
             }.value
+
+            guard !Task.isCancelled else { return false }
 
             let observation = PlantObservation(
                 id: observationId,
                 plantId: plant.id,
                 localImagePath: path,
                 thumbnailPath: thumbPath,
-                note: note.trimmingCharacters(in: .whitespacesAndNewlines)
+                note: note.trimmingCharacters(in: .whitespacesAndNewlines),
+                createdAt: observedAt,
+                updatedAt: observedAt
             )
             observation.plant = plant
             plant.observations.append(observation)
@@ -74,10 +216,13 @@ final class CameraViewModel: ObservableObject {
             try modelContext.save()
 
             note = ""
-            lastSavedAt = .now
+            lastSavedAt = observedAt
+            sessionSaveCount += 1
             syncEngine.enqueueSync()
+            return true
         } catch {
             errorMessage = "保存に失敗しました。"
+            return false
         }
     }
 }

@@ -23,6 +23,7 @@ struct SyncDot: View {
         case .syncing: return NodeColor.syncActive
         case .synced: return NodeColor.syncDone
         case .failed: return NodeColor.syncFail
+        case .syncPausedStorageLimit: return NodeColor.syncPaused
         }
     }
 }
@@ -238,5 +239,105 @@ struct EmptyStateView: View {
             MetaLabel(text: message, color: NodeColor.fog)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+struct StorageLimitBanner: View {
+    let usage: StorageUsage
+    var onUpgrade: (() -> Void)?
+
+    var body: some View {
+        Button {
+            onUpgrade?()
+        } label: {
+            bannerContent
+        }
+        .buttonStyle(.plain)
+        .disabled(onUpgrade == nil)
+    }
+
+    private var bannerContent: some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+            HStack(spacing: NodeSpacing.sp2) {
+                SyncDot(state: .syncPausedStorageLimit, size: 6)
+                MetaLabel(text: "クラウド同期", color: NodeColor.bone, size: 9)
+            }
+
+            Text("Observation がローカルのみに保存されています")
+                .font(NodeFont.text(NodeFont.callout))
+                .foregroundStyle(NodeColor.bone)
+
+            Text("Archive でクラウド同期を再開")
+                .font(NodeFont.text(12))
+                .foregroundStyle(NodeColor.mossSoft)
+
+            ProgressView(value: usage.usedRatio)
+                .tint(NodeColor.moss)
+        }
+        .padding(NodeSpacing.sp4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: NodeRadius.lg)
+                .fill(NodeColor.bark)
+                .overlay(
+                    RoundedRectangle(cornerRadius: NodeRadius.lg)
+                        .stroke(NodeColor.hairline, lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct NodeRecordDateSection: View {
+    @Binding var date: Date
+    let range: ClosedRange<Date>
+    var label: String = "日時"
+
+    private var isRecordingInPast: Bool {
+        date.timeIntervalSinceNow < -60
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                MetaLabel(text: label, size: 9)
+                Spacer()
+                if isRecordingInPast {
+                    Button("今に戻す") {
+                        date = .now
+                    }
+                    .font(NodeFont.text(12, weight: .medium))
+                    .foregroundStyle(NodeColor.mossSoft)
+                }
+            }
+
+            HStack(spacing: NodeSpacing.sp2) {
+                DatePicker(
+                    "",
+                    selection: $date,
+                    in: range,
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+                .datePickerStyle(.compact)
+                .labelsHidden()
+                .tint(NodeColor.moss)
+                .colorScheme(.dark)
+
+                if isRecordingInPast {
+                    MetaLabel(text: "過去", color: NodeColor.olive, size: 9)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, NodeSpacing.sp3)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: NodeRadius.lg)
+                    .fill(NodeColor.bark)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: NodeRadius.lg)
+                            .stroke(NodeColor.hairline, lineWidth: 1)
+                    )
+            )
+        }
     }
 }
