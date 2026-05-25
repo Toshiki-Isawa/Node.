@@ -64,31 +64,35 @@ struct AddPlantView: View {
 
     private var firstObservationSlot: some View {
         Button { showCamera = true } label: {
-            ZStack {
-                if let initialImage {
-                    Image(uiImage: initialImage)
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    RoundedRectangle(cornerRadius: NodeRadius.lg)
-                        .fill(NodeColor.charcoal)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: NodeRadius.lg)
-                                .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
-                                .foregroundStyle(NodeColor.stone)
-                        )
-                    VStack(spacing: NodeSpacing.sp3) {
-                        Image(systemName: "camera")
-                            .font(.system(size: 24, weight: .regular))
-                            .foregroundStyle(NodeColor.bone)
-                            .frame(width: 56, height: 56)
-                            .background(Circle().fill(NodeColor.bark))
-                            .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
-                        VStack(spacing: 6) {
-                            Text("最初の観測")
-                                .font(NodeFont.text(NodeFont.callout, weight: .medium))
+            GeometryReader { geo in
+                ZStack {
+                    if let initialImage {
+                        Image(uiImage: initialImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .clipped()
+                    } else {
+                        RoundedRectangle(cornerRadius: NodeRadius.lg)
+                            .fill(NodeColor.charcoal)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: NodeRadius.lg)
+                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+                                    .foregroundStyle(NodeColor.stone)
+                            )
+                        VStack(spacing: NodeSpacing.sp3) {
+                            Image(systemName: "camera")
+                                .font(.system(size: 24, weight: .regular))
                                 .foregroundStyle(NodeColor.bone)
-                            MetaLabel(text: "タップして撮影 · 任意", color: NodeColor.fog, size: 9)
+                                .frame(width: 56, height: 56)
+                                .background(Circle().fill(NodeColor.bark))
+                                .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
+                            VStack(spacing: 6) {
+                                Text("最初の観測")
+                                    .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                                    .foregroundStyle(NodeColor.bone)
+                                MetaLabel(text: "タップして撮影 · 任意", color: NodeColor.fog, size: 9)
+                            }
                         }
                     }
                 }
@@ -184,29 +188,13 @@ private struct CameraCaptureSheet: View {
                     Spacer()
                 }
                 Spacer()
-                Button {
-                    if CameraService.usesPhotoLibraryFallback {
+                HStack(spacing: NodeSpacing.sp6) {
+                    toolButton("photo.on.rectangle.angled") {
                         showPhotoLibrary = true
-                    } else {
-                        Task { await captureFromCamera() }
                     }
-                } label: {
-                    Circle()
-                        .stroke(NodeColor.bone, lineWidth: 3)
-                        .frame(width: 72, height: 72)
-                        .overlay(
-                            Group {
-                                if CameraService.usesPhotoLibraryFallback {
-                                    Image(systemName: "photo")
-                                        .foregroundStyle(NodeColor.graphite)
-                                } else {
-                                    Circle().fill(NodeColor.bone).frame(width: 60, height: 60)
-                                }
-                            }
-                        )
+                    shutterButton
+                    Color.clear.frame(width: 44, height: 44)
                 }
-                .disabled(!CameraService.usesPhotoLibraryFallback && !camera.isCaptureReady)
-                .opacity(!CameraService.usesPhotoLibraryFallback && !camera.isCaptureReady ? 0.5 : 1)
                 .padding(.bottom, 40)
             }
         }
@@ -223,6 +211,41 @@ private struct CameraCaptureSheet: View {
                 onCapture(picked.image, picked.creationDate)
                 dismiss()
             }
+        }
+    }
+
+    private var shutterButton: some View {
+        Button {
+            if CameraService.usesPhotoLibraryFallback {
+                showPhotoLibrary = true
+            } else {
+                Task { await captureFromCamera() }
+            }
+        } label: {
+            Circle()
+                .stroke(NodeColor.bone, lineWidth: 3)
+                .frame(width: 72, height: 72)
+                .overlay(
+                    Group {
+                        if CameraService.usesPhotoLibraryFallback {
+                            Image(systemName: "photo")
+                                .foregroundStyle(NodeColor.graphite)
+                        } else {
+                            Circle().fill(NodeColor.bone).frame(width: 60, height: 60)
+                        }
+                    }
+                )
+        }
+        .disabled(!CameraService.usesPhotoLibraryFallback && !camera.isCaptureReady)
+        .opacity(!CameraService.usesPhotoLibraryFallback && !camera.isCaptureReady ? 0.5 : 1)
+    }
+
+    private func toolButton(_ symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 20, weight: .regular))
+                .foregroundStyle(NodeColor.bone)
+                .frame(width: 44, height: 44)
         }
     }
 
