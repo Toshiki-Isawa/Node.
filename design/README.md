@@ -8,7 +8,7 @@ A design system for **Node.**, a "plant observation archive" iOS app for plant c
 
 The system is photo-first, dark-first, and quiet. Every token is tuned so that the user's plant photograph is the protagonist — chrome recedes, type holds its breath, color stays botanical, never gardening-shop.
 
-Source: `specification.md` (Node. 要件定義書 v1.0, 2026-05-24).
+Source: `specification.md` (Node. 要件定義書 v2.8, 2026-05-25).
 No prior codebase, brand assets, or screens were provided — this system was authored fresh from the requirements document. Where the spec specifies SF Pro, this system uses the Apple system font stack (which delivers SF Pro on Apple devices) with `Noto Sans JP` as a cross-platform fallback that handles the Japanese copy.
 
 ---
@@ -166,7 +166,7 @@ Photographs are assumed to be the user's own. The system never ships stock image
 
 | Kit | Path | Surfaces |
 |---|---|---|
-| **Node iOS** | `ui_kits/node-ios/` | Collection, Plant detail, Observation timeline, Camera, Comparison, Quick Log sheet |
+| **Node iOS** | `ui_kits/node-ios/` | Collection, Plant detail, Observation timeline, Camera, Comparison, Quick Log sheet（Timelapse は未収録） |
 
 ---
 

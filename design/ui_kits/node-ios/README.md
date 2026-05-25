@@ -12,6 +12,8 @@ Interactive recreation of the Node. iOS observation flow.
 | Compare | `CompareScreen.jsx` | Before / After + interval card + scrubber |
 | Quick Log | `QuickLogScreen.jsx` | Bottom sheet — water / repot / note |
 
+Timelapse 画面は要件定義書 §10.7 に準拠して iOS 実装済み。UI キットへの追加は未着手。
+
 ## Atoms
 
 `shared.jsx` exports `N` (token map), `NodePhoto`, `Meta`, `SyncDot`, `Icon`, and the `PLANTS` fixture used by every screen.

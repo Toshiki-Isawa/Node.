@@ -29,7 +29,9 @@ SwiftUI + SwiftData による植物観測アーカイブアプリ。
    ```bash
    supabase secrets set --env-file supabase/functions/.env
    supabase functions deploy r2-presign-upload
+   supabase functions deploy r2-presign-download
    supabase functions deploy sync-premium
+   supabase functions deploy delete-account
    ```
 7. Premium 課金（StoreKit 2）のローカルテスト：
    - Xcode スキーム `Node` の Run オプションで `Node/Config/Products.storekit` が StoreKit Configuration として指定されていることを確認
@@ -38,21 +40,68 @@ SwiftUI + SwiftData による植物観測アーカイブアプリ。
 
 ## アーキテクチャ
 
-- **Features/** — MVVM 画面（Collection、Camera、Compare など）
-- **Core/DesignSystem/** — `design/colors_and_type.css` 由来のデザイントークン
-- **Core/Models/** — SwiftData `@Model` 型
-- **Core/Services/** — ImageStore、CameraService、SyncEngine、SupabaseService、PlanService、SubscriptionService
+```
+Node/
+├── App/              # エントリポイント、RootView
+├── Features/         # MVVM 画面
+├── Core/
+│   ├── DesignSystem/ # design/colors_and_type.css 由来のデザイントークン
+│   ├── Models/       # SwiftData @Model 型
+│   └── Services/     # ビジネスロジック
+└── Config/           # Secrets.xcconfig, Products.storekit
+```
 
-## タイムラプス
+### Features（画面）
 
-- `TimelapseVideoGenerator`（`AVFoundation`）が観測画像から端末内で MP4 を生成する。
-- クラウドへ動画は保存しない。Export は共有シートまたは写真ライブラリ。
-- 詳細は [specification.md](../specification.md) §10.7。
+| 機能 | 説明 |
+|------|------|
+| Auth | Apple / Google サインイン、オフライン続行 |
+| Collection | 植物グリッド、カテゴリフィルタ、検索、水やり優先ソート |
+| AddPlant / EditPlant | 植物登録・編集（水やり間隔含む） |
+| Camera | 高速撮影、前回写真オーバーレイ、即ローカル保存 |
+| Timeline | 観測 + 育成ログの時系列表示 |
+| PlantDetail | 詳細、Compare / Timelapse / Quick Log への導線 |
+| CareCalendar | ケア履歴の月間カレンダー |
+| Compare | 2 時点スライダー比較 |
+| Timelapse | 端末内 MP4 生成、プラン別解像度 Export |
+| QuickLog / BulkQuickLog | 単体・複数植物のケア記録 |
+| Settings | プラン・容量・同期状態・購入復元・アカウント削除 |
 
-## 観測フロー
+### Services
+
+| Service | 役割 |
+|---------|------|
+| `SupabaseService` | Auth、CRUD upsert、Edge Function 呼び出し |
+| `SyncEngine` | オンライン検知、plants / observations / growth_logs のプッシュ同期 |
+| `ImageStore` | Original / サムネイル / キャッシュ管理 |
+| `ObservationImageService` | 表示用サムネ、同期後 Original 退避、R2 から再取得 |
+| `PlanService` | サーバー + StoreKit のプラン統合 |
+| `SubscriptionService` | StoreKit 2 商品取得・購入・復元 |
+| `CameraService` | AVFoundation カメラ |
+| `TimelapseService` / `TimelapseVideoGenerator` | 端末内 MP4 生成 |
+| `RecordDeletionService` | 観測 / ログ削除 |
+| `StorageStatsService` | ローカル / 同期状態集計 |
+
+## 同期フロー
 
 ```
 Collection → Camera → ローカル保存 → SyncEngine → Supabase + R2
 ```
 
-オフラインでの撮影・保存は即時完了。クラウド同期はバックグラウンドで実行される。
+- オフラインでの撮影・保存は即時完了。クラウド同期はバックグラウンドで実行される
+- Seed プランは圧縮版をアップロード、Archive / Conservatory は Original
+- 容量上限到達時は `sync_paused_storage_limit` となり同期のみ停止（撮影は継続）
+- 同期完了後、Original は端末から退避。Compare / Timelapse 利用時に R2 から presigned URL で取得
+
+## タイムラプス
+
+- `TimelapseVideoGenerator`（`AVFoundation`）が観測画像から端末内で MP4 を生成する
+- 最小 5 枚、最大 60 フレーム。Seed は 720p、Archive 以上は 4K
+- クラウドへ動画は保存しない。Export は共有シートまたは写真ライブラリ
+- 詳細は [specification.md](../specification.md) §10.7
+
+## 認証
+
+- **Sign in with Apple** — ネイティブ SDK + Supabase `signInWithIdToken`
+- **Google Sign-In** — `GOOGLE_IOS_CLIENT_ID` 設定時のみ UI 表示
+- **オフライン続行** — サインインなしでも端末内機能は利用可能（同期・課金・クラウド復元は不可）
