@@ -1,0 +1,1462 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Node. — 植物の時間を残す。観測のためのアーカイブ、管理のためのアプリではない iOS アプリ。">
+  <meta name="theme-color" content="#14161a">
+  <title>Node. — 植物の時間を残す</title>
+
+  <link rel="stylesheet" href="../design/colors_and_type.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+
+  <style>
+    /* =====================================================================
+       LP-local layout — composed entirely on top of design tokens
+       ===================================================================== */
+
+    :root {
+      --page-max:   1320px;
+      --page-pad:   clamp(20px, 5vw, 64px);
+      --section-y:  clamp(96px, 14vw, 180px);
+      --rule-y:     clamp(48px, 8vw, 96px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--c-graphite);
+      color: var(--c-bone);
+      overflow-x: hidden;
+    }
+
+    ::selection { background: var(--c-moss); color: var(--c-graphite); }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* Scroll progress — single hairline of moss along the top */
+    .scroll-line {
+      position: fixed; top: 0; left: 0;
+      height: 1px;
+      background: var(--c-moss);
+      width: 0%;
+      z-index: 100;
+      transition: width 60ms linear;
+    }
+
+    /* ---------- Top navigation ----------------------------------------- */
+    .nav {
+      position: fixed; inset: 0 0 auto 0;
+      z-index: 90;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      background: color-mix(in oklab, var(--c-graphite) 72%, transparent);
+      border-bottom: 1px solid var(--hairline);
+    }
+    .nav-inner {
+      max-width: var(--page-max);
+      margin: 0 auto;
+      padding: 14px var(--page-pad);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .wordmark {
+      font-family: var(--font-display);
+      font-weight: 300;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: var(--c-bone);
+      font-size: 22px;
+    }
+    .wordmark .dot { color: var(--c-moss); }
+    .nav-links {
+      display: flex; gap: 28px; align-items: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-fog);
+    }
+    .nav-links a {
+      transition: color var(--dur-base) var(--ease-quiet),
+                  opacity var(--dur-base) var(--ease-quiet);
+    }
+    .nav-links a:hover { color: var(--c-bone); opacity: 1; }
+    .nav-links .sep { color: var(--c-fossil); }
+
+    @media (max-width: 720px) {
+      .nav-links a:not(.cta) { display: none; }
+      .nav-links .sep { display: none; }
+    }
+
+    .nav-links .cta {
+      color: var(--c-bone);
+      background: transparent;
+      border: 1px solid var(--hairline-strong);
+      padding: 7px 12px;
+      border-radius: 999px;
+      transition: background var(--dur-base) var(--ease-quiet),
+                  color var(--dur-base) var(--ease-quiet);
+    }
+    .nav-links .cta:hover {
+      background: var(--c-bone);
+      color: var(--c-graphite);
+    }
+
+    /* ---------- Page container ----------------------------------------- */
+    .page {
+      max-width: var(--page-max);
+      margin: 0 auto;
+      padding: 0 var(--page-pad);
+    }
+
+    /* ---------- Section scaffolding ------------------------------------ */
+    section { padding-top: var(--section-y); padding-bottom: var(--rule-y); }
+
+    .section-marker {
+      display: flex; align-items: baseline; gap: 16px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--hairline);
+      margin-bottom: clamp(40px, 6vw, 72px);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+    }
+    .section-marker .idx { color: var(--c-bone); }
+    .section-marker .jp { color: var(--c-paper); letter-spacing: 0.04em; }
+    .section-marker .en { color: var(--c-fossil); margin-left: auto; }
+
+    /* ---------- HERO ---------------------------------------------------- */
+    .hero {
+      padding-top: clamp(120px, 18vw, 200px);
+      padding-bottom: clamp(72px, 12vw, 140px);
+      position: relative;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: clamp(40px, 8vw, 96px);
+      align-items: center;
+    }
+    @media (max-width: 880px) {
+      .hero-grid { grid-template-columns: 1fr; gap: 56px; }
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      margin-bottom: 36px;
+      display: inline-flex; align-items: center; gap: 10px;
+      opacity: 0;
+      animation: rise 720ms var(--ease-enter) 80ms forwards;
+    }
+    .hero-eyebrow .ver { color: var(--c-fog); }
+    .hero-eyebrow .nodemark {
+      display: inline-block;
+      width: 5px; height: 5px;
+      background: var(--c-moss);
+      border-radius: 999px;
+    }
+
+    .hero-mark {
+      font-family: var(--font-display);
+      font-weight: 300;
+      letter-spacing: -0.045em;
+      line-height: 0.92;
+      color: var(--c-bone);
+      font-size: clamp(96px, 16vw, 192px);
+      margin: 0;
+      opacity: 0;
+      animation: rise 900ms var(--ease-enter) 160ms forwards;
+    }
+    .hero-mark .dot { color: var(--c-moss); }
+
+    .hero-tagline-jp {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: clamp(22px, 3.2vw, 36px);
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+      color: var(--c-bone);
+      margin: 28px 0 0;
+      opacity: 0;
+      animation: rise 900ms var(--ease-enter) 320ms forwards;
+    }
+
+    .hero-tagline-en {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--c-fog);
+      margin-top: 18px;
+      opacity: 0;
+      animation: rise 900ms var(--ease-enter) 440ms forwards;
+    }
+
+    .hero-body {
+      font-family: var(--font-text);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--c-paper);
+      max-width: 36ch;
+      margin: 36px 0 0;
+      opacity: 0;
+      animation: rise 900ms var(--ease-enter) 560ms forwards;
+    }
+
+    .hero-cta-row {
+      display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+      margin-top: 40px;
+      opacity: 0;
+      animation: rise 900ms var(--ease-enter) 680ms forwards;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      border: none; cursor: pointer;
+      font-family: var(--font-text);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 13px 22px;
+      border-radius: 999px;
+      transition: opacity var(--dur-fast) var(--ease-quiet),
+                  transform var(--dur-fast) var(--ease-quiet),
+                  background var(--dur-base) var(--ease-quiet);
+      text-decoration: none;
+      color: var(--c-bone);
+    }
+    .btn:hover  { opacity: 0.86; }
+    .btn:active { transform: scale(0.985); opacity: 0.7; }
+    .btn.primary {
+      background: var(--c-moss);
+      color: var(--c-graphite);
+      font-weight: 600;
+    }
+    .btn.primary:hover  { background: var(--c-moss); opacity: 0.92; }
+    .btn.secondary {
+      background: transparent;
+      border: 1px solid var(--hairline-strong);
+    }
+    .btn .glyph { width: 16px; height: 16px; stroke-width: 1.5; }
+    .btn.primary .glyph { color: var(--c-graphite); }
+
+    .hero-meta {
+      margin-top: 56px;
+      display: flex; gap: 28px; flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      opacity: 0;
+      animation: rise 900ms var(--ease-enter) 820ms forwards;
+    }
+    .hero-meta strong { color: var(--c-fog); font-weight: 400; }
+
+    /* Hero photograph — emergent from void, same technique as the
+       components-photo-card mockups */
+    .hero-photo-wrap {
+      position: relative;
+      opacity: 0;
+      animation: rise 1200ms var(--ease-enter) 380ms forwards;
+    }
+    .hero-photo {
+      position: relative;
+      aspect-ratio: 3 / 4;
+      border-radius: var(--r-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-photo);
+      background: var(--c-void);
+    }
+    .hero-photo .photo {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(60% 50% at 32% 28%, oklch(0.55 0.06 135) 0%, transparent 60%),
+        radial-gradient(80% 60% at 70% 78%, oklch(0.32 0.05 130) 0%, transparent 70%),
+        radial-gradient(120% 90% at 50% 50%, oklch(0.22 0.02 130) 0%, oklch(0.12 0.005 130) 80%);
+    }
+    .hero-photo .grain {
+      position: absolute; inset: 0;
+      opacity: 0.10;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='240' height='240' filter='url(%23n)' opacity='0.6'/></svg>");
+    }
+    .hero-photo .grad {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top,
+        oklch(0.10 0.005 130 / 0.88) 0%,
+        oklch(0.10 0.005 130 / 0.0) 48%);
+    }
+    .hero-photo .meta {
+      position: absolute; left: 22px; right: 22px; bottom: 22px;
+      display: flex; justify-content: space-between; align-items: end; gap: 12px;
+    }
+    .hero-photo .date {
+      font-family: var(--font-display);
+      font-size: 38px;
+      font-weight: 300;
+      letter-spacing: -0.025em;
+      color: var(--c-bone);
+      line-height: 1;
+    }
+    .hero-photo .day {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--c-fog);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+    .hero-photo .sync {
+      position: absolute; top: 16px; right: 16px;
+      display: flex; align-items: center; gap: 8px;
+      background: color-mix(in oklab, var(--c-void) 62%, transparent);
+      backdrop-filter: blur(10px);
+      padding: 7px 11px;
+      border-radius: 999px;
+    }
+    .hero-photo .sync .dot {
+      width: 5px; height: 5px; border-radius: 999px;
+      background: var(--c-moss);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--c-moss) 18%, transparent);
+    }
+    .hero-photo .sync .txt {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--c-bone);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .hero-photo .caption-tl {
+      position: absolute; top: 16px; left: 16px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: color-mix(in oklab, var(--c-bone) 70%, transparent);
+    }
+
+    /* The little hairline-bracket "frame" labels that float around the photo */
+    .photo-label {
+      position: absolute;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .photo-label .bar {
+      display: inline-block; width: 18px; height: 1px; background: var(--c-stone);
+    }
+    .photo-label.tl { top: -22px; left: 0; }
+    .photo-label.br { bottom: -22px; right: 0; }
+    .photo-label.br .bar { order: -1; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- MANIFESTO ---------------------------------------------- */
+    .manifesto-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: clamp(40px, 8vw, 96px);
+      align-items: start;
+    }
+    @media (max-width: 880px) {
+      .manifesto-grid { grid-template-columns: 1fr; }
+    }
+
+    .manifesto-headline {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: clamp(32px, 5.2vw, 64px);
+      letter-spacing: -0.025em;
+      line-height: 1.1;
+      color: var(--c-bone);
+      margin: 0;
+    }
+    .manifesto-headline .accent { color: var(--c-moss); }
+    .manifesto-headline-en {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--c-fog);
+      margin-top: 28px;
+      display: block;
+    }
+
+    .manifesto-body {
+      font-family: var(--font-text);
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--c-paper);
+    }
+    .manifesto-body p { margin: 0 0 18px; }
+    .manifesto-body p:last-child { margin-bottom: 0; }
+
+    .manifesto-pillars {
+      margin-top: 56px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 32px 48px;
+      padding-top: 40px;
+      border-top: 1px solid var(--hairline);
+    }
+    @media (max-width: 720px) {
+      .manifesto-pillars { grid-template-columns: 1fr; gap: 28px; }
+    }
+    .pillar .num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+    }
+    .pillar h4 {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+      color: var(--c-bone);
+      margin: 12px 0 10px;
+    }
+    .pillar p {
+      font-family: var(--font-text);
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--c-fog);
+      margin: 0;
+    }
+
+    /* ---------- FEATURES ----------------------------------------------- */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--hairline);
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+    @media (max-width: 1040px) { .features-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 560px)  { .features-grid { grid-template-columns: 1fr; } }
+
+    .feature {
+      background: var(--c-charcoal);
+      padding: 32px 28px 28px;
+      display: flex; flex-direction: column;
+      min-height: 280px;
+      transition: background var(--dur-base) var(--ease-quiet);
+      position: relative;
+    }
+    .feature:hover { background: var(--c-bark); }
+    .feature .head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .feature .num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+    }
+    .feature .icon {
+      width: 20px; height: 20px;
+      color: var(--c-fog);
+      stroke-width: 1.5;
+    }
+    .feature h3 {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      color: var(--c-bone);
+      margin: 0;
+    }
+    .feature .name-jp {
+      font-family: var(--font-text);
+      font-size: 12px;
+      color: var(--c-fog);
+      margin-top: 6px;
+      letter-spacing: 0;
+    }
+    .feature p {
+      font-family: var(--font-text);
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--c-paper);
+      margin: 20px 0 0;
+    }
+    .feature .verb {
+      margin-top: auto;
+      padding-top: 24px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      display: flex; gap: 10px; align-items: center;
+    }
+    .feature .verb .bar { width: 14px; height: 1px; background: var(--c-stone); }
+
+    /* ---------- ARCHITECTURE ------------------------------------------- */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: clamp(40px, 6vw, 80px);
+      align-items: start;
+    }
+    @media (max-width: 880px) { .arch-grid { grid-template-columns: 1fr; } }
+
+    .arch-h2 {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: clamp(28px, 4vw, 48px);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--c-bone);
+      margin: 0 0 24px;
+    }
+    .arch-lede {
+      font-family: var(--font-text);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--c-paper);
+      margin: 0;
+    }
+
+    .arch-stack {
+      margin-top: 48px;
+      display: flex; flex-direction: column; gap: 0;
+      border-top: 1px solid var(--hairline);
+    }
+    .arch-row {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 24px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--hairline);
+      align-items: baseline;
+    }
+    .arch-row .label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+    }
+    .arch-row .val {
+      font-family: var(--font-text);
+      font-size: 14px;
+      color: var(--c-bone);
+    }
+
+    /* Plan table — three columns, restrained */
+    .plans {
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      background: var(--c-charcoal);
+    }
+    .plan-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1.2fr 1.2fr;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--hairline);
+      gap: 16px;
+    }
+    .plan-row:last-child { border-bottom: none; }
+    .plan-row.head {
+      background: var(--c-bark);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      padding-top: 14px; padding-bottom: 14px;
+    }
+    .plan-row .name {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 17px;
+      letter-spacing: -0.005em;
+      color: var(--c-bone);
+    }
+    .plan-row .name .sub {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--c-fog);
+      margin-top: 4px;
+    }
+    .plan-row .price {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: 22px;
+      color: var(--c-bone);
+      letter-spacing: -0.01em;
+    }
+    .plan-row .price .unit {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--c-mist);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-left: 4px;
+    }
+    .plan-row .cap, .plan-row .qual, .plan-row .tl {
+      font-family: var(--font-text);
+      font-size: 13px;
+      color: var(--c-paper);
+    }
+    .plan-row.featured {
+      background: color-mix(in oklab, var(--c-moss) 8%, var(--c-charcoal));
+      position: relative;
+    }
+    .plan-row.featured::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 2px; background: var(--c-moss);
+    }
+    @media (max-width: 760px) {
+      .plan-row { grid-template-columns: 1fr; gap: 8px; padding: 18px; }
+      .plan-row.head { display: none; }
+      .plan-row .cap::before { content: 'CAPACITY · '; color: var(--c-mist); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; }
+      .plan-row .qual::before { content: 'SYNC · '; color: var(--c-mist); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; }
+      .plan-row .tl::before { content: 'TIMELAPSE · '; color: var(--c-mist); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; }
+    }
+
+    /* Local-first flow diagram */
+    .flow {
+      margin-top: 40px;
+      padding: 28px 24px;
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-md);
+      background: var(--c-charcoal);
+    }
+    .flow-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      margin-bottom: 18px;
+    }
+    .flow-chain {
+      display: flex; align-items: center; gap: 16px;
+      flex-wrap: wrap;
+    }
+    .flow-node {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--hairline-strong);
+      border-radius: 999px;
+      font-family: var(--font-text);
+      font-size: 12.5px;
+      color: var(--c-bone);
+    }
+    .flow-node.accent {
+      background: color-mix(in oklab, var(--c-moss) 14%, transparent);
+      border-color: color-mix(in oklab, var(--c-moss) 40%, transparent);
+    }
+    .flow-arrow {
+      font-family: var(--font-mono);
+      color: var(--c-fossil);
+      font-size: 14px;
+    }
+
+    /* ---------- VOICE -------------------------------------------------- */
+    .voice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--hairline);
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+    @media (max-width: 720px) { .voice-grid { grid-template-columns: 1fr; } }
+
+    .voice-col {
+      background: var(--c-charcoal);
+      padding: 32px 28px;
+    }
+    .voice-col .col-head {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .voice-col.do .col-head    { color: var(--c-moss-soft); }
+    .voice-col.dont .col-head  { color: color-mix(in oklab, var(--c-sync-fail) 70%, var(--c-bone)); }
+
+    .voice-pair {
+      padding: 14px 16px;
+      border-radius: var(--r-md);
+      margin-bottom: 10px;
+    }
+    .voice-pair .lbl {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .voice-pair .ex {
+      font-family: var(--font-text);
+      font-size: 14.5px;
+      color: var(--c-bone);
+    }
+    .do .voice-pair {
+      background: color-mix(in oklab, var(--c-moss) 10%, transparent);
+      border: 1px solid color-mix(in oklab, var(--c-moss) 26%, transparent);
+    }
+    .dont .voice-pair {
+      background: color-mix(in oklab, var(--c-sync-fail) 7%, transparent);
+      border: 1px solid color-mix(in oklab, var(--c-sync-fail) 22%, transparent);
+    }
+    .dont .voice-pair .ex {
+      color: var(--c-fog);
+      text-decoration: line-through;
+      text-decoration-color: var(--c-stone);
+    }
+
+    .tone-words {
+      margin-top: 56px;
+      padding-top: 32px;
+      border-top: 1px solid var(--hairline);
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 32px;
+      align-items: baseline;
+    }
+    @media (max-width: 720px) { .tone-words { grid-template-columns: 1fr; } }
+    .tone-words .label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+    }
+    .tone-words .row {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: clamp(22px, 3vw, 32px);
+      letter-spacing: -0.015em;
+      line-height: 1.4;
+      color: var(--c-bone);
+    }
+    .tone-words .row .sep {
+      color: var(--c-fossil);
+      margin: 0 12px;
+    }
+    .tone-words .row.avoid {
+      color: var(--c-fossil);
+      text-decoration: line-through;
+      text-decoration-color: var(--c-stone);
+      font-size: clamp(18px, 2vw, 22px);
+      margin-top: 18px;
+    }
+
+    /* ---------- CTA ---------------------------------------------------- */
+    .cta-block {
+      margin-top: var(--rule-y);
+      padding: clamp(48px, 8vw, 88px) clamp(32px, 6vw, 72px);
+      background: var(--c-void);
+      border-radius: var(--r-xl);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-block .cta-grain {
+      position: absolute; inset: 0;
+      opacity: 0.06;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2'/></filter><rect width='280' height='280' filter='url(%23n)' opacity='0.6'/></svg>");
+      pointer-events: none;
+    }
+    .cta-inner {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 48px;
+      align-items: end;
+    }
+    @media (max-width: 720px) {
+      .cta-inner { grid-template-columns: 1fr; gap: 32px; }
+    }
+    .cta-block h2 {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: clamp(28px, 4.5vw, 52px);
+      letter-spacing: -0.025em;
+      line-height: 1.1;
+      color: var(--c-bone);
+      margin: 0;
+    }
+    .cta-block .sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--c-fog);
+      margin-top: 16px;
+      display: block;
+    }
+    .cta-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+
+    /* ---------- FOOTER ------------------------------------------------- */
+    footer {
+      margin-top: var(--rule-y);
+      padding: 56px 0 48px;
+      border-top: 1px solid var(--hairline);
+    }
+    .foot-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 48px;
+    }
+    @media (max-width: 880px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+    }
+    @media (max-width: 520px) {
+      .foot-grid { grid-template-columns: 1fr; }
+    }
+    .foot-col h5 {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      margin: 0 0 16px;
+      font-weight: 400;
+    }
+    .foot-col ul { list-style: none; padding: 0; margin: 0; }
+    .foot-col li { margin-bottom: 8px; }
+    .foot-col a {
+      font-family: var(--font-text);
+      font-size: 13px;
+      color: var(--c-paper);
+      transition: color var(--dur-base) var(--ease-quiet);
+    }
+    .foot-col a:hover { color: var(--c-bone); }
+    .foot-col .ext {
+      display: inline-flex; align-items: baseline; gap: 6px;
+    }
+    .foot-col .ext::after {
+      content: '↗';
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--c-fossil);
+    }
+    .foot-brand .word {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: 32px;
+      letter-spacing: -0.04em;
+      color: var(--c-bone);
+    }
+    .foot-brand .word .dot { color: var(--c-moss); }
+    .foot-brand p {
+      font-family: var(--font-text);
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--c-fog);
+      margin: 16px 0 0;
+      max-width: 28ch;
+    }
+    .foot-bottom {
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--hairline);
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 24px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      flex-wrap: wrap;
+    }
+    .foot-bottom .ver { color: var(--c-fossil); }
+
+    /* ---------- Reveal on scroll --------------------------------------- */
+    .reveal {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 900ms var(--ease-enter),
+                  transform 900ms var(--ease-enter);
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .hero-eyebrow, .hero-mark, .hero-tagline-jp,
+      .hero-tagline-en, .hero-body, .hero-cta-row, .hero-meta,
+      .hero-photo-wrap {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scroll-line" id="scrollLine"></div>
+
+  <!-- ============================ NAV ============================ -->
+  <nav class="nav" aria-label="グローバル">
+    <div class="nav-inner">
+      <a href="#top" class="wordmark" aria-label="Node.">Node<span class="dot">.</span></a>
+      <div class="nav-links">
+        <a href="#thesis">思想</a>
+        <a href="#features">機能</a>
+        <a href="#architecture">構成</a>
+        <a href="#voice">ボイス</a>
+        <span class="sep">·</span>
+        <a href="#download" class="cta">App Store</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page" id="top">
+
+    <!-- ============================ HERO ============================ -->
+    <section class="hero" aria-label="ヒーロー">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-eyebrow">
+            <span class="nodemark" aria-hidden="true"></span>
+            <span>植物観測アーカイブ</span>
+            <span class="ver">·</span>
+            <span class="ver">iOS · v1.0</span>
+          </div>
+
+          <h1 class="hero-mark">Node<span class="dot">.</span></h1>
+
+          <p class="hero-tagline-jp">植物の時間を、<br>そのまま残す。</p>
+          <div class="hero-tagline-en">preserve plant time · observe, not manage</div>
+
+          <p class="hero-body">
+            水やり通知も AI 診断もない。撮影と観測の履歴だけを、
+            静かに積み上げていく iOS アプリ。あなたの植物の写真が、
+            アプリの主役のまま残り続ける。
+          </p>
+
+          <div class="hero-cta-row">
+            <a href="#download" class="btn primary">
+              <i data-lucide="apple" class="glyph" aria-hidden="true"></i>
+              App Store で入手
+            </a>
+            <a href="#thesis" class="btn secondary">
+              <i data-lucide="arrow-down" class="glyph" aria-hidden="true"></i>
+              思想を読む
+            </a>
+          </div>
+
+          <div class="hero-meta">
+            <span><strong>iOS 17+</strong></span>
+            <span>·</span>
+            <span><strong>OFFLINE-FIRST</strong></span>
+            <span>·</span>
+            <span><strong>SEED</strong> 無料 · 3 GB</span>
+          </div>
+        </div>
+
+        <div class="hero-photo-wrap">
+          <div class="photo-label tl">
+            <span class="bar"></span>
+            <span>SPECIMEN · PLACEHOLDER</span>
+          </div>
+          <div class="hero-photo">
+            <div class="photo"></div>
+            <div class="grain"></div>
+            <div class="grad"></div>
+            <div class="caption-tl">PLANT · 4032 × 3024</div>
+            <div class="sync">
+              <span class="dot"></span>
+              <span class="txt">同期済み</span>
+            </div>
+            <div class="meta">
+              <div>
+                <div class="date">5月24日</div>
+                <div class="day">142日目 · 19:42</div>
+              </div>
+            </div>
+          </div>
+          <div class="photo-label br">
+            <span>OBSERVATION · 142</span>
+            <span class="bar"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ MANIFESTO ============================ -->
+    <section id="thesis" aria-labelledby="thesis-h">
+      <div class="section-marker reveal">
+        <span class="idx">01</span>
+        <span class="jp">思想</span>
+        <span class="en">THESIS · 01 / 06</span>
+      </div>
+
+      <div class="manifesto-grid">
+        <div>
+          <h2 id="thesis-h" class="manifesto-headline reveal">
+            これは管理アプリではない。<br>
+            <span class="accent">観測の道具</span>である。
+          </h2>
+          <span class="manifesto-headline-en reveal">not a management app · an instrument for observing time</span>
+        </div>
+
+        <div class="manifesto-body reveal">
+          <p>
+            Node. は、水やりを通知するためでも、植物を診断するためでもありません。
+            撮影し、保存し、時間をまたいで見返す。
+            その単純な動作の往復だけが、植物を観測するという体験を形にします。
+          </p>
+          <p>
+            写真は加工されず、UI はそれを邪魔しません。
+            画面は静かに沈み、観測の痕跡だけが浮かび上がります。
+          </p>
+        </div>
+      </div>
+
+      <div class="manifesto-pillars">
+        <div class="pillar reveal">
+          <div class="num">01 · PHOTO-FIRST</div>
+          <h4>写真が主役</h4>
+          <p>UI は黒に沈み、装飾を捨て、写真が画面の全てになる。アイコンも色もそのために削られている。</p>
+        </div>
+        <div class="pillar reveal">
+          <div class="num">02 · LOCAL-FIRST</div>
+          <h4>端末がまず正本</h4>
+          <p>撮影・保存・記録は完全にオフラインで動作。同期は後から、静かに、必要なときだけ。</p>
+        </div>
+        <div class="pillar reveal">
+          <div class="num">03 · QUIET</div>
+          <h4>沈黙する道具</h4>
+          <p>通知は最小、アニメーションは抑制。Leica のような道具として、口数を減らす。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ FEATURES ============================ -->
+    <section id="features" aria-labelledby="features-h">
+      <div class="section-marker reveal">
+        <span class="idx">02</span>
+        <span class="jp">機能</span>
+        <span class="en">FEATURES · 08</span>
+      </div>
+
+      <h2 id="features-h" class="arch-h2 reveal" style="margin-bottom: 48px;">
+        観測のための、八つの動作。
+      </h2>
+
+      <div class="features-grid">
+        <article class="feature reveal">
+          <div class="head">
+            <span class="num">01 / 08</span>
+            <i data-lucide="layout-grid" class="icon" aria-hidden="true"></i>
+          </div>
+          <h3>Collection</h3>
+          <div class="name-jp">コレクション</div>
+          <p>登録した植物を、カテゴリ・検索・水やり優先で並び替える。リストではなく、観察対象の棚。</p>
+          <div class="verb"><span class="bar"></span>BROWSE · SEARCH · SORT</div>
+        </article>
+
+        <article class="feature reveal">
+          <div class="head">
+            <span class="num">02 / 08</span>
+            <i data-lucide="camera" class="icon" aria-hidden="true"></i>
+          </div>
+          <h3>Camera</h3>
+          <div class="name-jp">カメラ</div>
+          <p>高速撮影、即保存、オフライン対応。シャッターには音もアニメーションもない。</p>
+          <div class="verb"><span class="bar"></span>CAPTURE · INSTANT · OFFLINE</div>
+        </article>
+
+        <article class="feature reveal">
+          <div class="head">
+            <span class="num">03 / 08</span>
+            <i data-lucide="list" class="icon" aria-hidden="true"></i>
+          </div>
+          <h3>Timeline</h3>
+          <div class="name-jp">タイムライン</div>
+          <p>時系列の観測記録と育成ログ。日付と痕跡だけが、ただ縦に積まれていく。</p>
+          <div class="verb"><span class="bar"></span>OBSERVE · LOG · ARCHIVE</div>
+        </article>
+
+        <article class="feature reveal">
+          <div class="head">
+            <span class="num">04 / 08</span>
+            <i data-lucide="git-compare-arrows" class="icon" aria-hidden="true"></i>
+          </div>
+          <h3>Compare</h3>
+          <div class="name-jp">比較</div>
+          <p>任意の二点をスライダーで重ねる。Day 1 → Day 120、間の変化はそこに見える。</p>
+          <div class="verb"><span class="bar"></span>SLIDE · INTERVAL · TRACE</div>
+        </article>
+
+        <article class="feature reveal">
+          <div class="head">
+            <span class="num">05 / 08</span>
+            <i data-lucide="film" class="icon" aria-hidden="true"></i>
+          </div>
+          <h3>Timelapse</h3>
+          <div class="name-jp">タイムラプス</div>
+          <p>端末内で生成、端末から書き出し。クラウドには保存されない、私的なフィルム。</p>
+          <div class="verb"><span class="bar"></span>RENDER · EXPORT · LOCAL</div>
+        </article>
+
+        <article class="feature reveal">
+          <div class="head">
+            <span class="num">06 / 08</span>
+            <i data-lucide="droplet" class="icon" aria-hidden="true"></i>
+          </div>
+          <h3>Quick Log</h3>
+          <div class="name-jp">クイックログ</div>
+          <p>撮影なしで、水やり・施肥・植え替えだけを残す。痕跡を最短で記録する。</p>
+          <div class="verb"><span class="bar"></span>NOTE · WATER · REPOT</div>
+        </article>
+
+        <article class="feature reveal">
+          <div class="head">
+            <span class="num">07 / 08</span>
+            <i data-lucide="calendar" class="icon" aria-hidden="true"></i>
+          </div>
+          <h3>Care Calendar</h3>
+          <div class="name-jp">ケアカレンダー</div>
+          <p>植物ごとのケア履歴を、月間のカレンダーで一覧する。日付と動作だけ。</p>
+          <div class="verb"><span class="bar"></span>MONTH · HISTORY · DOT</div>
+        </article>
+
+        <article class="feature reveal">
+          <div class="head">
+            <span class="num">08 / 08</span>
+            <i data-lucide="settings-2" class="icon" aria-hidden="true"></i>
+          </div>
+          <h3>Settings</h3>
+          <div class="name-jp">設定</div>
+          <p>プラン、容量、同期状態、購入復元、アカウント削除。すべてここに集約される。</p>
+          <div class="verb"><span class="bar"></span>PLAN · STORAGE · ACCOUNT</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============================ ARCHITECTURE ============================ -->
+    <section id="architecture" aria-labelledby="arch-h">
+      <div class="section-marker reveal">
+        <span class="idx">03</span>
+        <span class="jp">構成</span>
+        <span class="en">ARCHITECTURE · STACK · PLANS</span>
+      </div>
+
+      <div class="arch-grid">
+        <div>
+          <h2 id="arch-h" class="arch-h2 reveal">
+            Local-first。<br>
+            あなたの端末が、<br>正本になる。
+          </h2>
+          <p class="arch-lede reveal">
+            撮影・保存・Quick Log はサインインなしでも動く。
+            同期は完了後に静かに走り、Original は R2 を正本として
+            端末から退避する。サムネイルは常駐し、必要なときだけ
+            オンデマンドで取り戻す。
+          </p>
+
+          <div class="arch-stack reveal">
+            <div class="arch-row">
+              <span class="label">CLIENT</span>
+              <span class="val">SwiftUI · SwiftData</span>
+            </div>
+            <div class="arch-row">
+              <span class="label">BACKEND</span>
+              <span class="val">Supabase · Auth · Postgres · Edge Functions</span>
+            </div>
+            <div class="arch-row">
+              <span class="label">STORAGE</span>
+              <span class="val">Cloudflare R2</span>
+            </div>
+            <div class="arch-row">
+              <span class="label">AUTH</span>
+              <span class="val">Sign in with Apple · Google Sign-In</span>
+            </div>
+            <div class="arch-row">
+              <span class="label">BILLING</span>
+              <span class="val">StoreKit 2</span>
+            </div>
+            <div class="arch-row">
+              <span class="label">TIMELAPSE</span>
+              <span class="val">AVFoundation · 端末内生成 · クラウド非保存</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="plans reveal">
+            <div class="plan-row head">
+              <span>プラン</span>
+              <span>月額</span>
+              <span>容量</span>
+              <span>同期品質</span>
+              <span>タイムラプス</span>
+            </div>
+
+            <div class="plan-row">
+              <div class="name">Seed<span class="sub">SEED · FREE</span></div>
+              <div class="price">¥0<span class="unit">/MO</span></div>
+              <div class="cap">3 GB</div>
+              <div class="qual">圧縮版</div>
+              <div class="tl">720p</div>
+            </div>
+
+            <div class="plan-row featured">
+              <div class="name">Archive<span class="sub">ARCHIVE · STANDARD</span></div>
+              <div class="price">¥480<span class="unit">/MO</span></div>
+              <div class="cap">50 GB</div>
+              <div class="qual">Original</div>
+              <div class="tl">4K · 広告なし</div>
+            </div>
+
+            <div class="plan-row">
+              <div class="name">Conservatory<span class="sub">CONSERVATORY · MAX</span></div>
+              <div class="price">¥980<span class="unit">/MO</span></div>
+              <div class="cap">500 GB</div>
+              <div class="qual">Original</div>
+              <div class="tl">4K · 広告なし</div>
+            </div>
+          </div>
+
+          <div class="flow reveal">
+            <div class="flow-label">SYNC FLOW · LOCAL-FIRST</div>
+            <div class="flow-chain">
+              <span class="flow-node">Collection</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-node">Camera</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-node accent">ローカル保存</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-node">SyncEngine</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-node">Supabase · R2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ VOICE ============================ -->
+    <section id="voice" aria-labelledby="voice-h">
+      <div class="section-marker reveal">
+        <span class="idx">04</span>
+        <span class="jp">ボイス</span>
+        <span class="en">VOICE · COPY · TONE</span>
+      </div>
+
+      <h2 id="voice-h" class="arch-h2 reveal" style="margin-bottom: 48px;">
+        言葉も、画面の一部である。
+      </h2>
+
+      <div class="voice-grid reveal">
+        <div class="voice-col do">
+          <div class="col-head">採用する表現 · DO</div>
+          <div class="voice-pair">
+            <span class="lbl">空状態</span>
+            <span class="ex">観測はまだありません。</span>
+          </div>
+          <div class="voice-pair">
+            <span class="lbl">保存完了</span>
+            <span class="ex">観測しました · 19:42</span>
+          </div>
+          <div class="voice-pair">
+            <span class="lbl">セクション見出し</span>
+            <span class="ex">観測 · 142</span>
+          </div>
+          <div class="voice-pair">
+            <span class="lbl">課金訴求</span>
+            <span class="ex">長いアーカイブのために。</span>
+          </div>
+          <div class="voice-pair">
+            <span class="lbl">比較</span>
+            <span class="ex">Day 1 → Day 120</span>
+          </div>
+        </div>
+
+        <div class="voice-col dont">
+          <div class="col-head">避ける表現 · DON'T</div>
+          <div class="voice-pair">
+            <span class="lbl">空状態</span>
+            <span class="ex">さあ、植えを始めましょう!</span>
+          </div>
+          <div class="voice-pair">
+            <span class="lbl">保存完了</span>
+            <span class="ex">写真を保存しました!</span>
+          </div>
+          <div class="voice-pair">
+            <span class="lbl">セクション見出し</span>
+            <span class="ex">マイプラント (142)</span>
+          </div>
+          <div class="voice-pair">
+            <span class="lbl">課金訴求</span>
+            <span class="ex">いますぐアップグレード! 期間限定</span>
+          </div>
+          <div class="voice-pair">
+            <span class="lbl">比較</span>
+            <span class="ex">劇的に成長しました!!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tone-words">
+        <div class="label">採用する語感<br><span style="color: var(--c-fossil); font-size: 9px;">TONE WORDS · KEEP</span></div>
+        <div>
+          <div class="row">
+            still <span class="sep">·</span> observed <span class="sep">·</span> archived <span class="sep">·</span> interval <span class="sep">·</span> trace <span class="sep">·</span> grew <span class="sep">·</span> returned <span class="sep">·</span> unchanged
+          </div>
+          <div class="row avoid">
+            care · happy · oops · friend · cute · let's · plant parent
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ CTA / DOWNLOAD ============================ -->
+    <section id="download" aria-labelledby="cta-h">
+      <div class="section-marker reveal">
+        <span class="idx">05</span>
+        <span class="jp">入手</span>
+        <span class="en">DOWNLOAD · iOS 17+</span>
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-grain"></div>
+        <div class="cta-inner">
+          <div>
+            <h2 id="cta-h">
+              観測を、<br>
+              今日からはじめる。
+            </h2>
+            <span class="sub">begin observing · iOS 17+ · seed plan free</span>
+          </div>
+          <div class="cta-actions">
+            <a href="#" class="btn primary" aria-label="App Store で入手">
+              <i data-lucide="apple" class="glyph" aria-hidden="true"></i>
+              App Store
+            </a>
+            <a href="../specification.md" class="btn secondary">
+              <i data-lucide="file-text" class="glyph" aria-hidden="true"></i>
+              要件定義書
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ FOOTER ============================ -->
+    <footer aria-label="フッター">
+      <div class="foot-grid">
+        <div class="foot-col foot-brand">
+          <div class="word">Node<span class="dot">.</span></div>
+          <p>植物の時間を残す。観測のためのアーカイブ、管理のためのアプリではない。</p>
+        </div>
+
+        <div class="foot-col">
+          <h5>ドキュメント</h5>
+          <ul>
+            <li><a href="../specification.md">要件定義書</a></li>
+            <li><a href="../README.md">README</a></li>
+            <li><a href="../ios/README.md">iOS</a></li>
+            <li><a href="../supabase/README.md">Supabase</a></li>
+            <li><a href="../design/README.md">Design</a></li>
+          </ul>
+        </div>
+
+        <div class="foot-col">
+          <h5>プロダクト</h5>
+          <ul>
+            <li><a href="#thesis">思想</a></li>
+            <li><a href="#features">機能</a></li>
+            <li><a href="#architecture">構成</a></li>
+            <li><a href="#voice">ボイス</a></li>
+            <li><a href="#download">入手</a></li>
+          </ul>
+        </div>
+
+        <div class="foot-col">
+          <h5>リポジトリ</h5>
+          <ul>
+            <li><a href="#" class="ext">GitHub</a></li>
+            <li><a href="#" class="ext">Changelog</a></li>
+            <li><a href="#">問い合わせ</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="foot-bottom">
+        <span>© 2026 · Node. · 植物観測アーカイブ</span>
+        <span>LICENSE · 未定 · TBD</span>
+        <span class="ver">spec v2.8 · 2026-05-25</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+    // Lucide icons render
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    } else {
+      window.addEventListener('load', () => window.lucide && window.lucide.createIcons());
+    }
+
+    // Scroll progress hairline
+    const scrollLine = document.getElementById('scrollLine');
+    function updateScroll() {
+      const h = document.documentElement;
+      const scrolled = h.scrollTop;
+      const max = h.scrollHeight - h.clientHeight;
+      const pct = max > 0 ? (scrolled / max) * 100 : 0;
+      scrollLine.style.width = pct + '%';
+    }
+    document.addEventListener('scroll', updateScroll, { passive: true });
+    updateScroll();
+
+    // Reveal on intersection — fade only, no slide-translate aside from a 12px lift
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+    document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+  </script>
+</body>
+</html>
