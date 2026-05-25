@@ -17,9 +17,8 @@ struct CompareView: View {
                     if let error = viewModel.imageLoadError {
                         MetaLabel(text: error, color: NodeColor.syncFail)
                     }
-                    comparisonStack
+                    comparisonSlider
                     intervalCard
-                    scrubberCard
                     timelapseSection
                 }
             }
@@ -28,8 +27,11 @@ struct CompareView: View {
             .padding(.bottom, 120)
         }
         .background(NodeColor.void)
-        .task(id: viewModel.afterIndex) {
+        .task(id: viewModel.comparisonSelectionKey) {
             await viewModel.loadComparisonImages()
+        }
+        .sheet(item: $viewModel.activeCalendarSide) { side in
+            calendarSheet(for: side)
         }
     }
 
@@ -57,25 +59,20 @@ struct CompareView: View {
         }
     }
 
-    private var comparisonStack: some View {
-        VStack(spacing: 0) {
-            comparePanel(
-                label: "BEFORE",
-                imagePath: viewModel.beforeImagePath,
-                observation: viewModel.beforeObservation,
-                subtitle: "入手日"
+    private var comparisonSlider: some View {
+        ZStack {
+            ImageComparisonSlider(
+                beforeImagePath: viewModel.beforeImagePath,
+                afterImagePath: viewModel.afterImagePath,
+                imageStore: imageStore,
+                beforeDayNumber: viewModel.beforeObservation.map(viewModel.observationDayNumber),
+                afterDayNumber: viewModel.afterObservation.map(viewModel.observationDayNumber),
+                beforeDateText: viewModel.beforeObservation?.createdAt.nodeMonthDay() ?? "—",
+                afterDateText: viewModel.afterObservation?.createdAt.nodeMonthDay() ?? "—",
+                onBeforeDateTap: { viewModel.openCalendar(for: .before) },
+                onAfterDateTap: { viewModel.openCalendar(for: .after) }
             )
-            Rectangle().fill(NodeColor.stone).frame(height: 1)
-            comparePanel(
-                label: "AFTER",
-                imagePath: viewModel.afterImagePath,
-                observation: viewModel.afterObservation,
-                subtitle: "今日"
-            )
-        }
-        .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
-        .overlay(RoundedRectangle(cornerRadius: NodeRadius.lg).stroke(NodeColor.hairline, lineWidth: 1))
-        .overlay {
+
             if viewModel.isLoadingImages {
                 ProgressView()
                     .tint(NodeColor.moss)
@@ -83,66 +80,54 @@ struct CompareView: View {
         }
     }
 
-    private func comparePanel(
-        label: String,
-        imagePath: String?,
-        observation: PlantObservation?,
-        subtitle: String
-    ) -> some View {
-        ZStack(alignment: .topLeading) {
-            PhotoCard(
-                imagePath: imagePath,
+    private func calendarSheet(for side: CompareSide) -> some View {
+        NavigationStack {
+            CompareObservationCalendar(
+                viewModel: viewModel,
+                side: side,
                 imageStore: imageStore,
-                aspectRatio: 4 / 3,
-                cornerRadius: 0
+                showsHeader: false
             )
-
-            VStack(alignment: .leading) {
-                Text(label)
-                    .font(NodeFont.mono(9))
-                    .tracking(0.8)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 4)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Capsule())
-                    .padding(12)
-
-                Spacer()
-
-                VStack(alignment: .leading, spacing: 4) {
-                    if let observation {
-                        MetaLabel(
-                            text: observation.createdAt.nodeYearMonthDay(),
-                            color: NodeColor.fog,
-                            size: 9
-                        )
+            .navigationTitle(side == .before ? "Before を選択" : "After を選択")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("閉じる") {
+                        viewModel.closeCalendar()
                     }
-                    Text(subtitle)
-                        .font(NodeFont.display(22, weight: .light))
-                        .foregroundStyle(NodeColor.bone)
                 }
-                .padding(14)
             }
         }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
     private var intervalCard: some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
             MetaLabel(text: "期間", size: 9)
-            HStack(spacing: 4) {
-                Text("1日目")
-                    .font(NodeFont.display(28, weight: .light))
-                    .foregroundStyle(NodeColor.bone)
-                Text("→")
-                    .foregroundStyle(NodeColor.moss)
-                Text("\(viewModel.plant?.dayCount ?? 0)日目")
-                    .font(NodeFont.display(28, weight: .light))
-                    .foregroundStyle(NodeColor.bone)
+
+            if let before = viewModel.beforeObservation, let after = viewModel.afterObservation {
+                HStack(spacing: 4) {
+                    Text("\(viewModel.observationDayNumber(before))日目")
+                        .font(NodeFont.display(28, weight: .light))
+                        .foregroundStyle(NodeColor.bone)
+                    Text("→")
+                        .foregroundStyle(NodeColor.moss)
+                    Text("\(viewModel.observationDayNumber(after))日目")
+                        .font(NodeFont.display(28, weight: .light))
+                        .foregroundStyle(NodeColor.bone)
+                }
+
+                MetaLabel(
+                    text: "\(before.createdAt.nodeYearMonthDay()) → \(after.createdAt.nodeYearMonthDay())",
+                    color: NodeColor.fog,
+                    size: 9
+                )
             }
 
             HStack(spacing: NodeSpacing.sp3) {
                 statItem(title: "経過日数", value: "\(viewModel.intervalDays)", unit: "日")
-                statItem(title: "観測", value: "\(viewModel.plant?.observationCount ?? 0)", unit: "回")
+                statItem(title: "観測差", value: "\(viewModel.observationIntervalCount)", unit: "回")
                 statItem(title: "水やり", value: "\(viewModel.waterLogCount)", unit: "回")
             }
         }
@@ -165,53 +150,6 @@ struct CompareView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var scrubberCard: some View {
-        VStack(alignment: .leading, spacing: NodeSpacing.sp4) {
-            HStack {
-                MetaLabel(text: "スクラブ", size: 9)
-                Spacer()
-                MetaLabel(text: "\(viewModel.sortedObservations.count)点", color: NodeColor.fog, size: 9)
-            }
-
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(NodeColor.stone)
-                        .frame(height: 1)
-                        .position(x: geo.size.width / 2, y: geo.size.height / 2)
-
-                    ForEach(Array(viewModel.sortedObservations.enumerated()), id: \.offset) { index, _ in
-                        Circle()
-                            .fill(index == viewModel.afterIndex ? NodeColor.moss : NodeColor.stone)
-                            .frame(width: index == viewModel.afterIndex ? 10 : 4, height: index == viewModel.afterIndex ? 10 : 4)
-                            .position(
-                                x: geo.size.width * CGFloat(index) / CGFloat(max(viewModel.sortedObservations.count - 1, 1)),
-                                y: geo.size.height / 2
-                            )
-                    }
-                }
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { value in
-                            let progress = min(max(value.location.x / geo.size.width, 0), 1)
-                            viewModel.setScrubProgress(progress)
-                        }
-                )
-            }
-            .frame(height: 28)
-
-            Slider(value: Binding(
-                get: { viewModel.scrubProgress },
-                set: { viewModel.setScrubProgress($0) }
-            ))
-            .tint(NodeColor.moss)
-        }
-        .padding(18)
-        .background(NodeColor.charcoal)
-        .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
-        .overlay(RoundedRectangle(cornerRadius: NodeRadius.lg).stroke(NodeColor.hairline, lineWidth: 1))
     }
 
     @ViewBuilder

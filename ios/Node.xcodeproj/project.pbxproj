@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		08BB455835FD98B67480F4BF /* CompareObservationCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0D902F5AE65DD571538F9B /* CompareObservationCalendar.swift */; };
 		0A464CB536C63C858E13E2A0 /* CameraViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B3BFE7E835AF680B7A35FC /* CameraViewModel.swift */; };
 		0F3F215D66FCE24F25130D34 /* TimelapseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB127F95E1335E07978ABAFA /* TimelapseService.swift */; };
 		14C4B8B495E2710CD517CFC7 /* TimelapseVideoGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1002FF3E000A5264672835E /* TimelapseVideoGenerator.swift */; };
@@ -28,6 +29,7 @@
 		5587076B456BADEA42474DD4 /* AddPlantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFDCBFBE3ABEB2BA466EBC1 /* AddPlantView.swift */; };
 		57D58C5F5EF732B96DE51684 /* ImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7FAE20867D33B75380E98A /* ImageStore.swift */; };
 		5A53BCE689FE86CD4E1D20B0 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6DCEF89DA333D9D6622BCB /* SyncEngine.swift */; };
+		5EE938DA38BE6CD310F6D311 /* ImageComparisonSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BAFEC3B48020BC8A506801 /* ImageComparisonSlider.swift */; };
 		5F84C1D337C715F08706BE21 /* UserPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADB233720CA6AF7B11B49A55 /* UserPlan.swift */; };
 		61CFEDBB0FBB5EC1DF33B120 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2123B8ADBF8CFCFB4F6DDAED /* TimelineView.swift */; };
 		64586BF2B84D09F6A2846534 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73C73C03D6904DF08D3FD35 /* SubscriptionService.swift */; };
@@ -74,6 +76,7 @@
 		20BF5D9A4BD8CDD1D662B102 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		20FCFA3E8DFF79FB2756DB86 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		2123B8ADBF8CFCFB4F6DDAED /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
+		2A0D902F5AE65DD571538F9B /* CompareObservationCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareObservationCalendar.swift; sourceTree = "<group>"; };
 		2B0EE5361A5A906664DA3DDA /* CompareRequirementSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareRequirementSheet.swift; sourceTree = "<group>"; };
 		2C646E69668CA8975B0355C1 /* WateringIntervalSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WateringIntervalSection.swift; sourceTree = "<group>"; };
 		2CBF394417CDAEE1D8CDA206 /* RecordDeletionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordDeletionService.swift; sourceTree = "<group>"; };
@@ -88,6 +91,7 @@
 		51A94ACB1051042365F85673 /* Node.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Node.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D96D305566A34F142C1DC1B /* PlanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanService.swift; sourceTree = "<group>"; };
 		613763BA1253878754516768 /* PlantDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlantDetailViewModel.swift; sourceTree = "<group>"; };
+		62BAFEC3B48020BC8A506801 /* ImageComparisonSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageComparisonSlider.swift; sourceTree = "<group>"; };
 		635E2DE38CF53ED88944069E /* EditGrowthLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGrowthLogViewModel.swift; sourceTree = "<group>"; };
 		6952EE3AD2E917CBFE2DAF1B /* NodeTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeTabBar.swift; sourceTree = "<group>"; };
 		6B38DE10CC355E8DBD8FA9EE /* EditPlantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPlantViewModel.swift; sourceTree = "<group>"; };
@@ -165,6 +169,7 @@
 		3572419BEF34EA23FBC047AB /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				62BAFEC3B48020BC8A506801 /* ImageComparisonSlider.swift */,
 				173EB8C58286F7A75BD73E10 /* NodeComponents.swift */,
 				6952EE3AD2E917CBFE2DAF1B /* NodeTabBar.swift */,
 				AAC7FBEB6BC979EC04C9E28A /* PhotoLibraryPicker.swift */,
@@ -324,6 +329,7 @@
 		E67C60C59379D72433992326 /* Compare */ = {
 			isa = PBXGroup;
 			children = (
+				2A0D902F5AE65DD571538F9B /* CompareObservationCalendar.swift */,
 				2B0EE5361A5A906664DA3DDA /* CompareRequirementSheet.swift */,
 				DD2A1C1F7EDFB8FBAD4441EA /* CompareView.swift */,
 				BE2DA37C36C00BED7912124F /* CompareViewModel.swift */,
@@ -474,6 +480,7 @@
 				86C037336E3055A866650C78 /* CareCalendarView.swift in Sources */,
 				ADCE2FA7EE0C2137B1002AE0 /* CollectionView.swift in Sources */,
 				8DBEE6BC9CF874D5DDEBB20C /* CollectionViewModel.swift in Sources */,
+				08BB455835FD98B67480F4BF /* CompareObservationCalendar.swift in Sources */,
 				3BF2CC6ED01315EAAE225910 /* CompareRequirementSheet.swift in Sources */,
 				C8874DDE32E6EC333E2C49D7 /* CompareView.swift in Sources */,
 				32D4062E34D50169D2746BF7 /* CompareViewModel.swift in Sources */,
@@ -483,6 +490,7 @@
 				D3B3B76303C8E0CBC6B80DE8 /* EditObservationViewModel.swift in Sources */,
 				1F508F914083EB39DBAE04B8 /* EditPlantView.swift in Sources */,
 				8C64E0236E6EFBF60D2F2D09 /* EditPlantViewModel.swift in Sources */,
+				5EE938DA38BE6CD310F6D311 /* ImageComparisonSlider.swift in Sources */,
 				57D58C5F5EF732B96DE51684 /* ImageStore.swift in Sources */,
 				880D3432516DC33D8483894C /* NodeApp.swift in Sources */,
 				3ECE3DB987BA95703601B8F4 /* NodeComponents.swift in Sources */,
