@@ -20,21 +20,27 @@ enum TimelapseVideoError: LocalizedError {
 
 enum TimelapseVideoGenerator {
     static let maxFrames = 60
-    static let framesPerSecond: Int32 = 2
 
     static func generate(
         imagePaths: [String],
         imageStore: ImageStore,
         maxLongEdge: CGFloat,
+        secondsPerFrame: Double,
         progress: (@Sendable (Double) -> Void)? = nil
     ) async throws -> URL {
         let images = try loadImages(paths: imagePaths, imageStore: imageStore)
         guard !images.isEmpty else { throw TimelapseVideoError.noFrames }
 
-        let outputSize = outputSize(for: images, maxLongEdge: maxLongEdge)
+        let outputSize = portraitOutputSize(maxLongEdge: maxLongEdge)
         let outputURL = try makeOutputURL()
 
-        try await writeVideo(images: images, to: outputURL, size: outputSize, progress: progress)
+        try await writeVideo(
+            images: images,
+            to: outputURL,
+            size: outputSize,
+            secondsPerFrame: secondsPerFrame,
+            progress: progress
+        )
         return outputURL
     }
 
@@ -52,14 +58,11 @@ enum TimelapseVideoGenerator {
         return images
     }
 
-    private static func outputSize(for images: [UIImage], maxLongEdge: CGFloat) -> CGSize {
-        guard let first = images.first else { return CGSize(width: 1280, height: 720) }
-        let longEdge = max(first.size.width, first.size.height)
-        let scale = min(1, maxLongEdge / longEdge)
-        var width = first.size.width * scale
-        var height = first.size.height * scale
-        width = CGFloat(evenDimension(width))
-        height = CGFloat(evenDimension(height))
+    private static func portraitOutputSize(maxLongEdge: CGFloat) -> CGSize {
+        let height = CGFloat(evenDimension(maxLongEdge))
+        let width = CGFloat(
+            evenDimension(maxLongEdge * TimelapseRequirements.aspectRatioWidth / TimelapseRequirements.aspectRatioHeight)
+        )
         return CGSize(width: max(width, 2), height: max(height, 2))
     }
 
@@ -79,10 +82,17 @@ enum TimelapseVideoGenerator {
         images: [UIImage],
         to outputURL: URL,
         size: CGSize,
+        secondsPerFrame: Double,
         progress: (@Sendable (Double) -> Void)?
     ) async throws {
         try await Task.detached(priority: .userInitiated) {
-            try writeVideoSync(images: images, to: outputURL, size: size, progress: progress)
+            try writeVideoSync(
+                images: images,
+                to: outputURL,
+                size: size,
+                secondsPerFrame: secondsPerFrame,
+                progress: progress
+            )
         }.value
     }
 
@@ -90,6 +100,7 @@ enum TimelapseVideoGenerator {
         images: [UIImage],
         to outputURL: URL,
         size: CGSize,
+        secondsPerFrame: Double,
         progress: (@Sendable (Double) -> Void)?
     ) throws {
         if FileManager.default.fileExists(atPath: outputURL.path) {
@@ -124,7 +135,7 @@ enum TimelapseVideoGenerator {
         }
         writer.startSession(atSourceTime: .zero)
 
-        let frameDuration = CMTime(value: 1, timescale: framesPerSecond)
+        let frameDuration = CMTimeMakeWithSeconds(max(secondsPerFrame, 0.04), preferredTimescale: 600)
         let total = images.count
 
         for (index, image) in images.enumerated() {

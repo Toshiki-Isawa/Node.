@@ -15,14 +15,32 @@ final class TimelapseService: ObservableObject {
         self.observationImageService = observationImageService
     }
 
-    func generate(observations: [PlantObservation], maxLongEdge: CGFloat) async {
+    func generate(
+        observations: [PlantObservation],
+        firstIndex: Int,
+        lastIndex: Int,
+        durationSeconds: Double,
+        maxLongEdge: CGFloat
+    ) async {
         let chronological = observations.sorted { $0.createdAt < $1.createdAt }
-        let sampled = Self.sampleObservations(chronological, maxFrames: TimelapseVideoGenerator.maxFrames)
-
-        guard sampled.count >= TimelapseRequirements.minimumObservations else {
-            errorMessage = "タイムラプスには\(TimelapseRequirements.minimumObservations)回以上の観測が必要です。"
+        guard firstIndex >= 0, lastIndex < chronological.count, firstIndex <= lastIndex else {
+            errorMessage = "観測範囲が不正です。"
             return
         }
+
+        let ranged = Array(chronological[firstIndex...lastIndex])
+        let sampled = Self.sampleObservations(ranged, maxFrames: TimelapseVideoGenerator.maxFrames)
+
+        guard sampled.count >= TimelapseRequirements.minimumObservations else {
+            errorMessage = "選択範囲には\(TimelapseRequirements.minimumObservations)回以上の観測が必要です。"
+            return
+        }
+
+        let clampedDuration = min(
+            max(durationSeconds, TimelapseRequirements.minimumDurationSeconds),
+            TimelapseRequirements.maximumDurationSeconds
+        )
+        let secondsPerFrame = clampedDuration / Double(sampled.count)
 
         discardOutput()
         isGenerating = true
@@ -53,7 +71,8 @@ final class TimelapseService: ObservableObject {
             let url = try await TimelapseVideoGenerator.generate(
                 imagePaths: imagePaths,
                 imageStore: imageStore,
-                maxLongEdge: maxLongEdge
+                maxLongEdge: maxLongEdge,
+                secondsPerFrame: secondsPerFrame
             ) { [weak self] value in
                 Task { @MainActor in
                     self?.generationProgress = 0.2 + value * 0.8

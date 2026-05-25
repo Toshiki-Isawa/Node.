@@ -67,6 +67,35 @@ final class CompareViewModel: ObservableObject {
             afterIndex = max(0, count - 1)
         }
 
+        applyCalendarStateForCurrentSelection()
+        Task { await loadComparisonImages() }
+    }
+
+    func configureForTimelapse(plant: Plant?) {
+        self.plant = plant
+        let count = plant?.observations.count ?? 0
+        beforeIndex = 0
+        afterIndex = max(0, count - 1)
+
+        applyCalendarStateForCurrentSelection()
+    }
+
+    var selectedObservationCount: Int {
+        observationIntervalCount + 1
+    }
+
+    var selectedObservations: [PlantObservation] {
+        guard let before = beforeObservation, let after = afterObservation else { return [] }
+        return sortedObservations.filter { observation in
+            observation.createdAt >= before.createdAt && observation.createdAt <= after.createdAt
+        }
+    }
+
+    var estimatedFrameCount: Int {
+        min(TimelapseVideoGenerator.maxFrames, selectedObservationCount)
+    }
+
+    private func applyCalendarStateForCurrentSelection() {
         if let after = afterObservation {
             afterDisplayedMonth = calendar.startOfMonth(for: after.createdAt)
             afterPickerDay = calendar.startOfDay(for: after.createdAt)
@@ -75,8 +104,6 @@ final class CompareViewModel: ObservableObject {
             beforeDisplayedMonth = calendar.startOfMonth(for: before.createdAt)
             beforePickerDay = calendar.startOfDay(for: before.createdAt)
         }
-
-        Task { await loadComparisonImages() }
     }
 
     func loadComparisonImages() async {

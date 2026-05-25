@@ -159,6 +159,7 @@ struct RootView: View {
                 ),
                 timelapseService: environment.timelapseService,
                 planService: environment.planService,
+                observationImageService: environment.observationImageService,
                 imageStore: environment.imageStore
             )
         }

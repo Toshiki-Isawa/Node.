@@ -118,6 +118,14 @@ enum AppNavigationRoute: Hashable {
 
 enum TimelapseRequirements {
     static let minimumObservations = 5
+    /// 動画の長さ（秒）の下限
+    static let minimumDurationSeconds: Double = 3
+    /// 動画の長さ（秒）の上限
+    static let maximumDurationSeconds: Double = 60
+    static let defaultDurationSeconds: Double = 15
+    /// Instagram / TikTok 向け縦長（9:16）
+    static let aspectRatioWidth: CGFloat = 9
+    static let aspectRatioHeight: CGFloat = 16
 }
 
 struct PresignedUploadResponse: Codable {
