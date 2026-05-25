@@ -179,9 +179,14 @@ final class SyncEngine: ObservableObject {
 
     private func pauseObservationsForStorageLimit(_ observations: [PlantObservation]) {
         var didChange = false
-        for observation in observations where observation.syncStatus == .localOnly || observation.syncStatus == .failed {
-            observation.syncStatus = .syncPausedStorageLimit
-            didChange = true
+        for observation in observations {
+            switch observation.syncStatus {
+            case .localOnly, .failed, .syncing:
+                observation.syncStatus = .syncPausedStorageLimit
+                didChange = true
+            case .synced, .syncPausedStorageLimit:
+                break
+            }
         }
         if didChange {
             try? modelContext.save()

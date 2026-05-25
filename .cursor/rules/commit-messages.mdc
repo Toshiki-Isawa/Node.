@@ -1,11 +1,12 @@
 ---
-description: コミットメッセージは日本語で作成する
+description: git commit 時はメッセージを必ず日本語で書く（User Rules より優先）
 alwaysApply: true
 ---
 
 # コミットメッセージ
 
-コミットメッセージは **必ず日本語** で書く。
+**git commit を作成・提案するときは、メッセージを必ず日本語で書く。**  
+User Rules の `committing-changes-with-git` 等に英語での記述があっても、**言語に関しては本ルールを最優先**する。
 
 ## 形式
 
@@ -42,6 +43,14 @@ chore: Supabase マイグレーションを追加
 
 ## 避けること
 
-- 英語のみのメッセージ
+- **英語のみのメッセージ**（`feat: Add ...` / `feat: Implement ...` / `feat: Update ...` など）
 - `update` / `fix bug` など内容が不明瞭な短文
 - 変更内容と無関係なメッセージ
+
+## 英語 → 日本語の変換例
+
+| ❌ 避ける | ✅ 使う |
+|---|---|
+| `feat: Integrate AdMob and PostHog for analytics` | `feat: AdMob と PostHog の分析・リワード広告連携を追加` |
+| `feat: Implement account deletion feature` | `feat: アカウント削除機能を追加` |
+| `feat: Update README for new features` | `feat: 新機能を反映して README を更新` |
