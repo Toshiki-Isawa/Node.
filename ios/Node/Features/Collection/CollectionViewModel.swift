@@ -4,6 +4,7 @@ import SwiftData
 @MainActor
 final class CollectionViewModel: ObservableObject {
     @Published var selectedCategory: String = "すべて"
+    @Published var searchText: String = ""
     @Published var plants: [Plant] = []
 
     private let modelContext: ModelContext
@@ -31,7 +32,21 @@ final class CollectionViewModel: ObservableObject {
         } else {
             base = plants.filter { $0.category == selectedCategory }
         }
-        return base.sorted { lhs, rhs in
+
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let searched: [Plant]
+        if query.isEmpty {
+            searched = base
+        } else {
+            let normalized = query.lowercased()
+            searched = base.filter { plant in
+                plant.name.lowercased().contains(normalized)
+                    || plant.species.lowercased().contains(normalized)
+                    || plant.category.lowercased().contains(normalized)
+            }
+        }
+
+        return searched.sorted { lhs, rhs in
             let leftPriority = lhs.wateringSortPriority
             let rightPriority = rhs.wateringSortPriority
             if leftPriority != rightPriority { return leftPriority > rightPriority }

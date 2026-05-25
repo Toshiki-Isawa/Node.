@@ -10,10 +10,19 @@ struct CollectionView: View {
     var onBulkQuickLog: () -> Void
     var onSettings: () -> Void
 
+    @State private var isSearchActive = false
+    @FocusState private var isSearchFieldFocused: Bool
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 header
+                if isSearchActive {
+                    searchBar
+                        .padding(.horizontal, NodeSpacing.sp5)
+                        .padding(.bottom, NodeSpacing.sp4)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 if planService.isCloudSyncPausedByStorage, let usage = planService.storageUsage {
                     StorageLimitBanner(usage: usage, onUpgrade: onSettings)
                         .padding(.horizontal, NodeSpacing.sp5)
@@ -25,10 +34,26 @@ struct CollectionView: View {
             .padding(.bottom, 120)
         }
         .background(NodeColor.graphite)
+        .animation(.easeOut(duration: NodeMotion.durFast), value: isSearchActive)
         .onAppear {
             viewModel.reload()
             Task { await planService.refresh() }
         }
+    }
+
+    private func activateSearch() {
+        withAnimation(.easeOut(duration: NodeMotion.durFast)) {
+            isSearchActive = true
+        }
+        isSearchFieldFocused = true
+    }
+
+    private func deactivateSearch() {
+        viewModel.searchText = ""
+        withAnimation(.easeOut(duration: NodeMotion.durFast)) {
+            isSearchActive = false
+        }
+        isSearchFieldFocused = false
     }
 
     private var header: some View {
@@ -40,8 +65,10 @@ struct CollectionView: View {
                 )
                 Spacer()
                 HStack(spacing: NodeSpacing.sp4) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(NodeColor.fog)
+                    Button(action: isSearchActive ? deactivateSearch : activateSearch) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(isSearchActive ? NodeColor.mossSoft : NodeColor.fog)
+                    }
                     Button(action: onBulkQuickLog) {
                         Image(systemName: "drop.fill")
                             .foregroundStyle(NodeColor.mossSoft)
@@ -92,6 +119,47 @@ struct CollectionView: View {
         .padding(.bottom, NodeSpacing.sp4)
     }
 
+    private var searchBar: some View {
+        HStack(spacing: NodeSpacing.sp2) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(NodeColor.fog)
+                .font(.system(size: 15))
+
+            TextField("植物名、学名で検索", text: $viewModel.searchText)
+                .font(NodeFont.text(NodeFont.body))
+                .foregroundStyle(NodeColor.bone)
+                .focused($isSearchFieldFocused)
+                .submitLabel(.search)
+                .autocorrectionDisabled()
+
+            if !viewModel.searchText.isEmpty {
+                Button {
+                    viewModel.searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(NodeColor.fog)
+                        .font(.system(size: 16))
+                }
+                .buttonStyle(.plain)
+            }
+
+            Button("キャンセル", action: deactivateSearch)
+                .font(NodeFont.text(12, weight: .medium))
+                .foregroundStyle(NodeColor.mossSoft)
+                .buttonStyle(.plain)
+        }
+        .padding(.horizontal, NodeSpacing.sp3)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: NodeRadius.lg)
+                .fill(NodeColor.bark)
+                .overlay(
+                    RoundedRectangle(cornerRadius: NodeRadius.lg)
+                        .stroke(NodeColor.hairline, lineWidth: 1)
+                )
+        )
+    }
+
     private var categoryChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: NodeSpacing.sp2) {
@@ -112,7 +180,7 @@ struct CollectionView: View {
     private var plantGrid: some View {
         Group {
             if viewModel.filteredPlants.isEmpty {
-                EmptyStateView(message: "まだ植物がありません。")
+                EmptyStateView(message: emptyGridMessage)
                     .padding(.top, NodeSpacing.sp8)
             } else {
                 LazyVGrid(
@@ -131,6 +199,13 @@ struct CollectionView: View {
                 .padding(.horizontal, NodeSpacing.sp4)
             }
         }
+    }
+
+    private var emptyGridMessage: String {
+        if viewModel.plants.isEmpty {
+            return "まだ植物がありません。"
+        }
+        return "該当する植物がありません。"
     }
 }
 
