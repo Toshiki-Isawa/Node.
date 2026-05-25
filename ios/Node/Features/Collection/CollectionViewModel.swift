@@ -58,6 +58,10 @@ final class CollectionViewModel: ObservableObject {
         plants.reduce(0) { $0 + $1.observationCount }
     }
 
+    var plantsNeedingWaterCount: Int {
+        plants.filter(\.needsWatering).count
+    }
+
     func deletePlant(_ plant: Plant) {
         modelContext.delete(plant)
         try? modelContext.save()

@@ -72,6 +72,17 @@ struct CollectionView: View {
                     Button(action: onBulkQuickLog) {
                         Image(systemName: "drop.fill")
                             .foregroundStyle(NodeColor.mossSoft)
+                            .overlay(alignment: .topTrailing) {
+                                if viewModel.plantsNeedingWaterCount > 0 {
+                                    Text("\(viewModel.plantsNeedingWaterCount)")
+                                        .font(NodeFont.mono(8))
+                                        .foregroundStyle(NodeColor.graphite)
+                                        .padding(.horizontal, viewModel.plantsNeedingWaterCount >= 10 ? 3 : 0)
+                                        .frame(minWidth: 14, minHeight: 14)
+                                        .background(Capsule().fill(NodeColor.moss))
+                                        .offset(x: 7, y: -7)
+                                }
+                            }
                     }
                     Button(action: onSettings) {
                         Image(systemName: "gearshape")

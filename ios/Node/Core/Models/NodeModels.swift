@@ -87,7 +87,7 @@ final class Plant {
     var wateringStatusLabel: String? {
         guard needsWatering else { return nil }
         let overdue = daysSinceLastWater - (wateringIntervalDays ?? 0)
-        return overdue > 0 ? "\(overdue)日超過" : "水やり"
+        return overdue > 0 ? "\(overdue)日遅れ" : "水やり"
     }
 }
 
