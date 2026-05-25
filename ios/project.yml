@@ -13,6 +13,12 @@ packages:
   GoogleSignIn:
     url: https://github.com/google/GoogleSignIn-iOS
     from: 8.0.0
+  GoogleMobileAds:
+    url: https://github.com/googleads/swift-package-manager-google-mobile-ads
+    from: 11.0.0
+  PostHog:
+    url: https://github.com/PostHog/posthog-ios
+    from: 3.0.0
 
 configs:
   Debug: debug
@@ -60,6 +66,10 @@ targets:
         product: Supabase
       - package: GoogleSignIn
         product: GoogleSignIn
+      - package: GoogleMobileAds
+        product: GoogleMobileAds
+      - package: PostHog
+        product: PostHog
     entitlements:
       path: Node/Node.entitlements
       properties:
