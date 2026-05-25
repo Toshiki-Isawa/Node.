@@ -255,6 +255,19 @@ final class SupabaseService: ObservableObject {
         return value
     }
 
+    func fetchStorageObjectKey(observationId: UUID) async throws -> String? {
+        struct Row: Decodable {
+            let object_key: String
+        }
+        let rows: [Row] = try await client.from("storage_objects")
+            .select("object_key")
+            .eq("observation_id", value: observationId.uuidString)
+            .limit(1)
+            .execute()
+            .value
+        return rows.first?.object_key
+    }
+
     func registerStorageObject(
         observationId: UUID,
         objectKey: String,

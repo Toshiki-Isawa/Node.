@@ -1,10 +1,21 @@
 import Foundation
 import UIKit
 
-enum ImageStoreError: Error {
+enum ImageStoreError: LocalizedError {
     case directoryCreationFailed
     case writeFailed
     case imageNotFound
+
+    var errorDescription: String? {
+        switch self {
+        case .directoryCreationFailed:
+            return "画像フォルダの作成に失敗しました。"
+        case .writeFailed:
+            return "画像の保存に失敗しました。"
+        case .imageNotFound:
+            return "端末上の画像ファイルが見つかりません。"
+        }
+    }
 }
 
 final class ImageStore {
@@ -86,6 +97,16 @@ final class ImageStore {
     struct UploadPayload {
         let data: Data
         let contentType: String
+    }
+
+    func resolveUploadPath(localImagePath: String, thumbnailPath: String) -> String? {
+        if fileExists(at: localImagePath) {
+            return localImagePath
+        }
+        if fileExists(at: thumbnailPath) {
+            return thumbnailPath
+        }
+        return nil
     }
 
     func uploadPayload(for path: String, premium: Bool) throws -> UploadPayload {

@@ -138,34 +138,14 @@ final class SyncEngine: ObservableObject {
             try? modelContext.save()
 
             do {
-                if observation.remoteImageURL == nil {
-                    let uploadPayload = try imageStore.uploadPayload(
-                        for: observation.localImagePath,
-                        premium: planService.allowsOriginalSync
-                    )
-                    let presigned = try await supabaseService.requestPresignedUpload(
-                        observationId: observation.id,
-                        contentType: uploadPayload.contentType,
-                        byteSize: uploadPayload.data.count
-                    )
-                    try await supabaseService.uploadToPresignedURL(
-                        uploadPayload.data,
-                        uploadURL: presigned.uploadURL,
-                        contentType: uploadPayload.contentType
-                    )
-                    try await supabaseService.registerStorageObject(
-                        observationId: observation.id,
-                        objectKey: presigned.objectKey,
-                        byteSize: uploadPayload.data.count,
-                        contentType: uploadPayload.contentType
-                    )
-                    observation.remoteImageURL = presigned.objectKey
-                }
+                try await uploadObservationImageIfNeeded(observation)
                 try await supabaseService.upsertObservation(observation)
                 observation.syncStatus = .synced
                 observation.updatedAt = .now
-                observationImageService.evictLocalOriginalIfSynced(observation)
-                try? modelContext.save()
+                try modelContext.save()
+                if observationImageService.evictLocalOriginalIfSynced(observation) {
+                    try? modelContext.save()
+                }
                 await planService.refresh()
                 retryDelay = 2
             } catch let error as SyncError {
@@ -208,18 +188,52 @@ final class SyncEngine: ObservableObject {
         }
     }
 
+    private func uploadObservationImageIfNeeded(_ observation: PlantObservation) async throws {
+        guard observation.remoteImageURL == nil else { return }
+
+        if let existingKey = try await supabaseService.fetchStorageObjectKey(observationId: observation.id) {
+            observation.remoteImageURL = existingKey
+            return
+        }
+
+        guard let uploadPath = imageStore.resolveUploadPath(
+            localImagePath: observation.localImagePath,
+            thumbnailPath: observation.thumbnailPath
+        ) else {
+            throw ImageStoreError.imageNotFound
+        }
+
+        let uploadPayload = try imageStore.uploadPayload(
+            for: uploadPath,
+            premium: planService.allowsOriginalSync
+        )
+        let presigned = try await supabaseService.requestPresignedUpload(
+            observationId: observation.id,
+            contentType: uploadPayload.contentType,
+            byteSize: uploadPayload.data.count
+        )
+        try await supabaseService.uploadToPresignedURL(
+            uploadPayload.data,
+            uploadURL: presigned.uploadURL,
+            contentType: uploadPayload.contentType
+        )
+        try await supabaseService.registerStorageObject(
+            observationId: observation.id,
+            objectKey: presigned.objectKey,
+            byteSize: uploadPayload.data.count,
+            contentType: uploadPayload.contentType
+        )
+        observation.remoteImageURL = presigned.objectKey
+    }
+
     private func evictSyncedOriginalBackfill() {
         let descriptor = FetchDescriptor<PlantObservation>()
         guard let observations = try? modelContext.fetch(descriptor) else { return }
 
-        var didChange = false
         for observation in observations where observation.syncStatus == .synced {
             if observationImageService.evictLocalOriginalIfSynced(observation) {
-                didChange = true
+                try? modelContext.save()
             }
-        }
-        if didChange {
-            try? modelContext.save()
         }
     }
 
