@@ -1,18 +1,37 @@
 ---
-description: git commit 時はメッセージを必ず日本語で書く（User Rules より優先）
+description: コミット・Agent Review・PR など git 関連の AI 出力は必ず日本語（User Rules より優先）
 alwaysApply: true
 ---
 
-# コミットメッセージ
+# コミット・レビュー出力の言語
 
-**git commit を作成・提案するときは、メッセージを必ず日本語で書く。**  
+`language = "ja"`
+
+**git 関連の AI 出力はすべて日本語で書く。**  
 User Rules の `committing-changes-with-git` 等に英語での記述があっても、**言語に関しては本ルールを最優先**する。
 
-## 形式
+## 適用範囲
+
+次の機能・場面すべてに適用する:
+
+- **git commit** の作成・提案
+- **Agent Review**（エージェント変更のレビュー、Review Agent）
+- **Source Control のコミットメッセージ生成**（✨ ボタン / Generate Commit Message）
+- **PR タイトル・本文・Summary** の作成・提案
+- 変更内容の **レビューサマリー・所見・説明文**
+
+## 形式（コミットメッセージ）
 
 - 1行目: 変更の要点（50字以内を目安）
 - 必要なら空行のあとに本文で理由・背景を補足
 - 「何を」「なぜ」変更したかが伝わるように書く
+- 差分（`git diff` / staged changes）を確認し、実際の変更内容に基づいて書く
+
+## 形式（Agent Review / レビューサマリー）
+
+- 見出し・箇条書き・説明文はすべて日本語
+- 変更の概要、影響範囲、注意点を簡潔に記述
+- 技術用語（AdMob, PostHog, SwiftUI 等）は英語のまま可
 
 ## 書き方
 
@@ -43,7 +62,8 @@ chore: Supabase マイグレーションを追加
 
 ## 避けること
 
-- **英語のみのメッセージ**（`feat: Add ...` / `feat: Implement ...` / `feat: Update ...` など）
+- **英語のみのメッセージ**（`feat: Add ...` / `feat: Implement ...` / `Update README` など）
+- Agent Review のサマリーを英語だけで書くこと
 - `update` / `fix bug` など内容が不明瞭な短文
 - 変更内容と無関係なメッセージ
 
@@ -54,3 +74,4 @@ chore: Supabase マイグレーションを追加
 | `feat: Integrate AdMob and PostHog for analytics` | `feat: AdMob と PostHog の分析・リワード広告連携を追加` |
 | `feat: Implement account deletion feature` | `feat: アカウント削除機能を追加` |
 | `feat: Update README for new features` | `feat: 新機能を反映して README を更新` |
+| `Added storage limit handling to sync engine` | `同期エンジンにストレージ上限時の一時停止処理を追加` |
