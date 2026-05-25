@@ -162,6 +162,18 @@ enum TimelapseVideoGenerator {
     }
 
     private static func pixelBuffer(from image: UIImage, size: CGSize) -> CVPixelBuffer? {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        let frame = renderer.image { _ in
+            UIColor.black.setFill()
+            UIRectFill(CGRect(origin: .zero, size: size))
+            let drawRect = aspectFillRect(imageSize: image.size, in: size)
+            image.draw(in: drawRect)
+        }
+
+        guard let cgImage = frame.cgImage else { return nil }
+
         let width = Int(size.width)
         let height = Int(size.height)
         var buffer: CVPixelBuffer?
@@ -192,11 +204,10 @@ enum TimelapseVideoGenerator {
 
         context.clear(CGRect(x: 0, y: 0, width: width, height: height))
         context.interpolationQuality = .high
-
-        let drawRect = aspectFillRect(imageSize: image.size, in: size)
-        UIGraphicsPushContext(context)
-        image.draw(in: drawRect)
-        UIGraphicsPopContext()
+        // CVPixelBuffer の CGContext は左下原点。向きは正規化済み CGImage をそのまま描画する
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1, y: -1)
+        context.draw(cgImage, in: CGRect(origin: .zero, size: size))
 
         return pixelBuffer
     }
