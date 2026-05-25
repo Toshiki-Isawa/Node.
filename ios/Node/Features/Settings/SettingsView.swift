@@ -5,6 +5,9 @@ struct SettingsView: View {
     @ObservedObject var planService: PlanService
     @Environment(\.dismiss) private var dismiss
 
+    @State private var showLogoutConfirmation = false
+    @State private var showDeleteAccountConfirmation = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: NodeSpacing.sp5) {
@@ -15,12 +18,37 @@ struct SettingsView: View {
                 syncSection
                 plansSection
                 actionsSection
+                accountSection
             }
             .padding(.horizontal, NodeSpacing.sp4)
             .padding(.bottom, NodeSpacing.sp10)
         }
         .background(NodeColor.graphite)
         .task { await viewModel.reload() }
+        .confirmationDialog(
+            "ログアウトしますか？",
+            isPresented: $showLogoutConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("ログアウト", role: .destructive) {
+                Task { await viewModel.signOut() }
+            }
+            Button("キャンセル", role: .cancel) {}
+        } message: {
+            Text("端末内のデータは残ります。再度サインインするとクラウド同期を再開できます。")
+        }
+        .confirmationDialog(
+            "アカウントを削除しますか？",
+            isPresented: $showDeleteAccountConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("削除", role: .destructive) {
+                Task { await viewModel.deleteAccount() }
+            }
+            Button("キャンセル", role: .cancel) {}
+        } message: {
+            Text(deleteAccountMessage)
+        }
     }
 
     private var topBar: some View {
@@ -74,6 +102,13 @@ struct SettingsView: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+
+    private var deleteAccountMessage: String {
+        if viewModel.plan.isPaid {
+            return "クラウド上のデータは完全に削除されます。有料プランは App Store で別途解約してください。端末内のデータは残ります。"
+        }
+        return "クラウド上のデータは完全に削除されます。端末内のデータは残ります。"
     }
 
     private var storageLimitLabel: String {
@@ -292,6 +327,79 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    @ViewBuilder
+    private var accountSection: some View {
+        if viewModel.isAuthenticated {
+            SettingsCard(title: "アカウント") {
+                VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
+                    if viewModel.plan.isPaid {
+                        accountActionRow(
+                            title: "プランを解約",
+                            subtitle: "App Store のサブスクリプション管理画面を開きます",
+                            systemImage: "creditcard",
+                            action: { Task { await viewModel.manageSubscriptions() } }
+                        )
+                    }
+
+                    accountActionRow(
+                        title: "ログアウト",
+                        subtitle: "この端末からサインアウトします",
+                        systemImage: "rectangle.portrait.and.arrow.right",
+                        action: { showLogoutConfirmation = true }
+                    )
+
+                    accountActionRow(
+                        title: "アカウントを削除",
+                        subtitle: "クラウド上のデータを完全に削除します",
+                        systemImage: "person.crop.circle.badge.minus",
+                        titleColor: NodeColor.syncFail,
+                        action: { showDeleteAccountConfirmation = true }
+                    )
+
+                    if let message = viewModel.accountActionMessage {
+                        Text(message)
+                            .font(NodeFont.text(12))
+                            .foregroundStyle(NodeColor.syncFail)
+                    }
+                }
+            }
+        }
+    }
+
+    private func accountActionRow(
+        title: String,
+        subtitle: String,
+        systemImage: String,
+        titleColor: Color = NodeColor.bone,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: NodeSpacing.sp3) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(titleColor)
+                    .frame(width: 20)
+
+                VStack(alignment: .leading, spacing: NodeSpacing.sp1) {
+                    Text(title)
+                        .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                        .foregroundStyle(titleColor)
+                    Text(subtitle)
+                        .font(NodeFont.text(12))
+                        .foregroundStyle(NodeColor.fog)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(NodeColor.mist)
+            }
+            .padding(.vertical, NodeSpacing.sp1)
+        }
+        .buttonStyle(.plain)
     }
 
     private func upgradePlanCard(

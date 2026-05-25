@@ -41,7 +41,9 @@ struct RootView: View {
             imageStore: environment.imageStore,
             planService: environment.planService,
             subscriptionService: environment.subscriptionService,
-            syncEngine: environment.syncEngine
+            syncEngine: environment.syncEngine,
+            authViewModel: environment.authViewModel,
+            supabaseService: environment.supabaseService
         ))
     }
 

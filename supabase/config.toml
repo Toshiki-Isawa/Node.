@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.r2-presign-download]
 verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true

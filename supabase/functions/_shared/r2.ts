@@ -1,4 +1,9 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "npm:@aws-sdk/client-s3@3.700.0";
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "npm:@aws-sdk/client-s3@3.700.0";
 import { getSignedUrl } from "npm:@aws-sdk/s3-request-presigner@3.700.0";
 
 const DEFAULT_EXPIRES_IN = 3600;
@@ -73,4 +78,27 @@ export async function presignGetObject(
 export function publicObjectUrl(config: R2Config, key: string): string | null {
   if (!config.publicBaseUrl) return null;
   return `${config.publicBaseUrl.replace(/\/$/, "")}/${key}`;
+}
+
+export async function deleteObjects(
+  config: R2Config,
+  keys: string[],
+): Promise<void> {
+  if (keys.length === 0) return;
+
+  const client = createR2Client(config);
+  const batchSize = 1000;
+
+  for (let index = 0; index < keys.length; index += batchSize) {
+    const batch = keys.slice(index, index + batchSize);
+    await client.send(
+      new DeleteObjectsCommand({
+        Bucket: config.bucket,
+        Delete: {
+          Objects: batch.map((Key) => ({ Key })),
+          Quiet: true,
+        },
+      }),
+    );
+  }
 }

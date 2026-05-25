@@ -10,28 +10,36 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var isRefreshing = false
     @Published private(set) var isPurchasing = false
     @Published var purchaseMessage: String?
+    @Published var accountActionMessage: String?
 
     private let modelContext: ModelContext
     private let imageStore: ImageStore
     private let planService: PlanService
     private let subscriptionService: SubscriptionService
     private let syncEngine: SyncEngine
+    private let authViewModel: AuthViewModel
+    private let supabaseService: SupabaseService
 
     init(
         modelContext: ModelContext,
         imageStore: ImageStore,
         planService: PlanService,
         subscriptionService: SubscriptionService,
-        syncEngine: SyncEngine
+        syncEngine: SyncEngine,
+        authViewModel: AuthViewModel,
+        supabaseService: SupabaseService
     ) {
         self.modelContext = modelContext
         self.imageStore = imageStore
         self.planService = planService
         self.subscriptionService = subscriptionService
         self.syncEngine = syncEngine
+        self.authViewModel = authViewModel
+        self.supabaseService = supabaseService
     }
 
     var plan: UserPlan { planService.plan }
+    var isAuthenticated: Bool { supabaseService.isAuthenticated }
     var cloudUsage: StorageUsage? { planService.storageUsage }
     var isCloudSyncPaused: Bool { planService.isCloudSyncPausedByStorage }
     var archivePriceLabel: String? {
@@ -96,6 +104,25 @@ final class SettingsViewModel: ObservableObject {
         guard let scene = Self.activeWindowScene() else { return }
         try? await AppStore.showManageSubscriptions(in: scene)
         await reload()
+    }
+
+    func signOut() async {
+        accountActionMessage = nil
+        await authViewModel.signOut()
+        if let errorMessage = authViewModel.errorMessage {
+            accountActionMessage = errorMessage
+        }
+    }
+
+    func deleteAccount() async {
+        isRefreshing = true
+        accountActionMessage = nil
+        defer { isRefreshing = false }
+
+        await authViewModel.deleteAccount()
+        if let errorMessage = authViewModel.errorMessage {
+            accountActionMessage = errorMessage
+        }
     }
 
     private func purchase(planName: String, action: () async throws -> Void) async {

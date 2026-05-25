@@ -86,6 +86,15 @@ final class SupabaseService: ObservableObject {
         session = nil
     }
 
+    func deleteAccount() async throws {
+        struct Response: Decodable {
+            let deleted: Bool
+        }
+
+        let _: Response = try await client.functions.invoke("delete-account")
+        session = nil
+    }
+
     // MARK: - Database
 
     func upsertPlant(_ plant: Plant) async throws {

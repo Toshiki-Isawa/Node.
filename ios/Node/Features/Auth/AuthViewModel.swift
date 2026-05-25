@@ -117,6 +117,21 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
+    func deleteAccount() async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            try await supabaseService.deleteAccount()
+            GIDSignIn.sharedInstance.signOut()
+            isOfflineMode = false
+            hasEnteredApp = false
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func continueOffline() {
         isOfflineMode = true
         hasEnteredApp = true
