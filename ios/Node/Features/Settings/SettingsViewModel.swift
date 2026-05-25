@@ -114,7 +114,8 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    func deleteAccount() async {
+    @discardableResult
+    func deleteAccount() async -> Bool {
         isRefreshing = true
         accountActionMessage = nil
         defer { isRefreshing = false }
@@ -122,7 +123,9 @@ final class SettingsViewModel: ObservableObject {
         await authViewModel.deleteAccount()
         if let errorMessage = authViewModel.errorMessage {
             accountActionMessage = errorMessage
+            return false
         }
+        return true
     }
 
     private func purchase(planName: String, action: () async throws -> Void) async {
