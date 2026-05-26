@@ -258,8 +258,6 @@ private struct PlantGridCell: View {
                                 Spacer()
                                 if ReleaseConfig.cloudSyncEnabled {
                                     syncBadge
-                                } else if plant.observationCount > 0 {
-                                    observationCountBadge
                                 }
                             }
                             Spacer()
@@ -325,27 +323,7 @@ private struct PlantGridCell: View {
         .padding(10)
     }
 
-    private var observationCountBadge: some View {
-        MetaLabel(
-            text: "\(plant.observationCount)",
-            color: NodeColor.bone,
-            size: 9
-        )
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(NodeColor.void.opacity(0.65))
-        .background(.ultraThinMaterial)
-        .clipShape(Capsule())
-        .padding(10)
-    }
-
     private var syncLabel: String {
-        switch plant.aggregateSyncStatus {
-        case .synced: return "\(plant.observationCount)"
-        case .localOnly: return "ローカル"
-        case .syncing: return "同期中"
-        case .failed: return "失敗"
-        case .syncPausedStorageLimit: return "容量上限"
-        }
+        plant.aggregateSyncStatus.label
     }
 }
