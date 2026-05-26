@@ -62,7 +62,7 @@ targets:
         INFOPLIST_FILE: Node/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CURRENT_PROJECT_VERSION: 1
-        MARKETING_VERSION: 0.1.0
+        MARKETING_VERSION: 1.0.0
     dependencies:
       - package: Supabase
         product: Supabase

@@ -38,9 +38,11 @@ App Privacy とは別に、Info.plist で以下を申告・説明します。
 ### 1.3 v1.0 チェックリスト
 
 - [ ] App Privacy: **データを収集しない** を選択
-- [ ] `docs/privacy-policy.md` 第 2 条（運営者・連絡先）を記入
-- [ ] `web/privacy.html` をホスティングし URL を取得
-- [ ] App Store Connect にプライバシーポリシー URL を登録
+- [x] `docs/privacy-policy.md` 第 2 条（運営者・連絡先）を記入
+- [x] v1.0 専用プライバシーポリシー（クラウド・課金・広告の条項なし）
+- [x] アプリ内プライバシーポリシー — 同梱 `ios/Node/Resources/privacy.html`（`PRIVACY_POLICY_URL` 未設定）
+- [ ] App Store Connect — プライバシーポリシー URL に以下を登録
+- [x] 公開 URL 取得 — [Notion プライバシーポリシー](https://gregarious-wallflower-44e.notion.site/1adea891819e44468b85010a33c4bf70)
 - [ ] App Store 説明文に「記録は端末内保存。機種変更時は引き継げません」を明記
 
 ---
@@ -128,10 +130,14 @@ Archive / Conservatory では AdMob SDK を呼び出さない。
 
 ## 4. プライバシーポリシー URL
 
-| ファイル | 用途 |
-|----------|------|
-| [web/privacy.html](../web/privacy.html) | Web 公開用（App Store 申告 URL に推奨） |
-| [docs/privacy-policy.md](./privacy-policy.md) | リポジトリ内 Markdown 正本 |
+| 用途 | URL / ファイル |
+|------|------------------|
+| **App Store Connect 申告** | https://gregarious-wallflower-44e.notion.site/1adea891819e44468b85010a33c4bf70 |
+| **v1.0 アプリ内表示** | [ios/Node/Resources/privacy.html](../ios/Node/Resources/privacy.html)（`PRIVACY_POLICY_URL` 未設定時） |
+| **リポジトリ正本** | [docs/privacy-policy.md](./privacy-policy.md) |
+| **リポジトリ内 Web 版** | [web/privacy.html](../web/privacy.html)（Notion と内容を揃える参考用） |
+
+v1.0 では Settings から同梱 HTML を表示する。App Store Connect には上記 Notion URL を登録する。Notion の本文は v1.0 専用ポリシー（端末内のみ・サーバー送信なし）と一致させること。
 
 ---
 

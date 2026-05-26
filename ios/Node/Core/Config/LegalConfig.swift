@@ -5,6 +5,7 @@ enum LegalConfig {
     static var privacyPolicyURL: URL? {
         guard let raw = Bundle.main.infoDictionary?["PRIVACY_POLICY_URL"] as? String,
               !raw.isEmpty,
+              !raw.contains("$("),
               !raw.contains("example.com"),
               !raw.contains("your-"),
               let url = URL(string: raw),
