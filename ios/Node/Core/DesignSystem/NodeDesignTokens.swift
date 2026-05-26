@@ -41,6 +41,9 @@ enum NodeColor {
 }
 
 enum NodeSpacing {
+    /// Extra padding below the system status-bar safe area (~8pt; physical top ≈ 62pt with safe area).
+    static let contentTop: CGFloat = sp2
+
     static let sp0: CGFloat = 0
     static let sp1: CGFloat = 4
     static let sp2: CGFloat = 8
@@ -118,5 +121,10 @@ private struct PhotoShadowModifier: ViewModifier {
 extension View {
     func nodePhotoShadow() -> some View {
         modifier(PhotoShadowModifier())
+    }
+
+    /// Adds a small inset below the system safe area. Do not combine with fixed status-bar offsets.
+    func nodeScreenTopPadding(_ inset: CGFloat = NodeSpacing.contentTop) -> some View {
+        padding(.top, inset)
     }
 }

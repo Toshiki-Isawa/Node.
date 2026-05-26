@@ -23,8 +23,8 @@ struct CompareView: View {
                 }
             }
             .padding(.horizontal, NodeSpacing.sp4)
-            .padding(.top, 62)
-            .padding(.bottom, 120)
+            .nodeScreenTopPadding()
+            .padding(.bottom, NodeTabBarMetrics.scrollBottomInset)
         }
         .background(NodeColor.void)
         .task(id: viewModel.comparisonSelectionKey) {

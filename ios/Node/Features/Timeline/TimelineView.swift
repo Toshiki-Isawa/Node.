@@ -48,8 +48,8 @@ struct TimelineView: View {
                 }
             }
             .padding(.horizontal, NodeSpacing.sp4)
-            .padding(.top, 62)
-            .padding(.bottom, 120)
+            .nodeScreenTopPadding()
+            .padding(.bottom, NodeTabBarMetrics.scrollBottomInset)
         }
         .background(NodeColor.graphite)
         .onAppear { viewModel.reload() }

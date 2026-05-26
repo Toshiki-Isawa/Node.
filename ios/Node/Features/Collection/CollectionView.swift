@@ -31,7 +31,7 @@ struct CollectionView: View {
                 categoryChips
                 plantGrid
             }
-            .padding(.bottom, 120)
+            .padding(.bottom, NodeTabBarMetrics.scrollBottomInset)
         }
         .background(NodeColor.graphite)
         .animation(.easeOut(duration: NodeMotion.durFast), value: isSearchActive)
@@ -126,7 +126,7 @@ struct CollectionView: View {
             }
         }
         .padding(.horizontal, NodeSpacing.sp5)
-        .padding(.top, 62)
+        .nodeScreenTopPadding()
         .padding(.bottom, NodeSpacing.sp4)
     }
 

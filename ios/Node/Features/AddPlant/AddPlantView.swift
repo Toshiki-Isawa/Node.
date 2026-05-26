@@ -59,7 +59,7 @@ struct AddPlantView: View {
                 .disabled(!viewModel.canSave)
         }
         .padding(.horizontal, NodeSpacing.sp4)
-        .padding(.top, 62)
+        .padding(.top, NodeSpacing.sp5)
     }
 
     private var firstObservationSlot: some View {

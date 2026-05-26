@@ -28,7 +28,7 @@ struct PlantDetailView: View {
                     careCalendarSection
                     timelineSection
                 }
-                .padding(.bottom, 130)
+                .padding(.bottom, NodeTabBarMetrics.scrollBottomInset + NodeSpacing.sp4)
             }
             .background(NodeColor.graphite)
             .ignoresSafeArea(edges: .top)
@@ -118,7 +118,7 @@ struct PlantDetailView: View {
             }
         }
         .padding(.horizontal, NodeSpacing.sp4)
-        .padding(.top, 62)
+        .nodeScreenTopPadding()
         .padding(.bottom, NodeSpacing.sp2)
     }
 

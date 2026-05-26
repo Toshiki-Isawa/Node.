@@ -23,6 +23,8 @@
       --page-pad:   clamp(20px, 5vw, 64px);
       --section-y:  clamp(96px, 14vw, 180px);
       --rule-y:     clamp(48px, 8vw, 96px);
+      --nav-pad-y:  14px;
+      --nav-height: calc(var(--nav-pad-y) * 2 + 22px + env(safe-area-inset-top, 0px));
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -56,11 +58,12 @@
       -webkit-backdrop-filter: blur(24px);
       background: color-mix(in oklab, var(--c-graphite) 72%, transparent);
       border-bottom: 1px solid var(--hairline);
+      padding-top: env(safe-area-inset-top, 0px);
     }
     .nav-inner {
       max-width: var(--page-max);
       margin: 0 auto;
-      padding: 14px var(--page-pad);
+      padding: var(--nav-pad-y) var(--page-pad);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -136,7 +139,7 @@
 
     /* ---------- HERO ---------------------------------------------------- */
     .hero {
-      padding-top: clamp(120px, 18vw, 200px);
+      padding-top: calc(var(--nav-height) + clamp(24px, 4vw, 48px));
       padding-bottom: clamp(72px, 12vw, 140px);
       position: relative;
     }

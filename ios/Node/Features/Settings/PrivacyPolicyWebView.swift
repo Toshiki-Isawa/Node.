@@ -11,6 +11,8 @@ struct PrivacyPolicyWebView: View {
                 .background(NodeColor.graphite)
                 .navigationTitle("プライバシーポリシー")
                 .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(NodeColor.graphite, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("閉じる") { dismiss() }
@@ -25,14 +27,26 @@ struct PrivacyPolicyWebView: View {
 private struct PrivacyPolicyWebViewRepresentable: UIViewRepresentable {
     let url: URL
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.navigationDelegate = context.coordinator
         webView.load(URLRequest(url: url))
         return webView
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {}
+
+    final class Coordinator: NSObject, WKNavigationDelegate {
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            webView.evaluateJavaScript("document.body.classList.add('embedded')")
+        }
+    }
 }

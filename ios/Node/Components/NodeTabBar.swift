@@ -1,5 +1,12 @@
 import SwiftUI
 
+enum NodeTabBarMetrics {
+    /// Floating capsule height (padding + labels).
+    static let barHeight: CGFloat = 64
+    /// Scroll content inset so the last row clears the tab bar.
+    static let scrollBottomInset: CGFloat = barHeight + NodeSpacing.sp4
+}
+
 struct NodeTabBar: View {
     @Binding var selectedTab: AppTab
     var onShoot: () -> Void
@@ -21,7 +28,6 @@ struct NodeTabBar: View {
         .overlay(Capsule().stroke(NodeColor.hairline, lineWidth: 1))
         .shadow(color: .black.opacity(0.7), radius: 25, y: 20)
         .padding(.horizontal, NodeSpacing.sp4)
-        .padding(.bottom, 30)
     }
 
     private func tabButton(_ tab: AppTab) -> some View {

@@ -251,7 +251,7 @@ struct CameraView: View {
             }
         }
         .padding(.horizontal, NodeSpacing.sp4)
-        .padding(.top, 62)
+        .nodeScreenTopPadding()
     }
 
     private var bottomChrome: some View {
