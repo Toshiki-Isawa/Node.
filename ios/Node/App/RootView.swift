@@ -302,6 +302,9 @@ struct RootView: View {
             },
             onQuickLog: {
                 quickLogTarget = PlantSheetTarget(plant: plant)
+            },
+            onObservationTap: { observation in
+                navigationPath.append(.observation(observation.id))
             }
         )
     }

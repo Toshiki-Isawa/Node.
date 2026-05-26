@@ -13,6 +13,7 @@ struct PlantDetailView: View {
     var onObserve: () -> Void
     var onCompare: () -> Void
     var onQuickLog: () -> Void
+    var onObservationTap: (PlantObservation) -> Void
 
     @State private var showCompareRequirement = false
     @State private var deleteTarget: DeleteRecordTarget?
@@ -202,6 +203,7 @@ struct PlantDetailView: View {
                             imageStore: imageStore,
                             observationImageService: observationImageService,
                             isLast: index == items.count - 1,
+                            onTap: { onObservationTap(observation) },
                             onEditDate: {
                                 editObservationTarget = ObservationEditTarget(observation: observation)
                             },
@@ -305,6 +307,7 @@ struct ObservationTimelineRow: View {
     let imageStore: ImageStore
     let observationImageService: ObservationImageService
     var isLast: Bool
+    var onTap: () -> Void
     var onEditDate: () -> Void
     var onDelete: () -> Void
 
@@ -322,26 +325,30 @@ struct ObservationTimelineRow: View {
             .frame(width: 36)
 
             HStack(spacing: NodeSpacing.sp3) {
-                ObservationThumbnail(
-                    imagePath: observationImageService.displayThumbnailPath(for: observation),
-                    imageStore: imageStore,
-                    size: 72
-                )
-
-                VStack(alignment: .leading, spacing: 4) {
-                    MetaLabel(
-                        text: observation.createdAt.nodeMonthDayTime(),
-                        color: NodeColor.fog,
-                        size: 9
+                HStack(spacing: NodeSpacing.sp3) {
+                    ObservationThumbnail(
+                        imagePath: observationImageService.displayThumbnailPath(for: observation),
+                        imageStore: imageStore,
+                        size: 72
                     )
-                    if !observation.note.isEmpty {
-                        Text(observation.note)
-                            .font(NodeFont.text(NodeFont.callout))
-                            .foregroundStyle(NodeColor.paper)
-                    }
-                }
 
-                Spacer(minLength: 0)
+                    VStack(alignment: .leading, spacing: 4) {
+                        MetaLabel(
+                            text: observation.createdAt.nodeMonthDayTime(),
+                            color: NodeColor.fog,
+                            size: 9
+                        )
+                        if !observation.note.isEmpty {
+                            Text(observation.note)
+                                .font(NodeFont.text(NodeFont.callout))
+                                .foregroundStyle(NodeColor.paper)
+                        }
+                    }
+
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture(perform: onTap)
 
                 TimelineRowActionsMenu(
                     editLabel: "日時を変更",
