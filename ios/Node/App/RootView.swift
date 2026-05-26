@@ -49,7 +49,7 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if environment.authViewModel.hasEnteredApp {
+            if !ReleaseConfig.cloudSyncEnabled || environment.authViewModel.hasEnteredApp {
                 mainShell
             } else {
                 SignInView(viewModel: environment.authViewModel)

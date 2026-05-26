@@ -2,11 +2,32 @@
 
 SwiftUI + SwiftData による植物観測アーカイブアプリ。
 
+## リリース設定（v1.0 / v1.1）
+
+`Node/Core/Config/ReleaseConfig.swift` で機能公開を切り替えます。
+
+| フラグ | v1.0（現行） | v1.1（クラウド同期・課金） |
+|--------|-------------|---------------------------|
+| `cloudSyncEnabled` | `false` | `true` |
+| `subscriptionsEnabled` | `false` | `true` |
+
+**v1.0（ローカル無料）**
+
+- 起動後すぐメイン画面（サインイン・同期 UI 非表示）
+- 観測記録は端末内のみ。Supabase / R2 の本番デプロイは不要
+- Settings に「端末内保存」の注意書きを表示
+
+**v1.1（有料クラウド同期）**
+
+- 両フラグを `true` に変更し、Supabase + R2 + Edge Functions を本番デプロイ
+- **Seed（無料）は引き続きローカルのみ**。Archive / Conservatory のみ R2 同期
+- 既存ユーザーのローカルデータは購入・サインイン後に `SyncEngine` がバックフィル
+
 ## 要件
 
 - Xcode 15 以上
 - iOS 17 以上（SwiftData）
-- Supabase プロジェクト（Auth + Postgres + Edge Functions）
+- Supabase プロジェクト（**v1.1 以降**。v1.0 ローカルリリースでは不要）
 
 ## セットアップ
 
@@ -98,8 +119,8 @@ Node/
 Collection → Camera → ローカル保存 → SyncEngine → Supabase + R2
 ```
 
-- オフラインでの撮影・保存は即時完了。クラウド同期はバックグラウンドで実行される
-- Seed プランは圧縮版をアップロード、Archive / Conservatory は Original
+- オフラインでの撮影・保存は即時完了。クラウド同期はバックグラウンドで実行される（`ReleaseConfig.cloudSyncEnabled == true` かつ有料プランのみ）
+- Archive / Conservatory は Original を R2 へ同期。Seed（無料）は端末内のみ
 - 容量上限到達時は `sync_paused_storage_limit` となり同期のみ停止（撮影は継続）
 - 同期完了後、Original は端末から退避。Compare / Timelapse 利用時に R2 から presigned URL で取得
 

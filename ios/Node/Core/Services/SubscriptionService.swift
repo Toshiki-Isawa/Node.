@@ -7,6 +7,7 @@ enum SubscriptionError: LocalizedError {
     case pending
     case unverified
     case notAuthenticated
+    case purchasesUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -20,6 +21,8 @@ enum SubscriptionError: LocalizedError {
             return "購入の確認に失敗しました。"
         case .notAuthenticated:
             return "プランを有効にするにはサインインが必要です。"
+        case .purchasesUnavailable:
+            return "有料プランは近日公開予定です。"
         }
     }
 }

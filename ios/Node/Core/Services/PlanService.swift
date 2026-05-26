@@ -62,6 +62,12 @@ final class PlanService: ObservableObject {
     }
 
     func refresh() async {
+        guard ReleaseConfig.cloudSyncEnabled else {
+            serverPlan = .seed
+            storageUsage = nil
+            return
+        }
+
         await subscriptionService.refreshEntitlements()
 
         guard supabaseService.isAuthenticated else {
@@ -93,6 +99,9 @@ final class PlanService: ObservableObject {
     }
 
     func purchaseArchive() async throws {
+        guard ReleaseConfig.subscriptionsEnabled else {
+            throw SubscriptionError.purchasesUnavailable
+        }
         guard supabaseService.isAuthenticated else {
             throw SubscriptionError.notAuthenticated
         }
@@ -104,6 +113,9 @@ final class PlanService: ObservableObject {
     }
 
     func purchaseConservatory() async throws {
+        guard ReleaseConfig.subscriptionsEnabled else {
+            throw SubscriptionError.purchasesUnavailable
+        }
         guard supabaseService.isAuthenticated else {
             throw SubscriptionError.notAuthenticated
         }
@@ -115,6 +127,9 @@ final class PlanService: ObservableObject {
     }
 
     func restoreSubscriptions() async throws {
+        guard ReleaseConfig.subscriptionsEnabled else {
+            throw SubscriptionError.purchasesUnavailable
+        }
         guard supabaseService.isAuthenticated else {
             throw SubscriptionError.notAuthenticated
         }

@@ -230,7 +230,9 @@ struct TimelineView: View {
             MetaLabel(text: plantName.uppercased(), size: 9)
             MetaLabel(text: badge, color: NodeColor.fog, size: 9)
             Spacer()
-            SyncDot(state: syncStatus, size: 5)
+            if ReleaseConfig.cloudSyncEnabled {
+                SyncDot(state: syncStatus, size: 5)
+            }
         }
     }
 

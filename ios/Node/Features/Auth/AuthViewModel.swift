@@ -23,10 +23,16 @@ final class AuthViewModel: ObservableObject {
     init(supabaseService: SupabaseService, syncEngine: SyncEngine) {
         self.supabaseService = supabaseService
         self.syncEngine = syncEngine
-        Task { await refresh() }
+        if ReleaseConfig.cloudSyncEnabled {
+            Task { await refresh() }
+        } else {
+            isOfflineMode = true
+            hasEnteredApp = true
+        }
     }
 
     func refresh() async {
+        guard ReleaseConfig.cloudSyncEnabled else { return }
         await supabaseService.refreshSession()
         guard !isOfflineMode else { return }
         if supabaseService.isAuthenticated {

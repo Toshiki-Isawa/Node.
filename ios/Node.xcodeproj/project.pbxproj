@@ -21,6 +21,7 @@
 		2E383B941BE578458CC1F1E4 /* StorageFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A54D8E2029ACE5BFC614F1B7 /* StorageFormat.swift */; };
 		32D4062E34D50169D2746BF7 /* CompareViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE2DA37C36C00BED7912124F /* CompareViewModel.swift */; };
 		346E3A01526714BEB7610A66 /* WateringIntervalSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C646E69668CA8975B0355C1 /* WateringIntervalSection.swift */; };
+		3A1B2C3D4E5F60718293A4B /* ReleaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1B2C3D4E5F60718293A4A /* ReleaseConfig.swift */; };
 		37516A76FD633F8AB88CFAF9 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = EEF0F78A2ADB4468ED581DC2 /* Supabase */; };
 		3BF2CC6ED01315EAAE225910 /* CompareRequirementSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0EE5361A5A906664DA3DDA /* CompareRequirementSheet.swift */; };
 		3E07870EC7E41B6FA1B8F4C5 /* AddPlantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38DDCA33DA67C28E2017AE2 /* AddPlantViewModel.swift */; };
@@ -92,6 +93,7 @@
 		2EFC2668E5A46ABFB81BACAE /* AdMobConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdMobConfig.swift; sourceTree = "<group>"; };
 		31085A570CF2D48C986525E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3A3F2726954C09CA5E7EB98F /* EditObservationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditObservationViewModel.swift; sourceTree = "<group>"; };
+		3A1B2C3D4E5F60718293A4A /* ReleaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseConfig.swift; sourceTree = "<group>"; };
 		3B6A25FC8A975F1AF1CDA7EB /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		3E5CF64003600466B4C5B275 /* CareCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareCalendarView.swift; sourceTree = "<group>"; };
 		400B1B9AA5FFEE873994DE26 /* Node.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Node.entitlements; sourceTree = "<group>"; };
@@ -360,6 +362,7 @@
 				2EFC2668E5A46ABFB81BACAE /* AdMobConfig.swift */,
 				68846818E5EBB8DC2984E8BD /* AnalyticsConfig.swift */,
 				4804134E2D404667CBD3EE44 /* LegalConfig.swift */,
+				3A1B2C3D4E5F60718293A4A /* ReleaseConfig.swift */,
 			);
 			path = Config;
 			sourceTree = "<group>";
@@ -546,6 +549,7 @@
 				880D3432516DC33D8483894C /* NodeApp.swift in Sources */,
 				3ECE3DB987BA95703601B8F4 /* NodeComponents.swift in Sources */,
 				981B76BBD2120817C7DAE678 /* NodeDateFormat.swift in Sources */,
+				3A1B2C3D4E5F60718293A4B /* ReleaseConfig.swift in Sources */,
 				1E9797E9DAEC2B5BD3257567 /* NodeDesignTokens.swift in Sources */,
 				F2EBBECEC1C75E8CC74C46F6 /* NodeModels.swift in Sources */,
 				29565849524FA535773F0F99 /* NodeTabBar.swift in Sources */,

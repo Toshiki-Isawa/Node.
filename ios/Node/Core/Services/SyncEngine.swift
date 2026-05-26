@@ -47,6 +47,7 @@ final class SyncEngine: ObservableObject {
     }
 
     func start() {
+        guard ReleaseConfig.cloudSyncEnabled else { return }
         pathMonitor.pathUpdateHandler = { [weak self] path in
             Task { @MainActor in
                 let online = path.status == .satisfied
@@ -61,10 +62,12 @@ final class SyncEngine: ObservableObject {
     }
 
     func enqueueSync() {
+        guard ReleaseConfig.cloudSyncEnabled else { return }
         Task { await processQueue() }
     }
 
     func processQueue() async {
+        guard ReleaseConfig.cloudSyncEnabled else { return }
         await supabaseService.refreshSession()
         guard isOnline, supabaseService.isAuthenticated, !isProcessing else { return }
         isProcessing = true
@@ -74,6 +77,8 @@ final class SyncEngine: ObservableObject {
         evictSyncedOriginalBackfill()
 
         await planService.refresh()
+
+        guard planService.isPaid else { return }
 
         await syncPlants()
         await syncObservations()

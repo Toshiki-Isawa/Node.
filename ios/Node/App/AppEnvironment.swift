@@ -105,7 +105,9 @@ final class AppEnvironment: ObservableObject {
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
 
-        syncEngine.start()
+        if ReleaseConfig.cloudSyncEnabled {
+            syncEngine.start()
+        }
     }
 
     private var cancellables = Set<AnyCancellable>()

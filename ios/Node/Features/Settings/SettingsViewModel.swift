@@ -60,9 +60,15 @@ final class SettingsViewModel: ObservableObject {
         defer { isRefreshing = false }
 
         localBreakdown = StorageStatsService.localBreakdown(imageStore: imageStore)
-        syncBreakdown = StorageStatsService.syncBreakdown(modelContext: modelContext)
-        await subscriptionService.loadProducts()
-        await planService.refresh()
+        if ReleaseConfig.cloudSyncEnabled {
+            syncBreakdown = StorageStatsService.syncBreakdown(modelContext: modelContext)
+        }
+        if ReleaseConfig.subscriptionsEnabled {
+            await subscriptionService.loadProducts()
+        }
+        if ReleaseConfig.cloudSyncEnabled {
+            await planService.refresh()
+        }
     }
 
     func retrySync() {

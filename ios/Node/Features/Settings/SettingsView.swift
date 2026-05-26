@@ -13,14 +13,24 @@ struct SettingsView: View {
         ScrollView {
             VStack(spacing: NodeSpacing.sp5) {
                 topBar
-                currentPlanSection
-                cloudSection
+                if ReleaseConfig.cloudSyncEnabled {
+                    currentPlanSection
+                    cloudSection
+                } else {
+                    localOnlyNoticeSection
+                }
                 localSection
-                syncSection
-                plansSection
+                if ReleaseConfig.cloudSyncEnabled {
+                    syncSection
+                }
+                if ReleaseConfig.subscriptionsEnabled {
+                    plansSection
+                }
                 actionsSection
                 legalSection
-                accountSection
+                if ReleaseConfig.cloudSyncEnabled {
+                    accountSection
+                }
             }
             .padding(.horizontal, NodeSpacing.sp4)
             .padding(.bottom, NodeSpacing.sp10)
@@ -120,6 +130,19 @@ struct SettingsView: View {
 
     private var storageLimitLabel: String {
         "クラウド容量 \(StorageFormat.bytes(viewModel.plan.storageLimitBytes))"
+    }
+
+    private var localOnlyNoticeSection: some View {
+        SettingsCard(title: "端末内保存") {
+            VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+                Text("観測記録はこの iPhone に保存されます。")
+                    .font(NodeFont.text(NodeFont.callout))
+                    .foregroundStyle(NodeColor.bone)
+                Text("アプリを削除したり機種変更をすると、データを引き継げません。クラウドバックアップは今後の有料プランで提供予定です。")
+                    .font(NodeFont.text(12))
+                    .foregroundStyle(NodeColor.fog)
+            }
+        }
     }
 
     @ViewBuilder
@@ -304,13 +327,13 @@ struct SettingsView: View {
 
     private var actionsSection: some View {
         VStack(spacing: NodeSpacing.sp3) {
-            if viewModel.syncBreakdown.pending > 0 {
+            if ReleaseConfig.cloudSyncEnabled, viewModel.syncBreakdown.pending > 0 {
                 NodeSecondaryButton("同期を再試行", systemImage: "arrow.triangle.2.circlepath") {
                     viewModel.retrySync()
                 }
             }
 
-            if viewModel.plan == .seed {
+            if ReleaseConfig.subscriptionsEnabled, viewModel.plan == .seed {
                 Button {
                     Task { await viewModel.restoreSubscriptions() }
                 } label: {

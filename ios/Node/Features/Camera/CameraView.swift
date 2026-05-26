@@ -234,7 +234,9 @@ struct CameraView: View {
 
             if let plant = viewModel.selectedPlant {
                 HStack(spacing: 8) {
-                    SyncDot(state: plant.aggregateSyncStatus, size: 5)
+                    if ReleaseConfig.cloudSyncEnabled {
+                        SyncDot(state: plant.aggregateSyncStatus, size: 5)
+                    }
                     VStack(alignment: .leading, spacing: 1) {
                         Text(plant.name)
                             .font(NodeFont.text(12, weight: .medium))

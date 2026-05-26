@@ -237,7 +237,11 @@ private struct PlantGridCell: View {
                         VStack {
                             HStack {
                                 Spacer()
-                                syncBadge
+                                if ReleaseConfig.cloudSyncEnabled {
+                                    syncBadge
+                                } else if plant.observationCount > 0 {
+                                    observationCountBadge
+                                }
                             }
                             Spacer()
                             HStack {
@@ -294,6 +298,20 @@ private struct PlantGridCell: View {
                 size: 9
             )
         }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(NodeColor.void.opacity(0.65))
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+        .padding(10)
+    }
+
+    private var observationCountBadge: some View {
+        MetaLabel(
+            text: "\(plant.observationCount)",
+            color: NodeColor.bone,
+            size: 9
+        )
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(NodeColor.void.opacity(0.65))

@@ -5,144 +5,138 @@ Node. iOS（`app.node.ios`）を App Store Connect に登録する際の **App P
 
 ---
 
-## 1. データ収集の有無
+## 0. リリース段階
+
+| 段階 | `ReleaseConfig` | App Store 申告 |
+|------|-----------------|----------------|
+| **v1.0（現行・App Store 初版）** | `cloudSyncEnabled = false` | **データ収集なし**（端末内のみ） |
+| **v1.1（予定）** | 両方 `true` | 有料クラウド同期・StoreKit・AdMob 等を追加申告 |
+
+v1.0 では Supabase / AdMob / PostHog / StoreKit の SDK は同梱されていても **呼び出されません**。申告は **v1.0 の実際の挙動** に合わせてください。
+
+---
+
+## 1. v1.0 申告（App Store 初版）
+
+### 1.1 データ収集の有無
+
+| 質問 | 回答 |
+|------|------|
+| あなたまたは第三者パートナーはこのアプリからデータを収集しますか？ | **いいえ** |
+
+v1.0 では観測記録は端末内（SwiftData）のみ。当方サーバーへの送信、サインイン、課金、広告 SDK の呼び出しはありません。
+
+### 1.2 端末権限（参考）
+
+App Privacy とは別に、Info.plist で以下を申告・説明します。
+
+| 権限 | 用途 |
+|------|------|
+| カメラ | 観測写真の撮影 |
+| 写真ライブラリ | 観測写真・タイムラプス動画の保存 |
+
+### 1.3 v1.0 チェックリスト
+
+- [ ] App Privacy: **データを収集しない** を選択
+- [ ] `docs/privacy-policy.md` 第 2 条（運営者・連絡先）を記入
+- [ ] `web/privacy.html` をホスティングし URL を取得
+- [ ] App Store Connect にプライバシーポリシー URL を登録
+- [ ] App Store 説明文に「記録は端末内保存。機種変更時は引き継げません」を明記
+
+---
+
+## 2. v1.1 申告（有料クラウド同期・予定）
+
+v1.1 リリース時に `ReleaseConfig` を有効化したうえで、以下を追加申告します。
+
+### 2.1 データ収集の有無
 
 | 質問 | 回答 |
 |------|------|
 | あなたまたは第三者パートナーはこのアプリからデータを収集しますか？ | **はい** |
 
-サインインなし・PostHog 未設定・Seed 以外（広告なし）でも、**Sign in with Apple / Google 利用時** および **AdMob（Seed の Timelapse Export 時）** でデータが収集されます。
+Archive / Conservatory 利用時に Supabase / R2 へデータが送信されます。Seed プランの Timelapse Export 時に AdMob を使用する場合も収集あり。
 
----
+### 2.2 収集データの分類（たたき台）
 
-## 2. 収集データの分類（たたき台）
-
-### 2.1 連絡先情報
+#### 連絡先情報
 
 | データ型 | 収集 | リンク | トラッキング | 用途 |
 |----------|------|--------|--------------|------|
 | メールアドレス | 場合あり | はい（アカウント） | いいえ | アプリ機能、認証 |
 
-Sign in with Apple / Google 経由。Apple リレーアドレスの場合あり。
+Sign in with Apple / Google 経由。有料プラン・サインイン時のみ。
 
-### 2.2 ユーザーコンテンツ
+#### ユーザーコンテンツ
 
 | データ型 | 収集 | リンク | トラッキング | 用途 |
 |----------|------|--------|--------------|------|
 | 写真または動画 | はい | はい | いいえ | アプリ機能 |
 | その他ユーザーコンテンツ | はい | はい | いいえ | アプリ機能 |
 
-植物観測写真、メモ、育成ログ。タイムラプス MP4 は端末内生成のみ（クラウド非保存）。
+有料プラン同期時。タイムラプス MP4 は端末内生成のみ（クラウド非保存）。
 
-### 2.3 識別子
+#### 識別子
 
 | データ型 | 収集 | リンク | トラッキング | 用途 |
 |----------|------|--------|--------------|------|
 | ユーザー ID | はい | はい | いいえ | アプリ機能、分析 |
 | デバイス ID | 場合あり | いいえ | **場合あり** | 広告 |
 
-ユーザー ID: Supabase Auth UUID。  
-デバイス ID: AdMob / ATT 許可時の IDFA 等。**Seed プランの Export 時のみ**。
+デバイス ID: AdMob / ATT 許可時。**Seed プランの Export 時のみ**（v1.1）。
 
-### 2.4 購入
+#### 購入
 
 | データ型 | 収集 | リンク | トラッキング | 用途 |
 |----------|------|--------|--------------|------|
 | 購入履歴 | はい | はい | いいえ | アプリ機能 |
 
-StoreKit トランザクション ID。決済は Apple が処理。
+StoreKit トランザクション ID。有料プラン購入時。
 
-### 2.5 使用状況データ
+#### 使用状況データ・診断
 
-| データ型 | 収集 | リンク | トラッキング | 用途 |
-|----------|------|--------|--------------|------|
-| 製品の操作 | 場合あり | いいえ | いいえ | 分析 |
+PostHog 有効時: 広告関連イベントのみ。トラッキング用途には該当しない想定。
 
-PostHog 有効時: 広告プリロード・表示・完了等のイベント（`plan`, `retry_count`, `error_code`）。
-
-### 2.6 診断
-
-| データ型 | 収集 | リンク | トラッキング | 用途 |
-|----------|------|--------|--------------|------|
-| クラッシュデータ | いいえ* | — | — | — |
-| パフォーマンスデータ | いいえ* | — | — | — |
-| その他診断データ | 場合あり | いいえ | いいえ | 分析 |
-
-\* アプリ独自のクラッシュレポート SDK は未導入。Xcode Organizer / App Store Connect のクラッシュは Apple 経由。
-
-PostHog 有効時: 広告読み込み失敗の `error_code` のみ。
-
----
-
-## 3. 第三者 SDK 別チェックリスト
-
-### Google Mobile Ads SDK（AdMob）
-
-- **対象ユーザー**: Seed プランの Timelapse Export 時のみ
-- **ATT**: 表示あり（`NSUserTrackingUsageDescription` 設定済み）
-- **UMP**: GDPR / EEA 向け同意フォーム対応
-- **参考**: [Google AdMob iOS プライバシー](https://developers.google.com/admob/ios/privacy)
-
-申告候補: デバイス ID、使用状況データ、診断データ、位置情報（おおよその位置）— AdMob の最新ガイドで要確認。
-
-### PostHog iOS SDK
-
-- **送信イベント**: 広告関連 7 種のみ（`AnalyticsService.swift` 参照）
-- **未設定時**: no-op（送信なし）
-- **参考**: [PostHog Privacy](https://posthog.com/privacy)
-
-申告候補: 製品の操作、診断データ（エラーコード）。トラッキング用途には該当しない想定。
-
-### Supabase / Cloudflare R2
-
-- アプリ機能のためのデータ保存。トラッキング目的ではない。
-- ユーザーコンテンツ、識別子、連絡先情報として申告。
-
-### Google Sign-In / Sign in with Apple
-
-- 認証目的。Apple / Google の標準フロー。
-
----
-
-## 4. トラッキングの申告
+### 2.3 トラッキング
 
 | 質問 | 回答 |
 |------|------|
-| あなたまたは第三者パートナーはトラッキングのためにデータを使用しますか？ | **はい**（AdMob 利用時） |
+| トラッキングのためにデータを使用しますか？ | **はい**（AdMob 利用時） |
 
-Seed プランで Timelapse Export 時に AdMob を使用。Archive / Conservatory では AdMob SDK を呼び出さない。
+Archive / Conservatory では AdMob SDK を呼び出さない。
 
-App Store Connect の **Privacy Nutrition Labels** と **App Tracking Transparency** の設定を一致させてください。
+### 2.4 v1.1 チェックリスト
+
+- [ ] Privacy Nutrition Labels を Seed / 有料プラン両方の利用パスでレビュー
+- [ ] AdMob コンソールでアプリのプライバシー設定を完了
+- [ ] PostHog プロジェクトのデータ保持期間を確認
+- [ ] プライバシーポリシーを v1.1 内容に更新
 
 ---
 
-## 5. プライバシーポリシー URL
+## 3. 第三者 SDK 別チェックリスト（v1.1）
 
-App Store Connect の「プライバシーポリシー URL」には、公開済みの以下いずれかを設定します。
+| SDK | v1.0 | v1.1 |
+|-----|------|------|
+| Supabase / R2 | 未使用 | 有料同期時 |
+| Sign in with Apple / Google | 未使用 | 有料同期時 |
+| StoreKit | 未使用 | 有料プラン購入時 |
+| AdMob | 未使用 | Seed Export 時（予定） |
+| PostHog | 未使用 | 広告分析（有効時） |
+
+---
+
+## 4. プライバシーポリシー URL
 
 | ファイル | 用途 |
 |----------|------|
 | [web/privacy.html](../web/privacy.html) | Web 公開用（App Store 申告 URL に推奨） |
 | [docs/privacy-policy.md](./privacy-policy.md) | リポジトリ内 Markdown 正本 |
 
-iOS アプリ内リンク: `PRIVACY_POLICY_URL`（`Secrets.xcconfig`）に公開 URL を設定。未設定時はアプリ同梱 HTML を表示。
-
 ---
 
-## 6. 申告前チェックリスト
-
-- [ ] `docs/privacy-policy.md` 第 2 条（運営者・連絡先）を記入
-- [ ] `web/privacy.html` をホスティングし URL を取得
-- [ ] App Store Connect にプライバシーポリシー URL を登録
-- [ ] `Secrets.xcconfig` の `PRIVACY_POLICY_URL` を本番 URL に設定
-- [ ] AdMob コンソールでアプリのプライバシー設定を完了
-- [ ] PostHog プロジェクトのデータ保持期間を確認
-- [ ] Privacy Nutrition Labels を Seed / 有料プラン両方の利用パスでレビュー
-
----
-
-## 7. 関連ドキュメント
+## 5. 関連ドキュメント
 
 - [プライバシーポリシー](./privacy-policy.md)
-- [iOS README](../ios/README.md)
-- [要件定義書 §8.3.3](../specification.md) — プライバシー / コンプライアンス方針
+- [iOS README](../ios/README.md) — `ReleaseConfig`
+- [要件定義書 §11.5 / §19](../specification.md) — リリース段階
