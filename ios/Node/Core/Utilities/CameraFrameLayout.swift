@@ -2,10 +2,11 @@ import CoreGraphics
 import UIKit
 
 /// カメラ画面の観測枠（レティクル）レイアウト。プレビュー・保存・オーバーレイで共通利用する。
+/// 全画面化に伴いインセットは 0。観測枠＝プレビュー全面 = 端末画面のアスペクト比。
 enum CameraFrameLayout {
-    static let insetXRatio: CGFloat = 0.10
-    static let insetTopRatio: CGFloat = 0.14
-    static let insetBottomRatio: CGFloat = 0.22
+    static let insetXRatio: CGFloat = 0
+    static let insetTopRatio: CGFloat = 0
+    static let insetBottomRatio: CGFloat = 0
 
     static func frame(in size: CGSize) -> CGRect {
         let insetX = size.width * insetXRatio

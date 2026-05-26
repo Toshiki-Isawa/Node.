@@ -286,8 +286,7 @@ private struct CameraCaptureSheet: View {
     private func captureFromCamera() async {
         guard camera.isCaptureReady else { return }
         guard let image = try? await camera.capturePhoto() else { return }
-        let framedImage = camera.cropToObservationFrame(image)
-        onCapture(framedImage, nil)
+        onCapture(image, nil)
         dismiss()
     }
 }

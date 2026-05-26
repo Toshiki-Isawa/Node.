@@ -142,8 +142,7 @@ struct CameraView: View {
             }
 
             viewModel.setCapturePhase(.saving)
-            let framedImage = cameraService.cropToObservationFrame(image)
-            let saved = await viewModel.saveObservation(image: framedImage, preprocessForStorage: false)
+            let saved = await viewModel.saveObservation(image: image, preprocessForStorage: true)
 
             guard !Task.isCancelled else {
                 viewModel.resetCaptureState()
@@ -235,6 +234,11 @@ struct CameraView: View {
                 }
             }
 
+            if !CameraService.usesPhotoLibraryFallback {
+                LevelIndicator(roll: cameraService.rollDegrees)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+
             previousObservationPreview
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -280,37 +284,41 @@ struct CameraView: View {
             let alignedFrame = frame.offsetBy(dx: offsetX, dy: offsetY)
 
             ZStack {
+                if cameraService.showReferenceOverlay,
+                   let path = viewModel.previousObservationImagePath,
+                   let image = imageStore.loadImage(path: path) {
+                    referenceOverlay(image: image, layoutSize: layoutSize, frame: frame)
+                }
+
                 Path { path in
                     path.addRect(CGRect(origin: .zero, size: geo.size))
                     path.addRect(alignedFrame)
                 }
                 .fill(Color.black.opacity(0.32), style: FillStyle(eoFill: true))
 
-                if cameraService.showReferenceOverlay,
-                   let path = viewModel.previousObservationImagePath,
-                   let image = imageStore.loadImage(path: path) {
-                    referenceOverlay(image: image, frame: alignedFrame)
-                }
-
                 if cameraService.showGrid {
                     GridOverlay(frame: alignedFrame)
                 }
                 ReticleOverlay(frame: alignedFrame)
-                LevelIndicator(roll: cameraService.rollDegrees)
-                    .position(x: geo.size.width / 2, y: alignedFrame.minY - 28)
             }
         }
         .ignoresSafeArea()
     }
 
+    /// 観測オーバーレイをライブプレビューと同じスケールで描画し、観測枠内だけ可視化する。
+    /// プレビュー全面に `.scaledToFill` で配置することで `.resizeAspectFill` と同じ拡大率になる。
     @ViewBuilder
-    private func referenceOverlay(image: UIImage, frame: CGRect) -> some View {
+    private func referenceOverlay(image: UIImage, layoutSize: CGSize, frame: CGRect) -> some View {
         Image(uiImage: image)
             .resizable()
             .scaledToFill()
-            .frame(width: frame.width, height: frame.height)
+            .frame(width: layoutSize.width, height: layoutSize.height)
             .clipped()
-            .position(x: frame.midX, y: frame.midY)
+            .mask {
+                Rectangle()
+                    .frame(width: frame.width, height: frame.height)
+                    .position(x: frame.midX, y: frame.midY)
+            }
             .opacity(0.34)
             .allowsHitTesting(false)
     }
@@ -639,18 +647,50 @@ private struct ReticleOverlay: View {
 private struct LevelIndicator: View {
     let roll: Double
 
+    private var normalizedRoll: Double {
+        // -180...180 → 水平からのズレ角度（-90...90）に正規化
+        var value = roll.truncatingRemainder(dividingBy: 180)
+        if value > 90 { value -= 180 }
+        if value < -90 { value += 180 }
+        return value
+    }
+
+    private var isLevel: Bool { abs(normalizedRoll) < 1.0 }
+
+    private var accentColor: Color {
+        isLevel ? NodeColor.moss : NodeColor.bone
+    }
+
     var body: some View {
-        VStack(spacing: 6) {
-            MetaLabel(text: String(format: "%.0f°", roll), color: NodeColor.moss, size: 9)
-            HStack(spacing: 10) {
-                Rectangle().fill(Color.white.opacity(0.35)).frame(width: 90, height: 1)
-                Rectangle()
-                    .fill(NodeColor.moss)
-                    .frame(width: 30, height: 1)
-                    .rotationEffect(.degrees(roll))
-                    .shadow(color: NodeColor.moss.opacity(0.6), radius: 2)
-                Rectangle().fill(Color.white.opacity(0.35)).frame(width: 90, height: 1)
+        HStack(spacing: 10) {
+            Text(String(format: "%+.0f°", normalizedRoll))
+                .font(NodeFont.text(12, weight: .semibold))
+                .foregroundStyle(accentColor)
+                .monospacedDigit()
+                .frame(width: 36, alignment: .trailing)
+
+            ZStack {
+                Capsule()
+                    .fill(Color.white.opacity(0.55))
+                    .frame(width: 140, height: 2)
+
+                Capsule()
+                    .fill(accentColor)
+                    .frame(width: 56, height: 3)
+                    .rotationEffect(.degrees(normalizedRoll))
+                    .shadow(color: accentColor.opacity(0.65), radius: 3)
+
+                Circle()
+                    .fill(accentColor)
+                    .frame(width: 6, height: 6)
+                    .shadow(color: accentColor.opacity(0.7), radius: 2)
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background {
+            Capsule().fill(.ultraThinMaterial)
+        }
+        .animation(.easeOut(duration: 0.12), value: isLevel)
     }
 }

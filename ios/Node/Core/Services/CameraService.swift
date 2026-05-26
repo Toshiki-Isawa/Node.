@@ -169,30 +169,6 @@ final class CameraService: NSObject, ObservableObject {
         }
     }
 
-    func cropToObservationFrame(_ image: UIImage) -> UIImage {
-        guard let previewLayer else {
-            return ObservationImageProcessor.prepareImportedPhoto(
-                image,
-                aspectRatio: CameraFrameLayout.currentAspectRatio
-            )
-        }
-
-        let bounds = previewLayer.bounds
-        guard bounds.width > 0, bounds.height > 0 else {
-            return ObservationImageProcessor.prepareImportedPhoto(
-                image,
-                aspectRatio: CameraFrameLayout.currentAspectRatio
-            )
-        }
-
-        let frame = CameraFrameLayout.frame(in: bounds.size)
-        return ObservationImageProcessor.prepareCapturedPhoto(
-            image,
-            previewLayer: previewLayer,
-            frameInLayer: frame
-        )
-    }
-
     func capturePhoto() async throws -> UIImage {
         if Self.usesPhotoLibraryFallback {
             throw CameraError.usePhotoLibrary
