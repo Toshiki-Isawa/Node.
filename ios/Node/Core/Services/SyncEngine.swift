@@ -68,16 +68,18 @@ final class SyncEngine: ObservableObject {
 
     func processQueue() async {
         guard ReleaseConfig.cloudSyncEnabled else { return }
-        await supabaseService.refreshSession()
-        guard isOnline, supabaseService.isAuthenticated, !isProcessing else { return }
+        guard isOnline, !isProcessing else { return }
+
         isProcessing = true
         defer { isProcessing = false }
+
+        await supabaseService.refreshSession()
+        guard supabaseService.isAuthenticated else { return }
 
         resetStaleSyncingRecords()
         evictSyncedOriginalBackfill()
 
         await planService.refresh()
-
         guard planService.isPaid else { return }
 
         await syncPlants()
@@ -186,7 +188,7 @@ final class SyncEngine: ObservableObject {
         var didChange = false
         for observation in observations {
             switch observation.syncStatus {
-            case .localOnly, .failed, .syncing:
+            case .localOnly, .failed:
                 observation.syncStatus = .syncPausedStorageLimit
                 didChange = true
             case .synced, .syncPausedStorageLimit:

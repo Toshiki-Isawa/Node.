@@ -150,17 +150,9 @@ final class CompareViewModel: ObservableObject {
 
     func setBeforeIndex(_ index: Int) {
         let count = sortedObservations.count
-        guard count > 1 else { return }
+        guard count > 0 else { return }
 
-        var newBefore = min(max(index, 0), count - 1)
-        if newBefore >= afterIndex {
-            if newBefore < count - 1 {
-                afterIndex = newBefore + 1
-            } else {
-                newBefore = afterIndex - 1
-            }
-        }
-        beforeIndex = newBefore
+        beforeIndex = min(max(index, 0), count - 1)
 
         if let before = beforeObservation {
             beforeDisplayedMonth = calendar.startOfMonth(for: before.createdAt)
@@ -170,17 +162,9 @@ final class CompareViewModel: ObservableObject {
 
     func setAfterIndex(_ index: Int) {
         let count = sortedObservations.count
-        guard count > 1 else { return }
+        guard count > 0 else { return }
 
-        var newAfter = min(max(index, 0), count - 1)
-        if newAfter <= beforeIndex {
-            if newAfter > 0 {
-                beforeIndex = newAfter - 1
-            } else {
-                newAfter = beforeIndex + 1
-            }
-        }
-        afterIndex = newAfter
+        afterIndex = min(max(index, 0), count - 1)
 
         if let after = afterObservation {
             afterDisplayedMonth = calendar.startOfMonth(for: after.createdAt)
@@ -188,22 +172,8 @@ final class CompareViewModel: ObservableObject {
         }
     }
 
-    func isSelectable(_ observation: PlantObservation, for side: CompareSide) -> Bool {
-        switch side {
-        case .before:
-            afterObservation?.id != observation.id
-        case .after:
-            beforeObservation?.id != observation.id
-        }
-    }
-
-    func isSelectableDay(_ day: Date, for side: CompareSide) -> Bool {
-        observations(on: day).contains { isSelectable($0, for: side) }
-    }
-
     func selectObservation(_ observation: PlantObservation, for side: CompareSide) {
-        guard isSelectable(observation, for: side),
-              let index = sortedObservations.firstIndex(where: { $0.id == observation.id }) else { return }
+        guard let index = sortedObservations.firstIndex(where: { $0.id == observation.id }) else { return }
         switch side {
         case .before:
             setBeforeIndex(index)
@@ -313,7 +283,7 @@ final class CompareViewModel: ObservableObject {
     }
 
     func selectDay(_ day: Date, for side: CompareSide) {
-        guard isSelectableDay(day, for: side) else { return }
+        guard hasObservations(on: day) else { return }
         let observations = observations(on: day)
         if observations.count == 1, let observation = observations.first {
             selectObservation(observation, for: side)

@@ -127,25 +127,24 @@ struct CompareObservationCalendar: View {
     private func dayCell(for day: Date) -> some View {
         let isDisabled = viewModel.isFuture(day) || viewModel.isBeforeAcquisition(day)
         let hasObservations = viewModel.hasObservations(on: day)
-        let isSelectable = viewModel.isSelectableDay(day, for: side)
         let isSelected = viewModel.isSelected(day, for: side)
         let isActive = viewModel.isActiveObservationDay(day, for: side)
         let isToday = viewModel.isToday(day)
 
         return Button {
-            guard !isDisabled, hasObservations, isSelectable else { return }
+            guard !isDisabled, hasObservations else { return }
             viewModel.selectDay(day, for: side)
         } label: {
             VStack(spacing: 3) {
                 Text("\(Calendar.current.component(.day, from: day))")
                     .font(NodeFont.text(NodeFont.caption, weight: isToday ? .semibold : .regular))
                     .foregroundStyle(
-                        isDisabled || !isSelectable ? NodeColor.stone :
+                        isDisabled ? NodeColor.stone :
                             hasObservations ? NodeColor.bone : NodeColor.mist
                     )
 
                 Circle()
-                    .fill(hasObservations && isSelectable ? NodeColor.moss : .clear)
+                    .fill(hasObservations ? NodeColor.moss : .clear)
                     .frame(width: 4, height: 4)
             }
             .frame(maxWidth: .infinity)
@@ -167,7 +166,7 @@ struct CompareObservationCalendar: View {
             )
         }
         .buttonStyle(.plain)
-        .disabled(isDisabled || !hasObservations || !isSelectable)
+        .disabled(isDisabled || !hasObservations)
     }
 
     @ViewBuilder
@@ -178,10 +177,7 @@ struct CompareObservationCalendar: View {
                 MetaLabel(text: day.nodeMonthDayWeekday(), color: NodeColor.fog, size: 9)
 
                 ForEach(observations, id: \.id) { observation in
-                    let isSelectable = viewModel.isSelectable(observation, for: side)
-
                     Button {
-                        guard isSelectable else { return }
                         viewModel.selectObservation(observation, for: side)
                     } label: {
                         HStack(spacing: NodeSpacing.sp3) {
@@ -195,7 +191,7 @@ struct CompareObservationCalendar: View {
 
                             Text(observation.createdAt.nodeTime())
                                 .font(NodeFont.text(NodeFont.caption, weight: .medium))
-                                .foregroundStyle(isSelectable ? NodeColor.bone : NodeColor.stone)
+                                .foregroundStyle(NodeColor.bone)
 
                             Spacer()
 
@@ -208,7 +204,6 @@ struct CompareObservationCalendar: View {
                         .padding(.vertical, NodeSpacing.sp1)
                     }
                     .buttonStyle(.plain)
-                    .disabled(!isSelectable)
                 }
             }
             .padding(.top, NodeSpacing.sp2)
