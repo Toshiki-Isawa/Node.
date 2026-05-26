@@ -73,7 +73,10 @@ final class Plant {
     }
 
     var daysSinceLastWater: Int {
-        Calendar.current.dateComponents([.day], from: lastWateredAt, to: .now).day ?? 0
+        let calendar = Calendar.current
+        let startOfLastWater = calendar.startOfDay(for: lastWateredAt)
+        let startOfToday = calendar.startOfDay(for: .now)
+        return calendar.dateComponents([.day], from: startOfLastWater, to: startOfToday).day ?? 0
     }
 
     var needsWatering: Bool {
