@@ -48,7 +48,7 @@ final class CompareViewModel: ObservableObject {
 
     var afterObservation: PlantObservation? {
         guard !sortedObservations.isEmpty else { return nil }
-        let index = min(max(afterIndex, beforeIndex), sortedObservations.count - 1)
+        let index = min(afterIndex, sortedObservations.count - 1)
         return sortedObservations[index]
     }
 
@@ -150,11 +150,18 @@ final class CompareViewModel: ObservableObject {
 
     func setBeforeIndex(_ index: Int) {
         let count = sortedObservations.count
-        guard count > 0 else { return }
-        beforeIndex = min(max(index, 0), count - 1)
-        if beforeIndex >= afterIndex {
-            afterIndex = min(beforeIndex + 1, count - 1)
+        guard count > 1 else { return }
+
+        var newBefore = min(max(index, 0), count - 1)
+        if newBefore >= afterIndex {
+            if newBefore < count - 1 {
+                afterIndex = newBefore + 1
+            } else {
+                newBefore = afterIndex - 1
+            }
         }
+        beforeIndex = newBefore
+
         if let before = beforeObservation {
             beforeDisplayedMonth = calendar.startOfMonth(for: before.createdAt)
             beforePickerDay = calendar.startOfDay(for: before.createdAt)
@@ -163,19 +170,40 @@ final class CompareViewModel: ObservableObject {
 
     func setAfterIndex(_ index: Int) {
         let count = sortedObservations.count
-        guard count > 0 else { return }
-        afterIndex = min(max(index, 0), count - 1)
-        if afterIndex <= beforeIndex {
-            beforeIndex = max(afterIndex - 1, 0)
+        guard count > 1 else { return }
+
+        var newAfter = min(max(index, 0), count - 1)
+        if newAfter <= beforeIndex {
+            if newAfter > 0 {
+                beforeIndex = newAfter - 1
+            } else {
+                newAfter = beforeIndex + 1
+            }
         }
+        afterIndex = newAfter
+
         if let after = afterObservation {
             afterDisplayedMonth = calendar.startOfMonth(for: after.createdAt)
             afterPickerDay = calendar.startOfDay(for: after.createdAt)
         }
     }
 
+    func isSelectable(_ observation: PlantObservation, for side: CompareSide) -> Bool {
+        switch side {
+        case .before:
+            afterObservation?.id != observation.id
+        case .after:
+            beforeObservation?.id != observation.id
+        }
+    }
+
+    func isSelectableDay(_ day: Date, for side: CompareSide) -> Bool {
+        observations(on: day).contains { isSelectable($0, for: side) }
+    }
+
     func selectObservation(_ observation: PlantObservation, for side: CompareSide) {
-        guard let index = sortedObservations.firstIndex(where: { $0.id == observation.id }) else { return }
+        guard isSelectable(observation, for: side),
+              let index = sortedObservations.firstIndex(where: { $0.id == observation.id }) else { return }
         switch side {
         case .before:
             setBeforeIndex(index)
@@ -285,7 +313,7 @@ final class CompareViewModel: ObservableObject {
     }
 
     func selectDay(_ day: Date, for side: CompareSide) {
-        guard hasObservations(on: day) else { return }
+        guard isSelectableDay(day, for: side) else { return }
         let observations = observations(on: day)
         if observations.count == 1, let observation = observations.first {
             selectObservation(observation, for: side)
