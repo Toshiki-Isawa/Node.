@@ -24,6 +24,7 @@
 		32D4062E34D50169D2746BF7 /* CompareViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE2DA37C36C00BED7912124F /* CompareViewModel.swift */; };
 		346E3A01526714BEB7610A66 /* WateringIntervalSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C646E69668CA8975B0355C1 /* WateringIntervalSection.swift */; };
 		37516A76FD633F8AB88CFAF9 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = EEF0F78A2ADB4468ED581DC2 /* Supabase */; };
+		3B0ABB9C59757FB712024ED1 /* CameraOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1E07BA30B9A0900B54FD18 /* CameraOverlays.swift */; };
 		3BF2CC6ED01315EAAE225910 /* CompareRequirementSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0EE5361A5A906664DA3DDA /* CompareRequirementSheet.swift */; };
 		3E07870EC7E41B6FA1B8F4C5 /* AddPlantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38DDCA33DA67C28E2017AE2 /* AddPlantViewModel.swift */; };
 		3ECE3DB987BA95703601B8F4 /* NodeComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 173EB8C58286F7A75BD73E10 /* NodeComponents.swift */; };
@@ -50,7 +51,6 @@
 		7B66FA02A6622F4491B77732 /* ImagePathMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6624E1E2F99FB2116D60871D /* ImagePathMigration.swift */; };
 		7C4E608186F298A71205F8FC /* QuickLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 724C7EDBEE948B94082015F5 /* QuickLogViewModel.swift */; };
 		81B918F29E60E0C6F4449622 /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADCB49B70F04ACB4688C3B32 /* CameraView.swift */; };
-		4546272F7F6F46D0AA610620 /* CameraOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D0E1120104346C8B401237A /* CameraOverlays.swift */; };
 		86C037336E3055A866650C78 /* CareCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5CF64003600466B4C5B275 /* CareCalendarView.swift */; };
 		880D3432516DC33D8483894C /* NodeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0646EBFBCC733D162A193DB /* NodeApp.swift */; };
 		8C64E0236E6EFBF60D2F2D09 /* EditPlantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B38DE10CC355E8DBD8FA9EE /* EditPlantViewModel.swift */; };
@@ -66,6 +66,7 @@
 		AFAF4B36BF31FAB40F5FE1BD /* TimelineViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B8788112F392BEB123A4BEE /* TimelineViewModel.swift */; };
 		B07A5F0418E6B00604C085C4 /* EditGrowthLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635E2DE38CF53ED88944069E /* EditGrowthLogViewModel.swift */; };
 		B3DB54FBE62CFFEF32FAB578 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FAE9AE05B4A8C123F669B6 /* SettingsViewModel.swift */; };
+		B4A6F0644C6E1E4334FDC515 /* ObservationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC35D87B8BEE0926478E0BA /* ObservationDetailView.swift */; };
 		B6146E778C07ECBFA5D5EB3A /* AdMobConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EFC2668E5A46ABFB81BACAE /* AdMobConfig.swift */; };
 		B6C98B6DBF9525C98991AE4A /* QuickLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C69F5090E2CC4C0C9E20CC94 /* QuickLogSheet.swift */; };
 		BEBA1A038E4533F14C879B62 /* EditGrowthLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78DEBCDB5187CC0311F7CF00 /* EditGrowthLogSheet.swift */; };
@@ -88,6 +89,7 @@
 /* Begin PBXFileReference section */
 		01D4E7260F1B103C79D3ECEB /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		05713E922927EDC5EE46DEA7 /* NodeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeModels.swift; sourceTree = "<group>"; };
+		0C1E07BA30B9A0900B54FD18 /* CameraOverlays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraOverlays.swift; sourceTree = "<group>"; };
 		12E61EACA37D4369C5DA040E /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		173EB8C58286F7A75BD73E10 /* NodeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeComponents.swift; sourceTree = "<group>"; };
 		18678AB5B6500AB565F6F524 /* ObservationImageProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationImageProcessor.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 		4B14D87D42DD6392A3545B38 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		51A94ACB1051042365F85673 /* Node.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Node.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D96D305566A34F142C1DC1B /* PlanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanService.swift; sourceTree = "<group>"; };
+		5EC35D87B8BEE0926478E0BA /* ObservationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationDetailView.swift; sourceTree = "<group>"; };
 		613763BA1253878754516768 /* PlantDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlantDetailViewModel.swift; sourceTree = "<group>"; };
 		62BAFEC3B48020BC8A506801 /* ImageComparisonSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageComparisonSlider.swift; sourceTree = "<group>"; };
 		635E2DE38CF53ED88944069E /* EditGrowthLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGrowthLogViewModel.swift; sourceTree = "<group>"; };
@@ -137,7 +140,6 @@
 		AAC7FBEB6BC979EC04C9E28A /* PhotoLibraryPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryPicker.swift; sourceTree = "<group>"; };
 		ADB233720CA6AF7B11B49A55 /* UserPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPlan.swift; sourceTree = "<group>"; };
 		ADCB49B70F04ACB4688C3B32 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
-		8D0E1120104346C8B401237A /* CameraOverlays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraOverlays.swift; sourceTree = "<group>"; };
 		AF6DCEF89DA333D9D6622BCB /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
 		B2D35AD702BCBDC6A83567FC /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B635A8AD5CF2524E5CCD3009 /* BulkQuickLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulkQuickLogSheet.swift; sourceTree = "<group>"; };
@@ -259,6 +261,14 @@
 			path = EditPlant;
 			sourceTree = "<group>";
 		};
+		4B91E75359214DA42685238D /* ObservationDetail */ = {
+			isa = PBXGroup;
+			children = (
+				5EC35D87B8BEE0926478E0BA /* ObservationDetailView.swift */,
+			);
+			path = ObservationDetail;
+			sourceTree = "<group>";
+		};
 		55555F5F5BC991B3F86F3766 /* AddPlant */ = {
 			isa = PBXGroup;
 			children = (
@@ -286,6 +296,7 @@
 				E67C60C59379D72433992326 /* Compare */,
 				0B3AC4D6E0F0298F85D77D50 /* EditObservation */,
 				447CBBF5DA8489DE075B5C29 /* EditPlant */,
+				4B91E75359214DA42685238D /* ObservationDetail */,
 				AFDF403B413C012EEFC48B22 /* PlantDetail */,
 				B0405F1690D09EFBA81CE1AC /* QuickLog */,
 				CB3DC8E40F970E84A5D37EC6 /* Settings */,
@@ -365,9 +376,9 @@
 		C4E007BC3B38B6F429F08679 /* Camera */ = {
 			isa = PBXGroup;
 			children = (
+				0C1E07BA30B9A0900B54FD18 /* CameraOverlays.swift */,
 				ADCB49B70F04ACB4688C3B32 /* CameraView.swift */,
 				A7B3BFE7E835AF680B7A35FC /* CameraViewModel.swift */,
-				8D0E1120104346C8B401237A /* CameraOverlays.swift */,
 				B6D9D3A5F0A3D71E05DB7A1D /* ObservationRequirementSheet.swift */,
 			);
 			path = Camera;
@@ -557,10 +568,10 @@
 				8EA899236AFFE6E438D3787E /* BulkQuickLogSheet.swift in Sources */,
 				92687FE048CCD13A42ACE8D5 /* BulkQuickLogViewModel.swift in Sources */,
 				64641370B69C3C160DE6414C /* CameraFrameLayout.swift in Sources */,
+				3B0ABB9C59757FB712024ED1 /* CameraOverlays.swift in Sources */,
 				7883E8E9C481C149AD2E2FF1 /* CameraService.swift in Sources */,
 				81B918F29E60E0C6F4449622 /* CameraView.swift in Sources */,
 				0A464CB536C63C858E13E2A0 /* CameraViewModel.swift in Sources */,
-				4546272F7F6F46D0AA610620 /* CameraOverlays.swift in Sources */,
 				86C037336E3055A866650C78 /* CareCalendarView.swift in Sources */,
 				ADCE2FA7EE0C2137B1002AE0 /* CollectionView.swift in Sources */,
 				8DBEE6BC9CF874D5DDEBB20C /* CollectionViewModel.swift in Sources */,
@@ -585,6 +596,7 @@
 				1E9797E9DAEC2B5BD3257567 /* NodeDesignTokens.swift in Sources */,
 				F2EBBECEC1C75E8CC74C46F6 /* NodeModels.swift in Sources */,
 				29565849524FA535773F0F99 /* NodeTabBar.swift in Sources */,
+				B4A6F0644C6E1E4334FDC515 /* ObservationDetailView.swift in Sources */,
 				56FEBE3F76796AC7A38375CF /* ObservationImageProcessor.swift in Sources */,
 				E95A1AFE72BCF507A2BB7AF5 /* ObservationImageService.swift in Sources */,
 				096C3CFD8730F2245EC0B394 /* ObservationRequirementSheet.swift in Sources */,

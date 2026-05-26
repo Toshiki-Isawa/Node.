@@ -9,6 +9,7 @@ struct TimelineView: View {
     let syncEngine: SyncEngine
     var onBack: () -> Void
     var onPlantTap: (Plant) -> Void
+    var onObservationTap: (Plant, PlantObservation) -> Void
 
     @State private var deleteTarget: DeleteRecordTarget?
     @State private var pendingDeleteEntry: TimelineViewModel.TimelineEntry?
@@ -24,26 +25,23 @@ struct TimelineView: View {
                         .padding(.top, NodeSpacing.sp16)
                 } else {
                     ForEach(viewModel.items) { item in
-                        Button {
-                            onPlantTap(plant(for: item))
-                        } label: {
-                            timelineCard(item)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            if case .observation(let plant, let observation) = item {
-                                Button("日時を変更") {
-                                    editObservationTarget = TimelineObservationEditTarget(
-                                        plant: plant,
-                                        observation: observation
-                                    )
+                        timelineCard(item)
+                            .contentShape(Rectangle())
+                            .onTapGesture { handleTap(item) }
+                            .contextMenu {
+                                if case .observation(let plant, let observation) = item {
+                                    Button("日時を変更") {
+                                        editObservationTarget = TimelineObservationEditTarget(
+                                            plant: plant,
+                                            observation: observation
+                                        )
+                                    }
+                                }
+                                Button("削除", role: .destructive) {
+                                    pendingDeleteEntry = item
+                                    deleteTarget = viewModel.deleteTarget(for: item)
                                 }
                             }
-                            Button("削除", role: .destructive) {
-                                pendingDeleteEntry = item
-                                deleteTarget = viewModel.deleteTarget(for: item)
-                            }
-                        }
                     }
                 }
             }
@@ -244,6 +242,15 @@ struct TimelineView: View {
         switch item {
         case .observation(let plant, _): plant
         case .growthLog(let plant, _): plant
+        }
+    }
+
+    private func handleTap(_ item: TimelineViewModel.TimelineEntry) {
+        switch item {
+        case .observation(let plant, let observation):
+            onObservationTap(plant, observation)
+        case .growthLog(let plant, _):
+            onPlantTap(plant)
         }
     }
 }

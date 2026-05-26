@@ -81,6 +81,13 @@ struct RootView: View {
                     } else {
                         EmptyStateView(message: "Plant not found.")
                     }
+                case .observation(let observationId):
+                    if let observation = fetchObservation(id: observationId),
+                       let plant = observation.plant ?? fetchPlant(id: observation.plantId) {
+                        observationDetail(for: observation, plant: plant)
+                    } else {
+                        EmptyStateView(message: "Observation not found.")
+                    }
                 }
             }
         }
@@ -242,7 +249,10 @@ struct RootView: View {
                 modelContext: modelContext,
                 syncEngine: environment.syncEngine,
                 onBack: { selectTab(.collection) },
-                onPlantTap: { plant in navigationPath.append(.plant(plant.id)) }
+                onPlantTap: { plant in navigationPath.append(.plant(plant.id)) },
+                onObservationTap: { _, observation in
+                    navigationPath.append(.observation(observation.id))
+                }
             )
         }
     }
@@ -302,11 +312,39 @@ struct RootView: View {
         return try? modelContext.fetch(descriptor).first
     }
 
+    private func fetchObservation(id: UUID) -> PlantObservation? {
+        var descriptor = FetchDescriptor<PlantObservation>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        return try? modelContext.fetch(descriptor).first
+    }
+
+    @ViewBuilder
+    private func observationDetail(for observation: PlantObservation, plant: Plant) -> some View {
+        ObservationDetailView(
+            plant: plant,
+            observation: observation,
+            imageStore: environment.imageStore,
+            observationImageService: environment.observationImageService,
+            modelContext: modelContext,
+            syncEngine: environment.syncEngine,
+            recordDeletionService: environment.recordDeletionService,
+            onBack: { navigationPath.removeLast() },
+            onPlantTap: { navigationPath.append(.plant(plant.id)) },
+            onDeleted: {
+                navigationPath.removeLast()
+                timelineViewModel.reload()
+                collectionViewModel.reload()
+            }
+        )
+    }
+
     private func popNavigation(forPlantId plantId: UUID) {
         navigationPath.removeAll { route in
             switch route {
             case .plant(let id), .compare(let id):
                 return id == plantId
+            case .observation(let observationId):
+                return fetchObservation(id: observationId)?.plantId == plantId
             }
         }
         editPlantTarget = nil

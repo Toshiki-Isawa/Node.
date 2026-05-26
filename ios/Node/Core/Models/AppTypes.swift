@@ -114,6 +114,7 @@ enum AppTab: String, CaseIterable, Identifiable {
 enum AppNavigationRoute: Hashable {
     case plant(UUID)
     case compare(UUID)
+    case observation(UUID)
 }
 
 enum TimelapseRequirements {
