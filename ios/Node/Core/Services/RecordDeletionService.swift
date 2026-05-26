@@ -76,4 +76,20 @@ final class RecordDeletionService {
             Task { try? await supabaseService.deleteGrowthLog(id: logId) }
         }
     }
+
+    func deletePlant(_ plant: Plant) throws {
+        let plantId = plant.id
+        let shouldDeleteRemote = ReleaseConfig.cloudSyncEnabled && supabaseService.isAuthenticated
+
+        for observation in plant.observations {
+            imageStore.deleteObservationFiles(observation)
+        }
+
+        modelContext.delete(plant)
+        try modelContext.save()
+
+        if shouldDeleteRemote {
+            Task { try? await supabaseService.deletePlant(id: plantId) }
+        }
+    }
 }

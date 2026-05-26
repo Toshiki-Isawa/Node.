@@ -13,11 +13,18 @@ final class EditPlantViewModel: ObservableObject {
 
     private let modelContext: ModelContext
     private let syncEngine: SyncEngine
+    private let recordDeletionService: RecordDeletionService
 
-    init(plant: Plant, modelContext: ModelContext, syncEngine: SyncEngine) {
+    init(
+        plant: Plant,
+        modelContext: ModelContext,
+        syncEngine: SyncEngine,
+        recordDeletionService: RecordDeletionService
+    ) {
         self.plant = plant
         self.modelContext = modelContext
         self.syncEngine = syncEngine
+        self.recordDeletionService = recordDeletionService
         self.name = plant.name
         self.species = plant.species
         self.category = plant.category
@@ -45,5 +52,9 @@ final class EditPlantViewModel: ObservableObject {
         plant.updatedAt = .now
         try modelContext.save()
         syncEngine.enqueueSync()
+    }
+
+    func delete() throws {
+        try recordDeletionService.deletePlant(plant)
     }
 }

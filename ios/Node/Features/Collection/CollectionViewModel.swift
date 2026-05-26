@@ -8,9 +8,11 @@ final class CollectionViewModel: ObservableObject {
     @Published var plants: [Plant] = []
 
     private let modelContext: ModelContext
+    private let recordDeletionService: RecordDeletionService
 
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, recordDeletionService: RecordDeletionService) {
         self.modelContext = modelContext
+        self.recordDeletionService = recordDeletionService
         reload()
     }
 
@@ -62,9 +64,8 @@ final class CollectionViewModel: ObservableObject {
         plants.filter(\.needsWatering).count
     }
 
-    func deletePlant(_ plant: Plant) {
-        modelContext.delete(plant)
-        try? modelContext.save()
+    func deletePlant(_ plant: Plant) throws {
+        try recordDeletionService.deletePlant(plant)
         reload()
     }
 }

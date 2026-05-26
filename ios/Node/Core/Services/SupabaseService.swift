@@ -126,6 +126,13 @@ final class SupabaseService: ObservableObject {
         try await client.from("plants").upsert(payload).execute()
     }
 
+    func deletePlant(id: UUID) async throws {
+        try await client.from("plants")
+            .delete()
+            .eq("id", value: id.uuidString)
+            .execute()
+    }
+
     func upsertObservation(_ observation: PlantObservation) async throws {
         struct Payload: Encodable {
             let id: UUID

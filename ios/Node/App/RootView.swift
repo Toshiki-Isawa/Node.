@@ -23,7 +23,10 @@ struct RootView: View {
     @StateObject private var settingsViewModel: SettingsViewModel
 
     init(modelContext: ModelContext, environment: AppEnvironment) {
-        _collectionViewModel = StateObject(wrappedValue: CollectionViewModel(modelContext: modelContext))
+        _collectionViewModel = StateObject(wrappedValue: CollectionViewModel(
+            modelContext: modelContext,
+            recordDeletionService: environment.recordDeletionService
+        ))
         _timelineViewModel = StateObject(wrappedValue: TimelineViewModel(
             modelContext: modelContext,
             recordDeletionService: environment.recordDeletionService
@@ -117,8 +120,15 @@ struct RootView: View {
                 viewModel: EditPlantViewModel(
                     plant: target.plant,
                     modelContext: modelContext,
-                    syncEngine: environment.syncEngine
-                )
+                    syncEngine: environment.syncEngine,
+                    recordDeletionService: environment.recordDeletionService
+                ),
+                onDeleted: {
+                    popNavigation(forPlantId: target.plant.id)
+                    collectionViewModel.reload()
+                    timelineViewModel.reload()
+                    cameraViewModel.reloadPlants()
+                }
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
@@ -290,6 +300,16 @@ struct RootView: View {
         var descriptor = FetchDescriptor<Plant>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
         return try? modelContext.fetch(descriptor).first
+    }
+
+    private func popNavigation(forPlantId plantId: UUID) {
+        navigationPath.removeAll { route in
+            switch route {
+            case .plant(let id), .compare(let id):
+                return id == plantId
+            }
+        }
+        editPlantTarget = nil
     }
 }
 

@@ -3,16 +3,32 @@ import SwiftUI
 struct EditPlantView: View {
     @ObservedObject var viewModel: EditPlantViewModel
     @Environment(\.dismiss) private var dismiss
+    var onDeleted: (() -> Void)?
+
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: NodeSpacing.sp4) {
                 topBar
                 formFields
+                deleteSection
             }
             .padding(.bottom, 40)
         }
         .background(NodeColor.graphite)
+        .confirmationDialog(
+            "植物を削除しますか？",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("削除", role: .destructive) {
+                deletePlant()
+            }
+            Button("キャンセル", role: .cancel) {}
+        } message: {
+            Text(deleteConfirmationMessage)
+        }
     }
 
     private var topBar: some View {
@@ -78,6 +94,45 @@ struct EditPlantView: View {
         .padding(.horizontal, NodeSpacing.sp4)
     }
 
+    private var deleteSection: some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+            MetaLabel(text: "危険な操作", size: 9)
+            Button {
+                showDeleteConfirmation = true
+            } label: {
+                HStack(spacing: NodeSpacing.sp2) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 14, weight: .medium))
+                    Text("植物を削除")
+                        .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 11)
+                .foregroundStyle(NodeColor.syncFail)
+                .background(
+                    Capsule()
+                        .stroke(NodeColor.syncFail.opacity(0.35), lineWidth: 1)
+                )
+            }
+            .buttonStyle(NodePressStyle())
+            MetaLabel(
+                text: "観測記録・ログ・端末内の写真もすべて削除されます",
+                color: NodeColor.fog,
+                size: 9
+            )
+        }
+        .padding(.horizontal, NodeSpacing.sp4)
+        .padding(.top, NodeSpacing.sp6)
+    }
+
+    private var deleteConfirmationMessage: String {
+        var message = "「\(viewModel.plant.name)」と、すべての観測記録・ログを削除します。端末内の写真も削除され、元に戻せません。"
+        if ReleaseConfig.cloudSyncEnabled {
+            message += "クラウドに同期済みのデータも削除されます。"
+        }
+        return message
+    }
+
     private var acquiredAtSection: some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
             MetaLabel(text: "育成開始日", size: 9)
@@ -111,6 +166,16 @@ struct EditPlantView: View {
             dismiss()
         } catch {
             // 保存失敗時はシートを開いたままにする
+        }
+    }
+
+    private func deletePlant() {
+        do {
+            try viewModel.delete()
+            dismiss()
+            onDeleted?()
+        } catch {
+            // 削除失敗時はシートを開いたままにする
         }
     }
 }
