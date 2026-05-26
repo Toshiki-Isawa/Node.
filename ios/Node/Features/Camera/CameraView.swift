@@ -142,7 +142,8 @@ struct CameraView: View {
             }
 
             viewModel.setCapturePhase(.saving)
-            let saved = await viewModel.saveObservation(image: image)
+            let framedImage = cameraService.cropToObservationFrame(image)
+            let saved = await viewModel.saveObservation(image: framedImage, preprocessForStorage: false)
 
             guard !Task.isCancelled else {
                 viewModel.resetCaptureState()
@@ -175,15 +176,15 @@ struct CameraView: View {
 
     /// 撮影補助オーバーレイ用。上下 chrome と端末角を避け、プレビューは全面のまま。
     private func cameraFrame(in size: CGSize) -> CGRect {
-        let insetX = size.width * 0.10
-        let insetTop = size.height * 0.14
-        let insetBottom = size.height * 0.22
-        return CGRect(
-            x: insetX,
-            y: insetTop,
-            width: size.width - insetX * 2,
-            height: size.height - insetTop - insetBottom
-        )
+        CameraFrameLayout.frame(in: size)
+    }
+
+    private var overlayLayoutSize: CGSize {
+        let previewSize = cameraService.previewBounds
+        if previewSize.width > 0, previewSize.height > 0 {
+            return previewSize
+        }
+        return UIScreen.main.bounds.size
     }
 
     @ViewBuilder
@@ -191,39 +192,127 @@ struct CameraView: View {
         if CameraService.usesPhotoLibraryFallback {
             simulatorPlaceholder
         } else if cameraService.isAuthorized {
-            AVCameraPreviewView(session: cameraService.session)
+            AVCameraPreviewView(session: cameraService.session, cameraService: cameraService)
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
         }
     }
 
+    private var topChrome: some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+            HStack(spacing: NodeSpacing.sp2) {
+                Button(action: closeCamera) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .regular))
+                        .foregroundStyle(NodeColor.bone)
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                }
+
+                Spacer()
+
+                if !CameraService.usesPhotoLibraryFallback {
+                    gridToggleButton
+                }
+
+                if let plant = viewModel.selectedPlant {
+                    HStack(spacing: 8) {
+                        if ReleaseConfig.cloudSyncEnabled {
+                            SyncDot(state: plant.aggregateSyncStatus, size: 5)
+                        }
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(plant.name)
+                                .font(NodeFont.text(12, weight: .medium))
+                                .foregroundStyle(NodeColor.bone)
+                            MetaLabel(text: "\(plant.dayCount)日目", size: 9)
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
+                }
+            }
+
+            previousObservationPreview
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, NodeSpacing.sp4)
+        .nodeScreenTopPadding()
+    }
+
+    @ViewBuilder
+    private var previousObservationPreview: some View {
+        if let path = viewModel.previousObservationImagePath {
+            Button {
+                cameraService.showReferenceOverlay.toggle()
+            } label: {
+                ObservationThumbnail(
+                    imagePath: path,
+                    imageStore: imageStore,
+                    size: 80
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: NodeRadius.sm)
+                        .stroke(
+                            cameraService.showReferenceOverlay ? NodeColor.moss : NodeColor.hairlineStrong,
+                            lineWidth: 1
+                        )
+                )
+                .nodePhotoShadow()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(
+                cameraService.showReferenceOverlay
+                    ? "前回の観測オーバーレイをオフ"
+                    : "前回の観測オーバーレイをオン"
+            )
+        }
+    }
+
     private var cameraFramedOverlay: some View {
         GeometryReader { geo in
-            let frame = cameraFrame(in: geo.size)
+            let layoutSize = overlayLayoutSize
+            let frame = cameraFrame(in: layoutSize)
+            let offsetX = (geo.size.width - layoutSize.width) / 2
+            let offsetY = (geo.size.height - layoutSize.height) / 2
+            let alignedFrame = frame.offsetBy(dx: offsetX, dy: offsetY)
 
             ZStack {
-                if cameraService.showOnionSkin,
+                Path { path in
+                    path.addRect(CGRect(origin: .zero, size: geo.size))
+                    path.addRect(alignedFrame)
+                }
+                .fill(Color.black.opacity(0.32), style: FillStyle(eoFill: true))
+
+                if cameraService.showReferenceOverlay,
                    let path = viewModel.previousObservationImagePath,
                    let image = imageStore.loadImage(path: path) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: frame.width, height: frame.height)
-                        .clipped()
-                        .position(x: frame.midX, y: frame.midY)
-                        .opacity(0.28)
-                        .blendMode(.screen)
+                    referenceOverlay(image: image, frame: alignedFrame)
                 }
 
                 if cameraService.showGrid {
-                    GridOverlay(frame: frame)
+                    GridOverlay(frame: alignedFrame)
                 }
-                ReticleOverlay(frame: frame)
+                ReticleOverlay(frame: alignedFrame)
                 LevelIndicator(roll: cameraService.rollDegrees)
-                    .position(x: geo.size.width / 2, y: frame.minY - 28)
+                    .position(x: geo.size.width / 2, y: alignedFrame.minY - 28)
             }
         }
         .ignoresSafeArea()
+    }
+
+    @ViewBuilder
+    private func referenceOverlay(image: UIImage, frame: CGRect) -> some View {
+        Image(uiImage: image)
+            .resizable()
+            .scaledToFill()
+            .frame(width: frame.width, height: frame.height)
+            .clipped()
+            .position(x: frame.midX, y: frame.midY)
+            .opacity(0.34)
+            .allowsHitTesting(false)
     }
 
     private var showsCameraPermissionPrompt: Bool {
@@ -252,45 +341,6 @@ struct CameraView: View {
         .padding(NodeSpacing.sp6)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black.opacity(0.72))
-    }
-
-    private var topChrome: some View {
-        HStack(spacing: NodeSpacing.sp2) {
-            Button(action: closeCamera) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 18, weight: .regular))
-                    .foregroundStyle(NodeColor.bone)
-                    .frame(width: 36, height: 36)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
-            }
-
-            Spacer()
-
-            if !CameraService.usesPhotoLibraryFallback {
-                gridToggleButton
-            }
-
-            if let plant = viewModel.selectedPlant {
-                HStack(spacing: 8) {
-                    if ReleaseConfig.cloudSyncEnabled {
-                        SyncDot(state: plant.aggregateSyncStatus, size: 5)
-                    }
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(plant.name)
-                            .font(NodeFont.text(12, weight: .medium))
-                            .foregroundStyle(NodeColor.bone)
-                        MetaLabel(text: "\(plant.dayCount)日目", size: 9)
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(.ultraThinMaterial)
-                .clipShape(Capsule())
-            }
-        }
-        .padding(.horizontal, NodeSpacing.sp4)
-        .nodeScreenTopPadding()
     }
 
     private var gridToggleButton: some View {

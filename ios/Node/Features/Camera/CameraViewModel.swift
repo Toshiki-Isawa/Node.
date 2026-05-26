@@ -114,6 +114,9 @@ final class CameraViewModel: ObservableObject {
     var previousObservationImagePath: String? {
         guard let plant = selectedPlant,
               let observation = plant.latestObservation else { return nil }
+        if imageStore.fileExists(at: observation.localImagePath) {
+            return observation.localImagePath
+        }
         return observationImageService.displayThumbnailPath(for: observation)
     }
 
@@ -167,7 +170,11 @@ final class CameraViewModel: ObservableObject {
     }
 
     @discardableResult
-    func saveObservation(image: UIImage, observedAt: Date = .now) async -> Bool {
+    func saveObservation(
+        image: UIImage,
+        observedAt: Date = .now,
+        preprocessForStorage: Bool = true
+    ) async -> Bool {
         guard !Task.isCancelled else { return false }
         guard let plant = selectedPlant else {
             errorMessage = "植物を選択してください。"
@@ -186,16 +193,22 @@ final class CameraViewModel: ObservableObject {
         guard !Task.isCancelled else { return false }
 
         let observationId = UUID()
+        let preparedImage = preprocessForStorage
+            ? ObservationImageProcessor.prepareImportedPhoto(
+                image,
+                aspectRatio: CameraFrameLayout.currentAspectRatio
+            )
+            : image
 
         do {
             let path = try await Task.detached(priority: .userInitiated) { [imageStore] in
-                try imageStore.saveOriginal(image, observationId: observationId)
+                try imageStore.saveOriginal(preparedImage, observationId: observationId)
             }.value
 
             guard !Task.isCancelled else { return false }
 
             let thumbPath = try await Task.detached(priority: .utility) { [imageStore] in
-                try imageStore.generateThumbnail(from: image, observationId: observationId)
+                try imageStore.generateThumbnail(from: preparedImage, observationId: observationId)
             }.value
 
             guard !Task.isCancelled else { return false }

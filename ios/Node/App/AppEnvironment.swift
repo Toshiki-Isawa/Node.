@@ -88,6 +88,8 @@ final class AppEnvironment: ObservableObject {
         self.adMobService = adMobService
         self.authViewModel = authViewModel
 
+        ImagePathMigration.migrateStoredPathsIfNeeded(modelContext: modelContext, imageStore: imageStore)
+
         analyticsService.configure()
 
         authViewModel.objectWillChange

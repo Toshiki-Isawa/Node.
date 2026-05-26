@@ -10,7 +10,7 @@ final class CameraService: NSObject, ObservableObject {
     @Published private(set) var isCaptureReady = false
     @Published private(set) var rollDegrees: Double = 0
     @Published var showGrid = true
-    @Published var showOnionSkin = true
+    @Published var showReferenceOverlay = true
     @Published var useFrontCamera = false
 
     /// シミュレータでは AVFoundation の撮影接続が有効にならないため写真ライブラリを使う。
@@ -28,6 +28,22 @@ final class CameraService: NSObject, ObservableObject {
     private var currentInput: AVCaptureDeviceInput?
     private var isPhotoOutputAttached = false
     private var captureContinuation: CheckedContinuation<UIImage, Error>?
+    weak var previewLayer: AVCaptureVideoPreviewLayer?
+    @Published private(set) var previewBounds: CGSize = UIScreen.main.bounds.size
+
+    var observationFrameRect: CGRect {
+        CameraFrameLayout.frame(in: previewBounds)
+    }
+
+    var observationFrameAspectRatio: CGFloat {
+        CameraFrameLayout.aspectRatio(for: previewBounds)
+    }
+
+    func updatePreviewBounds(_ size: CGSize) {
+        guard size.width > 0, size.height > 0 else { return }
+        guard previewBounds != size else { return }
+        previewBounds = size
+    }
 
     override init() {
         super.init()
@@ -90,6 +106,9 @@ final class CameraService: NSObject, ObservableObject {
             isPhotoOutputAttached = true
         }
 
+        applyPortraitOrientation(to: previewLayer?.connection)
+        applyPortraitOrientation(to: photoOutput.connection(with: .video))
+
         session.commitConfiguration()
         updateCaptureReadiness()
     }
@@ -150,6 +169,30 @@ final class CameraService: NSObject, ObservableObject {
         }
     }
 
+    func cropToObservationFrame(_ image: UIImage) -> UIImage {
+        guard let previewLayer else {
+            return ObservationImageProcessor.prepareImportedPhoto(
+                image,
+                aspectRatio: CameraFrameLayout.currentAspectRatio
+            )
+        }
+
+        let bounds = previewLayer.bounds
+        guard bounds.width > 0, bounds.height > 0 else {
+            return ObservationImageProcessor.prepareImportedPhoto(
+                image,
+                aspectRatio: CameraFrameLayout.currentAspectRatio
+            )
+        }
+
+        let frame = CameraFrameLayout.frame(in: bounds.size)
+        return ObservationImageProcessor.prepareCapturedPhoto(
+            image,
+            previewLayer: previewLayer,
+            frameInLayer: frame
+        )
+    }
+
     func capturePhoto() async throws -> UIImage {
         if Self.usesPhotoLibraryFallback {
             throw CameraError.usePhotoLibrary
@@ -193,6 +236,10 @@ final class CameraService: NSObject, ObservableObject {
         }
         isCaptureReady = connection.isEnabled && connection.isActive
     }
+
+    private func applyPortraitOrientation(to connection: AVCaptureConnection?) {
+        CameraOrientation.applyPortrait(to: connection)
+    }
 }
 
 extension CameraService: AVCapturePhotoCaptureDelegate {
@@ -213,7 +260,7 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
                 captureContinuation = nil
                 return
             }
-            captureContinuation?.resume(returning: image)
+            captureContinuation?.resume(returning: ObservationImageProcessor.prepareForStorage(image))
             captureContinuation = nil
         }
     }
@@ -257,21 +304,54 @@ private final class CMotionManager {
     }
 }
 
+private enum CameraOrientation {
+    static func applyPortrait(to connection: AVCaptureConnection?) {
+        guard let connection else { return }
+        if connection.isVideoRotationAngleSupported(90) {
+            connection.videoRotationAngle = 90
+        } else if connection.isVideoOrientationSupported {
+            connection.videoOrientation = .portrait
+        }
+    }
+}
+
 struct AVCameraPreviewView: UIViewRepresentable {
     let session: AVCaptureSession
+    var cameraService: CameraService?
 
     func makeUIView(context: Context) -> PreviewView {
         let view = PreviewView()
         view.isUserInteractionEnabled = false
         view.previewLayer.session = session
         view.previewLayer.videoGravity = .resizeAspectFill
+        CameraOrientation.applyPortrait(to: view.previewLayer.connection)
+        view.onBoundsChange = { [weak cameraService] size in
+            Task { @MainActor in
+                cameraService?.updatePreviewBounds(size)
+            }
+        }
+        cameraService?.previewLayer = view.previewLayer
+        cameraService?.updatePreviewBounds(view.bounds.size)
         return view
     }
 
-    func updateUIView(_ uiView: PreviewView, context: Context) {}
+    func updateUIView(_ uiView: PreviewView, context: Context) {
+        uiView.previewLayer.session = session
+        CameraOrientation.applyPortrait(to: uiView.previewLayer.connection)
+        cameraService?.previewLayer = uiView.previewLayer
+        cameraService?.updatePreviewBounds(uiView.bounds.size)
+    }
 }
 
 final class PreviewView: UIView {
+    var onBoundsChange: ((CGSize) -> Void)?
+
     override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
     var previewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        previewLayer.frame = bounds
+        onBoundsChange?(bounds.size)
+    }
 }

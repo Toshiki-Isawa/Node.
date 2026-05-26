@@ -208,7 +208,7 @@ private struct CameraCaptureSheet: View {
                     MetaLabel(text: "シミュレータでは写真を選択", color: NodeColor.fog)
                 }
             } else if camera.isAuthorized {
-                AVCameraPreviewView(session: camera.session)
+                AVCameraPreviewView(session: camera.session, cameraService: camera)
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
             }
@@ -286,7 +286,8 @@ private struct CameraCaptureSheet: View {
     private func captureFromCamera() async {
         guard camera.isCaptureReady else { return }
         guard let image = try? await camera.capturePhoto() else { return }
-        onCapture(image, nil)
+        let framedImage = camera.cropToObservationFrame(image)
+        onCapture(framedImage, nil)
         dismiss()
     }
 }
