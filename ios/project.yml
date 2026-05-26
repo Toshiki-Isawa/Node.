@@ -72,11 +72,9 @@ targets:
         product: GoogleMobileAds
       - package: PostHog
         product: PostHog
+    # v1.0: Sign in with Apple は Personal Team 実機 QA のため未設定。v1.1 で cloudSync 有効化時に復元。
     entitlements:
       path: Node/Node.entitlements
-      properties:
-        com.apple.developer.applesignin:
-          - Default
 
 schemes:
   Node:

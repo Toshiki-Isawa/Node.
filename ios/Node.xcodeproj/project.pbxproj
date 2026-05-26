@@ -102,7 +102,7 @@
 		46306554A82171C0E12FD9B2 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
 		4804134E2D404667CBD3EE44 /* LegalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalConfig.swift; sourceTree = "<group>"; };
 		4B14D87D42DD6392A3545B38 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
-		51A94ACB1051042365F85673 /* Node.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Node.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		51A94ACB1051042365F85673 /* Node.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Node.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D96D305566A34F142C1DC1B /* PlanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanService.swift; sourceTree = "<group>"; };
 		613763BA1253878754516768 /* PlantDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlantDetailViewModel.swift; sourceTree = "<group>"; };
 		62BAFEC3B48020BC8A506801 /* ImageComparisonSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageComparisonSlider.swift; sourceTree = "<group>"; };
@@ -118,7 +118,7 @@
 		7AFDCBFBE3ABEB2BA466EBC1 /* AddPlantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPlantView.swift; sourceTree = "<group>"; };
 		7D3A190C3DF695FB5C5BF130 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		8651BD6869DF8D2A2609AC29 /* CollectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewModel.swift; sourceTree = "<group>"; };
-		8C1EF377B28E5A58DE9C446B /* Products.storekit */ = {isa = PBXFileReference; path = Products.storekit; sourceTree = "<group>"; };
+		8C1EF377B28E5A58DE9C446B /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		8CB44A47DD8FBCD85B28DED9 /* AppTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypes.swift; sourceTree = "<group>"; };
 		91C328E474E58EDDEDE3A2A9 /* PrivacyPolicyWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyWebView.swift; sourceTree = "<group>"; };
 		A0F18792680177516BDD3A1A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -474,7 +474,6 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					CAE125A90594DE34FF5C5A6E = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -600,6 +599,7 @@
 				CODE_SIGN_ENTITLEMENTS = Node/Node.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 456WBLCLPJ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Node/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Node.;
@@ -756,6 +756,7 @@
 				CODE_SIGN_ENTITLEMENTS = Node/Node.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 456WBLCLPJ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Node/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Node.;
