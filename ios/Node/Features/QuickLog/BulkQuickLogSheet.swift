@@ -222,7 +222,6 @@ struct BulkQuickLogSheet: View {
         }
         .padding(.horizontal, NodeSpacing.sp5)
         .padding(.top, NodeSpacing.sp3)
-        .padding(.bottom, NodeSpacing.sp4)
         .background(
             NodeColor.charcoal
                 .overlay(alignment: .top) {
@@ -230,6 +229,7 @@ struct BulkQuickLogSheet: View {
                         .fill(NodeColor.hairline)
                         .frame(height: 1)
                 }
+                .ignoresSafeArea(edges: .bottom)
         )
     }
 
