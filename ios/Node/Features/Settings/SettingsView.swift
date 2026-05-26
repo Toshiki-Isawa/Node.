@@ -31,6 +31,7 @@ struct SettingsView: View {
                 if ReleaseConfig.cloudSyncEnabled {
                     accountSection
                 }
+                versionFooter
             }
             .padding(.horizontal, NodeSpacing.sp4)
             .padding(.bottom, NodeSpacing.sp10)
@@ -357,6 +358,14 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    private var versionFooter: some View {
+        Text(AppInfo.versionLabel)
+            .font(NodeFont.mono(11))
+            .foregroundStyle(NodeColor.mist)
+            .frame(maxWidth: .infinity)
+            .padding(.top, NodeSpacing.sp2)
     }
 
     private var legalSection: some View {
