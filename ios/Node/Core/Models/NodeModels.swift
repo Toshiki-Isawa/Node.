@@ -11,6 +11,7 @@ final class Plant {
     var acquiredAt: Date
     /// 水やり間隔（日数）。nil の場合は頻度未設定。
     var wateringIntervalDays: Int?
+    var note: String = ""
     var createdAt: Date
     var updatedAt: Date
 
@@ -28,6 +29,7 @@ final class Plant {
         category: String = PlantCategory.other.rawValue,
         acquiredAt: Date = .now,
         wateringIntervalDays: Int? = nil,
+        note: String = "",
         createdAt: Date = .now,
         updatedAt: Date = .now,
         observations: [PlantObservation] = [],
@@ -40,6 +42,7 @@ final class Plant {
         self.category = category
         self.acquiredAt = acquiredAt
         self.wateringIntervalDays = wateringIntervalDays
+        self.note = note
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.observations = observations

@@ -8,6 +8,7 @@ final class EditPlantViewModel: ObservableObject {
     @Published var category: String
     @Published var acquiredAt: Date
     @Published var wateringIntervalDays: Int?
+    @Published var note: String
 
     let plant: Plant
 
@@ -30,6 +31,7 @@ final class EditPlantViewModel: ObservableObject {
         self.category = plant.category
         self.acquiredAt = plant.acquiredAt
         self.wateringIntervalDays = plant.wateringIntervalDays
+        self.note = plant.note
     }
 
     var acquiredAtRange: ClosedRange<Date> {
@@ -49,6 +51,7 @@ final class EditPlantViewModel: ObservableObject {
         plant.category = category
         plant.acquiredAt = acquiredAt
         plant.wateringIntervalDays = wateringIntervalDays
+        plant.note = note.trimmingCharacters(in: .whitespacesAndNewlines)
         plant.updatedAt = .now
         try modelContext.save()
         syncEngine.enqueueSync()

@@ -26,6 +26,9 @@ struct PlantDetailView: View {
                 VStack(spacing: 0) {
                     heroSection
                     actionRow
+                    if !plant.note.isEmpty {
+                        noteSection
+                    }
                     careCalendarSection
                     timelineSection
                 }
@@ -174,6 +177,27 @@ struct PlantDetailView: View {
         }
         .padding(.horizontal, NodeSpacing.sp4)
         .padding(.vertical, NodeSpacing.sp4)
+    }
+
+    private var noteSection: some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+            MetaLabel(text: "メモ", size: 9)
+            Text(plant.note)
+                .font(NodeFont.text(NodeFont.callout))
+                .foregroundStyle(NodeColor.paper)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(NodeSpacing.sp4)
+                .background(
+                    RoundedRectangle(cornerRadius: NodeRadius.lg)
+                        .fill(NodeColor.charcoal)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: NodeRadius.lg)
+                                .stroke(NodeColor.hairline, lineWidth: 1)
+                        )
+                )
+        }
+        .padding(.horizontal, NodeSpacing.sp4)
+        .padding(.bottom, NodeSpacing.sp4)
     }
 
     private var careCalendarSection: some View {

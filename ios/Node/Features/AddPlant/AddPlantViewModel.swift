@@ -68,7 +68,8 @@ final class AddPlantViewModel: ObservableObject {
             species: species.trimmingCharacters(in: .whitespacesAndNewlines),
             category: category,
             acquiredAt: plantAcquiredAt,
-            wateringIntervalDays: wateringIntervalDays
+            wateringIntervalDays: wateringIntervalDays,
+            note: note.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         modelContext.insert(plant)
 

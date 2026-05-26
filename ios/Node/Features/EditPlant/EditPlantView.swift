@@ -84,6 +84,13 @@ struct EditPlantView: View {
 
             acquiredAtSection
 
+            NodeTextField(
+                label: "メモ",
+                hint: "任意",
+                text: $viewModel.note,
+                placeholder: "—"
+            )
+
             NodePrimaryButton("変更を保存") {
                 savePlant()
             }
