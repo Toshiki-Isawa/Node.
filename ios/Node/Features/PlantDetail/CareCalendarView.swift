@@ -101,31 +101,16 @@ struct CareCalendarView: View {
     }
 
     private var monthNavigator: some View {
-        HStack {
-            Button(action: viewModel.goToPreviousMonth) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(viewModel.canGoToPreviousMonth ? NodeColor.bone : NodeColor.stone)
-                    .frame(width: 32, height: 32)
-            }
-            .disabled(!viewModel.canGoToPreviousMonth)
-
-            Spacer()
-
-            Text(viewModel.calendarMonthTitle)
-                .font(NodeFont.text(NodeFont.callout, weight: .medium))
-                .foregroundStyle(NodeColor.bone)
-
-            Spacer()
-
-            Button(action: viewModel.goToNextMonth) {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(viewModel.canGoToNextMonth ? NodeColor.bone : NodeColor.stone)
-                    .frame(width: 32, height: 32)
-            }
-            .disabled(!viewModel.canGoToNextMonth)
-        }
+        NodeCalendarMonthNavigator(
+            monthTitle: viewModel.calendarMonthTitle,
+            canGoToPreviousMonth: viewModel.canGoToPreviousMonth,
+            canGoToNextMonth: viewModel.canGoToNextMonth,
+            dateRange: viewModel.calendarDateRange,
+            initialPickerDate: viewModel.calendarPickerSeedDate,
+            onPreviousMonth: viewModel.goToPreviousMonth,
+            onNextMonth: viewModel.goToNextMonth,
+            onJumpToDate: viewModel.jumpToDate
+        )
     }
 
     private var weekdayHeader: some View {

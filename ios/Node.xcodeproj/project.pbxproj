@@ -32,6 +32,7 @@
 		41A2D86728D330F93776A66E /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 0B1969429EE35756CE1F0012 /* GoogleMobileAds */; };
 		4319AAEC9E8BB7DA0C6B1DB9 /* PlantDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 613763BA1253878754516768 /* PlantDetailViewModel.swift */; };
 		47375A6591E61095E8B8EFF5 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20BF5D9A4BD8CDD1D662B102 /* SignInView.swift */; };
+		477B9FDB18720E71AB444F50 /* NodeCalendarMonthNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C52B2E6D6A59DB752B41C3FB /* NodeCalendarMonthNavigator.swift */; };
 		5587076B456BADEA42474DD4 /* AddPlantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFDCBFBE3ABEB2BA466EBC1 /* AddPlantView.swift */; };
 		57D58C5F5EF732B96DE51684 /* ImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7FAE20867D33B75380E98A /* ImageStore.swift */; };
 		5A53BCE689FE86CD4E1D20B0 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6DCEF89DA333D9D6622BCB /* SyncEngine.swift */; };
@@ -139,6 +140,7 @@
 		BB7FAE20867D33B75380E98A /* ImageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageStore.swift; sourceTree = "<group>"; };
 		BE2DA37C36C00BED7912124F /* CompareViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareViewModel.swift; sourceTree = "<group>"; };
 		C1002FF3E000A5264672835E /* TimelapseVideoGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelapseVideoGenerator.swift; sourceTree = "<group>"; };
+		C52B2E6D6A59DB752B41C3FB /* NodeCalendarMonthNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeCalendarMonthNavigator.swift; sourceTree = "<group>"; };
 		C69F5090E2CC4C0C9E20CC94 /* QuickLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLogSheet.swift; sourceTree = "<group>"; };
 		CBDA7C83C3E61F3CF585C420 /* AdMobService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdMobService.swift; sourceTree = "<group>"; };
 		CDAD6269AF7E77B2A1C82F13 /* NodeDesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeDesignTokens.swift; sourceTree = "<group>"; };
@@ -203,6 +205,7 @@
 			isa = PBXGroup;
 			children = (
 				62BAFEC3B48020BC8A506801 /* ImageComparisonSlider.swift */,
+				C52B2E6D6A59DB752B41C3FB /* NodeCalendarMonthNavigator.swift */,
 				173EB8C58286F7A75BD73E10 /* NodeComponents.swift */,
 				6952EE3AD2E917CBFE2DAF1B /* NodeTabBar.swift */,
 				AAC7FBEB6BC979EC04C9E28A /* PhotoLibraryPicker.swift */,
@@ -553,6 +556,7 @@
 				57D58C5F5EF732B96DE51684 /* ImageStore.swift in Sources */,
 				1E814D6132779360A764E221 /* LegalConfig.swift in Sources */,
 				880D3432516DC33D8483894C /* NodeApp.swift in Sources */,
+				477B9FDB18720E71AB444F50 /* NodeCalendarMonthNavigator.swift in Sources */,
 				3ECE3DB987BA95703601B8F4 /* NodeComponents.swift in Sources */,
 				981B76BBD2120817C7DAE678 /* NodeDateFormat.swift in Sources */,
 				1E9797E9DAEC2B5BD3257567 /* NodeDesignTokens.swift in Sources */,
@@ -599,7 +603,6 @@
 				CODE_SIGN_ENTITLEMENTS = Node/Node.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 456WBLCLPJ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Node/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Node.;

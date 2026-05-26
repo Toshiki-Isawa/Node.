@@ -67,35 +67,19 @@ struct CompareObservationCalendar: View {
         }
     }
 
+    @ViewBuilder
     private var monthNavigator: some View {
-        HStack {
-            Button {
-                viewModel.goToPreviousMonth(for: side)
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(viewModel.canGoToPreviousMonth(for: side) ? NodeColor.bone : NodeColor.stone)
-                    .frame(width: 32, height: 32)
-            }
-            .disabled(!viewModel.canGoToPreviousMonth(for: side))
-
-            Spacer()
-
-            Text(viewModel.calendarMonthTitle(for: side))
-                .font(NodeFont.text(NodeFont.callout, weight: .medium))
-                .foregroundStyle(NodeColor.bone)
-
-            Spacer()
-
-            Button {
-                viewModel.goToNextMonth(for: side)
-            } label: {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(viewModel.canGoToNextMonth(for: side) ? NodeColor.bone : NodeColor.stone)
-                    .frame(width: 32, height: 32)
-            }
-            .disabled(!viewModel.canGoToNextMonth(for: side))
+        if let dateRange = viewModel.calendarDateRange(for: side) {
+            NodeCalendarMonthNavigator(
+                monthTitle: viewModel.calendarMonthTitle(for: side),
+                canGoToPreviousMonth: viewModel.canGoToPreviousMonth(for: side),
+                canGoToNextMonth: viewModel.canGoToNextMonth(for: side),
+                dateRange: dateRange,
+                initialPickerDate: viewModel.calendarPickerSeedDate(for: side),
+                onPreviousMonth: { viewModel.goToPreviousMonth(for: side) },
+                onNextMonth: { viewModel.goToNextMonth(for: side) },
+                onJumpToDate: { viewModel.jumpToDate($0, for: side) }
+            )
         }
     }
 

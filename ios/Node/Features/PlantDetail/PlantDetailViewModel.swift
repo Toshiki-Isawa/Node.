@@ -91,6 +91,21 @@ final class PlantDetailViewModel: ObservableObject {
         displayedMonth.nodeYearMonth()
     }
 
+    var calendarDateRange: ClosedRange<Date> {
+        calendar.startOfDay(for: plant.acquiredAt) ... calendar.startOfDay(for: .now)
+    }
+
+    var calendarPickerSeedDate: Date {
+        if let selectedDay {
+            return selectedDay
+        }
+        let today = calendar.startOfDay(for: .now)
+        if calendar.isDate(today, equalTo: displayedMonth, toGranularity: .month) {
+            return today
+        }
+        return displayedMonth
+    }
+
     var weekdaySymbols: [String] {
         let symbols = calendar.shortWeekdaySymbols
         let offset = calendar.firstWeekday - 1
@@ -182,6 +197,13 @@ final class PlantDetailViewModel: ObservableObject {
               let next = calendar.date(byAdding: .month, value: 1, to: displayedMonth) else { return }
         displayedMonth = next
         selectedDay = nil
+    }
+
+    func jumpToDate(_ date: Date) {
+        let day = calendar.startOfDay(for: date)
+        let clamped = min(max(day, calendarDateRange.lowerBound), calendarDateRange.upperBound)
+        displayedMonth = calendar.startOfMonth(for: clamped)
+        selectedDay = clamped
     }
 
     func selectDay(_ day: Date) {

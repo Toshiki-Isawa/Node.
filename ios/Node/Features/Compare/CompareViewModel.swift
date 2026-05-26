@@ -209,6 +209,23 @@ final class CompareViewModel: ObservableObject {
         displayedMonth(for: side).nodeYearMonth()
     }
 
+    func calendarDateRange(for side: CompareSide) -> ClosedRange<Date>? {
+        guard let plant else { return nil }
+        return calendar.startOfDay(for: plant.acquiredAt) ... calendar.startOfDay(for: .now)
+    }
+
+    func calendarPickerSeedDate(for side: CompareSide) -> Date {
+        if let day = pickerDay(for: side) {
+            return day
+        }
+        let month = displayedMonth(for: side)
+        let today = calendar.startOfDay(for: .now)
+        if calendar.isDate(today, equalTo: month, toGranularity: .month) {
+            return today
+        }
+        return month
+    }
+
     var weekdaySymbols: [String] {
         let symbols = calendar.shortWeekdaySymbols
         let offset = calendar.firstWeekday - 1
@@ -255,6 +272,26 @@ final class CompareViewModel: ObservableObject {
               let next = calendar.date(byAdding: .month, value: 1, to: displayedMonth(for: side)) else { return }
         setDisplayedMonth(next, for: side)
         setPickerDay(nil, for: side)
+    }
+
+    func jumpToDate(_ date: Date, for side: CompareSide) {
+        guard let range = calendarDateRange(for: side) else { return }
+        let day = calendar.startOfDay(for: date)
+        let clamped = min(max(day, range.lowerBound), range.upperBound)
+        setDisplayedMonth(calendar.startOfMonth(for: clamped), for: side)
+
+        guard hasObservations(on: clamped) else {
+            setPickerDay(nil, for: side)
+            return
+        }
+
+        let dayObservations = observations(on: clamped)
+        if dayObservations.count == 1, let observation = dayObservations.first {
+            selectObservation(observation, for: side)
+            setPickerDay(clamped, for: side)
+        } else {
+            setPickerDay(clamped, for: side)
+        }
     }
 
     func setDisplayedMonth(_ date: Date, for side: CompareSide) {
