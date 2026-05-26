@@ -8,56 +8,55 @@ struct CameraView: View {
 
     @State private var showPhotoLibrary = false
     @State private var captureTask: Task<Void, Never>?
+    @State private var didFinishAuthorizationRequest = false
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
-
-            if CameraService.usesPhotoLibraryFallback {
-                simulatorPlaceholder
-            } else if cameraService.isAuthorized {
-                AVCameraPreviewView(session: cameraService.session)
-                    .ignoresSafeArea()
-            }
-
-            if cameraService.showOnionSkin,
-               let path = viewModel.previousObservationImagePath,
-               let image = imageStore.loadImage(path: path) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .ignoresSafeArea()
-                    .opacity(0.28)
-                    .blendMode(.screen)
-                    .allowsHitTesting(false)
-            }
-
-            cameraOverlayLayer
-
+            Color.black
+            cameraPreviewLayer
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
+        .overlay {
+            cameraFramedOverlay
+                .allowsHitTesting(false)
+        }
+        .overlay(alignment: .top) {
+            topChrome
+        }
+        .overlay(alignment: .bottom) {
+            bottomChrome
+        }
+        .overlay {
             if viewModel.showFlash {
                 NodeColor.bone.opacity(0.06)
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
             }
-
-            VStack {
-                topChrome
-                Spacer()
-                bottomChrome
-            }
-
+        }
+        .overlay {
             if viewModel.isBusy {
                 captureBusyOverlay
             }
         }
+        .overlay {
+            if showsCameraPermissionPrompt {
+                cameraPermissionPrompt
+            }
+        }
         .task {
             guard !CameraService.usesPhotoLibraryFallback else { return }
+            defer { didFinishAuthorizationRequest = true }
             if await cameraService.requestAuthorization() {
                 try? cameraService.configure()
                 await cameraService.start()
             }
         }
-        .onAppear { viewModel.prepareForSession() }
+        .onAppear {
+            didFinishAuthorizationRequest = CameraService.usesPhotoLibraryFallback
+            viewModel.reloadPlants()
+            viewModel.prepareForSession()
+        }
         .onDisappear {
             cancelActiveCapture()
             cameraService.stop()
@@ -174,6 +173,7 @@ struct CameraView: View {
         }
     }
 
+    /// 撮影補助オーバーレイ用。上下 chrome と端末角を避け、プレビューは全面のまま。
     private func cameraFrame(in size: CGSize) -> CGRect {
         let insetX = size.width * 0.10
         let insetTop = size.height * 0.14
@@ -186,41 +186,76 @@ struct CameraView: View {
         )
     }
 
-    private var cameraOverlayLayer: some View {
+    @ViewBuilder
+    private var cameraPreviewLayer: some View {
+        if CameraService.usesPhotoLibraryFallback {
+            simulatorPlaceholder
+        } else if cameraService.isAuthorized {
+            AVCameraPreviewView(session: cameraService.session)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+        }
+    }
+
+    private var cameraFramedOverlay: some View {
         GeometryReader { geo in
             let frame = cameraFrame(in: geo.size)
 
             ZStack {
-                Group {
-                    if cameraService.showGrid {
-                        GridOverlay(frame: frame)
-                    }
-                    ReticleOverlay(frame: frame)
-                    LevelIndicator(roll: cameraService.rollDegrees)
-                        .position(x: geo.size.width / 2, y: frame.minY - 28)
+                if cameraService.showOnionSkin,
+                   let path = viewModel.previousObservationImagePath,
+                   let image = imageStore.loadImage(path: path) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: frame.width, height: frame.height)
+                        .clipped()
+                        .position(x: frame.midX, y: frame.midY)
+                        .opacity(0.28)
+                        .blendMode(.screen)
                 }
-                .allowsHitTesting(false)
 
-                Button {
-                    cameraService.showGrid.toggle()
-                } label: {
-                    Image(systemName: "square.grid.3x3")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundStyle(cameraService.showGrid ? NodeColor.moss : NodeColor.bone)
-                        .frame(width: 36, height: 36)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
+                if cameraService.showGrid {
+                    GridOverlay(frame: frame)
                 }
-                .buttonStyle(.plain)
-                .position(x: frame.maxX - 22, y: frame.midY)
-                .disabled(viewModel.isBusy)
-                .opacity(viewModel.isBusy ? 0.5 : 1)
+                ReticleOverlay(frame: frame)
+                LevelIndicator(roll: cameraService.rollDegrees)
+                    .position(x: geo.size.width / 2, y: frame.minY - 28)
             }
         }
+        .ignoresSafeArea()
+    }
+
+    private var showsCameraPermissionPrompt: Bool {
+        !CameraService.usesPhotoLibraryFallback
+            && didFinishAuthorizationRequest
+            && !cameraService.isAuthorized
+    }
+
+    private var cameraPermissionPrompt: some View {
+        VStack(spacing: NodeSpacing.sp4) {
+            Image(systemName: "camera.fill")
+                .font(.system(size: 36, weight: .light))
+                .foregroundStyle(NodeColor.fog)
+            Text("カメラへのアクセスが必要です")
+                .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                .foregroundStyle(NodeColor.bone)
+            MetaLabel(
+                text: "設定アプリで Node. のカメラを許可してください。",
+                color: NodeColor.fog
+            )
+            .multilineTextAlignment(.center)
+            NodeSecondaryButton("閉じる", systemImage: "xmark") {
+                closeCamera()
+            }
+        }
+        .padding(NodeSpacing.sp6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black.opacity(0.72))
     }
 
     private var topChrome: some View {
-        HStack {
+        HStack(spacing: NodeSpacing.sp2) {
             Button(action: closeCamera) {
                 Image(systemName: "xmark")
                     .font(.system(size: 18, weight: .regular))
@@ -231,6 +266,10 @@ struct CameraView: View {
             }
 
             Spacer()
+
+            if !CameraService.usesPhotoLibraryFallback {
+                gridToggleButton
+            }
 
             if let plant = viewModel.selectedPlant {
                 HStack(spacing: 8) {
@@ -252,6 +291,23 @@ struct CameraView: View {
         }
         .padding(.horizontal, NodeSpacing.sp4)
         .nodeScreenTopPadding()
+    }
+
+    private var gridToggleButton: some View {
+        Button {
+            cameraService.showGrid.toggle()
+        } label: {
+            Image(systemName: "square.grid.3x3")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(cameraService.showGrid ? NodeColor.moss : NodeColor.bone)
+                .frame(width: 36, height: 36)
+                .background(.ultraThinMaterial)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .disabled(viewModel.isBusy)
+        .opacity(viewModel.isBusy ? 0.5 : 1)
+        .accessibilityLabel(cameraService.showGrid ? "グリッドをオフ" : "グリッドをオン")
     }
 
     private var bottomChrome: some View {
@@ -297,7 +353,8 @@ struct CameraView: View {
                     Color.clear.frame(width: 44, height: 44)
                 }
             }
-            .padding(.bottom, 40)
+            .safeAreaPadding(.bottom, NodeSpacing.sp2)
+            .padding(.bottom, NodeSpacing.sp4)
         }
     }
 

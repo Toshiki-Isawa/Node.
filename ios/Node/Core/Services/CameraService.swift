@@ -262,6 +262,7 @@ struct AVCameraPreviewView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> PreviewView {
         let view = PreviewView()
+        view.isUserInteractionEnabled = false
         view.previewLayer.session = session
         view.previewLayer.videoGravity = .resizeAspectFill
         return view

@@ -210,6 +210,7 @@ private struct CameraCaptureSheet: View {
             } else if camera.isAuthorized {
                 AVCameraPreviewView(session: camera.session)
                     .ignoresSafeArea()
+                    .allowsHitTesting(false)
             }
             VStack {
                 HStack {
