@@ -37,17 +37,24 @@ struct NodeTabBar: View {
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: tab.systemImage)
-                    .font(.system(size: 18, weight: .regular))
+                    .font(.system(size: 18, weight: isActive ? .medium : .regular))
+                    .symbolVariant(isActive ? .fill : .none)
                 Text(tab.label)
                     .font(NodeFont.mono(8))
                     .tracking(0.3)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .foregroundStyle(isActive ? NodeColor.bone : NodeColor.fog)
-            .opacity(isActive ? 1 : 0.86)
+            .padding(.vertical, 10)
+            .foregroundStyle(isActive ? NodeColor.bone : NodeColor.mist)
+            .background {
+                Capsule()
+                    .fill(isActive ? NodeColor.bark : Color.clear)
+            }
+            .contentShape(Capsule())
+            .animation(NodeMotion.quietAnimation, value: isActive)
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isActive ? .isSelected : [])
     }
 
     private var shootButton: some View {
