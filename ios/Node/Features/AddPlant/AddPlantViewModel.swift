@@ -37,6 +37,10 @@ final class AddPlantViewModel: ObservableObject {
         Date.distantPast ... Date.now
     }
 
+    var acquiredAtRange: ClosedRange<Date> {
+        Calendar.current.date(from: DateComponents(year: 2000, month: 1, day: 1))! ... Date.now
+    }
+
     func applyLibraryPhotoDate(_ date: Date?) {
         guard let date else { return }
         initialObservationAt = min(max(date, initialObservationAtRange.lowerBound), initialObservationAtRange.upperBound)

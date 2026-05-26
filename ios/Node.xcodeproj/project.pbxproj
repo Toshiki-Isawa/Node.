@@ -29,6 +29,7 @@
 		4153D938A4F1841F2FAAA378 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20FCFA3E8DFF79FB2756DB86 /* SupabaseService.swift */; };
 		41A2D86728D330F93776A66E /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 0B1969429EE35756CE1F0012 /* GoogleMobileAds */; };
 		4319AAEC9E8BB7DA0C6B1DB9 /* PlantDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 613763BA1253878754516768 /* PlantDetailViewModel.swift */; };
+		4F8A2B1C9D3E7A6543210FED /* ObservationRequirementSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F8A2B1C9D3E7A6543210FEC /* ObservationRequirementSheet.swift */; };
 		47375A6591E61095E8B8EFF5 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20BF5D9A4BD8CDD1D662B102 /* SignInView.swift */; };
 		5587076B456BADEA42474DD4 /* AddPlantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFDCBFBE3ABEB2BA466EBC1 /* AddPlantView.swift */; };
 		57D58C5F5EF732B96DE51684 /* ImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7FAE20867D33B75380E98A /* ImageStore.swift */; };
@@ -127,6 +128,7 @@
 		AAC7FBEB6BC979EC04C9E28A /* PhotoLibraryPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryPicker.swift; sourceTree = "<group>"; };
 		ADB233720CA6AF7B11B49A55 /* UserPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPlan.swift; sourceTree = "<group>"; };
 		ADCB49B70F04ACB4688C3B32 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
+		4F8A2B1C9D3E7A6543210FEC /* ObservationRequirementSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationRequirementSheet.swift; sourceTree = "<group>"; };
 		AF6DCEF89DA333D9D6622BCB /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
 		B2D35AD702BCBDC6A83567FC /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B635A8AD5CF2524E5CCD3009 /* BulkQuickLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulkQuickLogSheet.swift; sourceTree = "<group>"; };
@@ -342,6 +344,7 @@
 			children = (
 				ADCB49B70F04ACB4688C3B32 /* CameraView.swift */,
 				A7B3BFE7E835AF680B7A35FC /* CameraViewModel.swift */,
+				4F8A2B1C9D3E7A6543210FEC /* ObservationRequirementSheet.swift */,
 			);
 			path = Camera;
 			sourceTree = "<group>";
@@ -530,6 +533,7 @@
 				7883E8E9C481C149AD2E2FF1 /* CameraService.swift in Sources */,
 				81B918F29E60E0C6F4449622 /* CameraView.swift in Sources */,
 				0A464CB536C63C858E13E2A0 /* CameraViewModel.swift in Sources */,
+				4F8A2B1C9D3E7A6543210FED /* ObservationRequirementSheet.swift in Sources */,
 				86C037336E3055A866650C78 /* CareCalendarView.swift in Sources */,
 				ADCE2FA7EE0C2137B1002AE0 /* CollectionView.swift in Sources */,
 				8DBEE6BC9CF874D5DDEBB20C /* CollectionViewModel.swift in Sources */,

@@ -29,6 +29,9 @@ struct WateringIntervalSection: View {
                     NodeChip(title: "設定しない", isSelected: intervalDays == nil && !isCustomSelected) {
                         selectNone()
                     }
+                    NodeChip(title: "自由入力", isSelected: isCustomSelected) {
+                        selectCustom()
+                    }
                     ForEach(WateringInterval.allCases) { interval in
                         NodeChip(
                             title: interval.label,
@@ -36,9 +39,6 @@ struct WateringIntervalSection: View {
                         ) {
                             selectPreset(interval.rawValue)
                         }
-                    }
-                    NodeChip(title: "自由入力", isSelected: isCustomSelected) {
-                        selectCustom()
                     }
                 }
             }

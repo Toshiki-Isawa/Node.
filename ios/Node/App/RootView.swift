@@ -7,6 +7,7 @@ struct RootView: View {
 
     @State private var selectedTab: AppTab = .collection
     @State private var showCamera = false
+    @State private var showObservationRequirement = false
     @State private var showAddPlant = false
     @State private var navigationPath: [AppNavigationRoute] = []
     @State private var quickLogTarget: PlantSheetTarget?
@@ -61,10 +62,7 @@ struct RootView: View {
         NavigationStack(path: $navigationPath) {
             ZStack(alignment: .bottom) {
                 tabContent
-                NodeTabBar(selectedTab: selectedTabBinding) {
-                    cameraViewModel.reloadPlants()
-                    showCamera = true
-                }
+                NodeTabBar(selectedTab: selectedTabBinding, onShoot: handleShootTap)
             }
             .navigationDestination(for: AppNavigationRoute.self) { route in
                 switch route {
@@ -82,6 +80,14 @@ struct RootView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showObservationRequirement) {
+            ObservationRequirementSheet {
+                showAddPlant = true
+            }
+            .presentationDetents([.fraction(0.52)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NodeColor.charcoal)
         }
         .sheet(isPresented: $showAddPlant) {
             AddPlantView(viewModel: AddPlantViewModel(
@@ -180,6 +186,15 @@ struct RootView: View {
     private func openCompare(for plant: Plant) {
         compareViewModel.configure(plant: plant)
         navigationPath.append(.compare(plant.id))
+    }
+
+    private func handleShootTap() {
+        cameraViewModel.reloadPlants()
+        if cameraViewModel.plants.isEmpty {
+            showObservationRequirement = true
+        } else {
+            showCamera = true
+        }
     }
 
     /// タブ切り替え時に NavigationStack の詳細画面を残さない

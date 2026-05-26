@@ -191,8 +191,12 @@ struct CollectionView: View {
     private var plantGrid: some View {
         Group {
             if viewModel.filteredPlants.isEmpty {
-                EmptyStateView(message: emptyGridMessage)
-                    .padding(.top, NodeSpacing.sp8)
+                if viewModel.plants.isEmpty {
+                    emptyCollectionState
+                } else {
+                    EmptyStateView(message: "該当する植物がありません。")
+                        .padding(.top, NodeSpacing.sp8)
+                }
             } else {
                 LazyVGrid(
                     columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
@@ -212,11 +216,26 @@ struct CollectionView: View {
         }
     }
 
-    private var emptyGridMessage: String {
-        if viewModel.plants.isEmpty {
-            return "まだ植物がありません。"
+    private var emptyCollectionState: some View {
+        VStack(spacing: NodeSpacing.sp4) {
+            MetaLabel(text: "まだ植物がありません。", color: NodeColor.fog)
+
+            Button(action: onAddPlant) {
+                HStack(spacing: 5) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text("コレクションに追加して観測を始める")
+                        .font(NodeFont.text(12, weight: .medium))
+                }
+                .foregroundStyle(NodeColor.graphite)
+                .padding(.horizontal, NodeSpacing.sp3)
+                .padding(.vertical, 7)
+                .background(Capsule().fill(NodeColor.moss))
+            }
+            .buttonStyle(NodePressStyle())
         }
-        return "該当する植物がありません。"
+        .frame(maxWidth: .infinity)
+        .padding(.top, NodeSpacing.sp8)
     }
 }
 

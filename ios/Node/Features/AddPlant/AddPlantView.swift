@@ -128,11 +128,44 @@ struct AddPlantView: View {
                 footerHint: "コレクションで水やり優先順に並びます"
             )
 
+            acquiredAtSection
+
             NodeTextField(label: "メモ", hint: "任意", text: $viewModel.note, placeholder: "—")
 
             bottomSaveButton
         }
         .padding(.horizontal, NodeSpacing.sp4)
+    }
+
+    private var acquiredAtSection: some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+            HStack {
+                MetaLabel(text: "育成開始日", size: 9)
+                Spacer()
+                MetaLabel(text: "任意", color: NodeColor.fog, size: 9)
+            }
+            HStack(spacing: NodeSpacing.sp3) {
+                DatePicker(
+                    "",
+                    selection: $viewModel.acquiredAt,
+                    in: viewModel.acquiredAtRange,
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(.compact)
+                .labelsHidden()
+                .tint(NodeColor.moss)
+                .colorScheme(.dark)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, NodeSpacing.sp3)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: NodeRadius.lg)
+                    .fill(NodeColor.bark)
+                    .overlay(RoundedRectangle(cornerRadius: NodeRadius.lg).stroke(NodeColor.hairline, lineWidth: 1))
+            )
+            MetaLabel(text: "日数カウントの起点 · 未変更時は今日", color: NodeColor.fog, size: 9)
+        }
     }
 
     private var bottomSaveButton: some View {
