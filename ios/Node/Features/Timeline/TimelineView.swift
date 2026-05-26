@@ -156,8 +156,16 @@ struct TimelineView: View {
                         HStack {
                             MetaLabel(
                                 text: formattedDateTime(observation.createdAt),
-                                color: NodeColor.fog,
+                                color: NodeColor.bone,
                                 size: 9
+                            )
+                            .padding(.horizontal, NodeSpacing.sp2)
+                            .padding(.vertical, 4)
+                            .background(
+                                Capsule().fill(NodeColor.surfaceOverlay)
+                            )
+                            .overlay(
+                                Capsule().stroke(NodeColor.hairline, lineWidth: 1)
                             )
                             Spacer()
                         }
