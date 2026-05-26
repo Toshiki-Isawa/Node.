@@ -7,6 +7,7 @@ struct SettingsView: View {
 
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
+    @State private var showPrivacyPolicy = false
 
     var body: some View {
         ScrollView {
@@ -18,6 +19,7 @@ struct SettingsView: View {
                 syncSection
                 plansSection
                 actionsSection
+                legalSection
                 accountSection
             }
             .padding(.horizontal, NodeSpacing.sp4)
@@ -48,6 +50,11 @@ struct SettingsView: View {
             Button("キャンセル", role: .cancel) {}
         } message: {
             Text(deleteAccountMessage)
+        }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            if let url = LegalConfig.effectivePrivacyPolicyURL {
+                PrivacyPolicyWebView(url: url)
+            }
         }
     }
 
@@ -326,6 +333,39 @@ struct SettingsView: View {
                 .foregroundStyle(NodeColor.fog)
             }
             .buttonStyle(.plain)
+        }
+    }
+
+    private var legalSection: some View {
+        SettingsCard(title: "法的情報") {
+            Button {
+                showPrivacyPolicy = true
+            } label: {
+                HStack(spacing: NodeSpacing.sp3) {
+                    Image(systemName: "hand.raised")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundStyle(NodeColor.bone)
+                        .frame(width: 20)
+
+                    VStack(alignment: .leading, spacing: NodeSpacing.sp1) {
+                        Text("プライバシーポリシー")
+                            .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                            .foregroundStyle(NodeColor.bone)
+                        Text("個人情報の取り扱いについて")
+                            .font(NodeFont.text(12))
+                            .foregroundStyle(NodeColor.fog)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(NodeColor.mist)
+                }
+                .padding(.vertical, NodeSpacing.sp1)
+            }
+            .buttonStyle(.plain)
+            .disabled(LegalConfig.effectivePrivacyPolicyURL == nil)
         }
     }
 

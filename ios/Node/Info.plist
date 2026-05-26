@@ -16,6 +16,8 @@
 	<string>$(POSTHOG_API_KEY)</string>
 	<key>POSTHOG_HOST</key>
 	<string>$(POSTHOG_HOST)</string>
+	<key>PRIVACY_POLICY_URL</key>
+	<string>$(PRIVACY_POLICY_URL)</string>
 	<key>GADApplicationIdentifier</key>
 	<string>$(GAD_APP_ID)</string>
 	<key>NSUserTrackingUsageDescription</key>

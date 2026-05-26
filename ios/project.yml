@@ -44,6 +44,8 @@ targets:
       - path: Node
         excludes:
           - Config/Secrets.example.xcconfig
+    resources:
+      - path: Node/Resources/privacy.html
     configFiles:
       Debug: Node/Config/Secrets.xcconfig
       Release: Node/Config/Secrets.xcconfig

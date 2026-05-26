@@ -99,6 +99,8 @@ StoreKit プロダクト ID: `app.node.archive.monthly` / `app.node.conservatory
 | ファイル | 内容 |
 |----------|------|
 | [specification.md](specification.md) | 要件定義書（プロダクト思想・機能・非機能要件） |
+| [docs/privacy-policy.md](docs/privacy-policy.md) | プライバシーポリシー |
+| [docs/app-privacy-labels.md](docs/app-privacy-labels.md) | App Store Privacy Nutrition Labels 申告ガイド |
 | [ios/README.md](ios/README.md) | iOS アプリのセットアップ・アーキテクチャ |
 | [supabase/README.md](supabase/README.md) | バックエンド・Edge Functions |
 | [design/README.md](design/README.md) | カラー・タイポグラフィ・UI キット |

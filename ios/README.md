@@ -18,6 +18,7 @@ SwiftUI + SwiftData による植物観測アーカイブアプリ。
    - `GOOGLE_IOS_URL_SCHEME`（Google サインインを使う場合。REVERSED_CLIENT_ID）
    - `GAD_APP_ID` / `GAD_REWARDED_AD_UNIT_ID`（AdMob。開発中はテスト ID のままで可）
    - `POSTHOG_API_KEY` / `POSTHOG_HOST`（PostHog。未設定時は計測 no-op）
+   - `PRIVACY_POLICY_URL`（プライバシーポリシー公開 URL。未設定時は同梱 HTML）
 3. Bundle ID `app.node.ios` で **Sign in with Apple** ケーパビリティを有効化する。
 4. Google サインインを使う場合：
    - [Google Cloud Console](https://console.cloud.google.com/auth/clients) で Web / iOS の OAuth クライアント ID を作成する
