@@ -191,7 +191,7 @@ final class SyncEngine: ObservableObject {
             case .localOnly, .failed:
                 observation.syncStatus = .syncPausedStorageLimit
                 didChange = true
-            case .synced, .syncPausedStorageLimit:
+            case .syncing, .synced, .syncPausedStorageLimit:
                 break
             }
         }
