@@ -212,15 +212,51 @@ private struct CameraCaptureSheet: View {
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
             }
+
+            if !CameraService.usesPhotoLibraryFallback, camera.showGrid {
+                GeometryReader { geo in
+                    let frame = CGRect(origin: .zero, size: geo.size)
+                    GridOverlay(frame: frame)
+                    SubjectZoneOverlay(frame: frame)
+                }
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+            }
+
             VStack {
-                HStack {
+                HStack(spacing: NodeSpacing.sp2) {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .regular))
                             .foregroundStyle(NodeColor.bone)
-                            .padding()
+                            .frame(width: 36, height: 36)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
                     }
                     Spacer()
+                    if !CameraService.usesPhotoLibraryFallback {
+                        Button {
+                            camera.showGrid.toggle()
+                        } label: {
+                            Image(systemName: "square.grid.3x3")
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundStyle(camera.showGrid ? NodeColor.moss : NodeColor.bone)
+                                .frame(width: 36, height: 36)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+                        }
+                        .accessibilityLabel(camera.showGrid ? "グリッドをオフ" : "グリッドをオン")
+                    }
                 }
+                .padding(.horizontal, NodeSpacing.sp4)
+                .nodeScreenTopPadding()
+
+                if !CameraService.usesPhotoLibraryFallback {
+                    LevelIndicator(roll: camera.rollDegrees)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, NodeSpacing.sp2)
+                }
+
                 Spacer()
                 HStack(spacing: NodeSpacing.sp6) {
                     toolButton("photo.on.rectangle.angled") {

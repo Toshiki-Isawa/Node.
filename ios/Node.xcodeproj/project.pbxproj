@@ -50,6 +50,7 @@
 		7B66FA02A6622F4491B77732 /* ImagePathMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6624E1E2F99FB2116D60871D /* ImagePathMigration.swift */; };
 		7C4E608186F298A71205F8FC /* QuickLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 724C7EDBEE948B94082015F5 /* QuickLogViewModel.swift */; };
 		81B918F29E60E0C6F4449622 /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADCB49B70F04ACB4688C3B32 /* CameraView.swift */; };
+		4546272F7F6F46D0AA610620 /* CameraOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D0E1120104346C8B401237A /* CameraOverlays.swift */; };
 		86C037336E3055A866650C78 /* CareCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5CF64003600466B4C5B275 /* CareCalendarView.swift */; };
 		880D3432516DC33D8483894C /* NodeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0646EBFBCC733D162A193DB /* NodeApp.swift */; };
 		8C64E0236E6EFBF60D2F2D09 /* EditPlantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B38DE10CC355E8DBD8FA9EE /* EditPlantViewModel.swift */; };
@@ -136,6 +137,7 @@
 		AAC7FBEB6BC979EC04C9E28A /* PhotoLibraryPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryPicker.swift; sourceTree = "<group>"; };
 		ADB233720CA6AF7B11B49A55 /* UserPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPlan.swift; sourceTree = "<group>"; };
 		ADCB49B70F04ACB4688C3B32 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
+		8D0E1120104346C8B401237A /* CameraOverlays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraOverlays.swift; sourceTree = "<group>"; };
 		AF6DCEF89DA333D9D6622BCB /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
 		B2D35AD702BCBDC6A83567FC /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B635A8AD5CF2524E5CCD3009 /* BulkQuickLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulkQuickLogSheet.swift; sourceTree = "<group>"; };
@@ -365,6 +367,7 @@
 			children = (
 				ADCB49B70F04ACB4688C3B32 /* CameraView.swift */,
 				A7B3BFE7E835AF680B7A35FC /* CameraViewModel.swift */,
+				8D0E1120104346C8B401237A /* CameraOverlays.swift */,
 				B6D9D3A5F0A3D71E05DB7A1D /* ObservationRequirementSheet.swift */,
 			);
 			path = Camera;
@@ -557,6 +560,7 @@
 				7883E8E9C481C149AD2E2FF1 /* CameraService.swift in Sources */,
 				81B918F29E60E0C6F4449622 /* CameraView.swift in Sources */,
 				0A464CB536C63C858E13E2A0 /* CameraViewModel.swift in Sources */,
+				4546272F7F6F46D0AA610620 /* CameraOverlays.swift in Sources */,
 				86C037336E3055A866650C78 /* CareCalendarView.swift in Sources */,
 				ADCE2FA7EE0C2137B1002AE0 /* CollectionView.swift in Sources */,
 				8DBEE6BC9CF874D5DDEBB20C /* CollectionViewModel.swift in Sources */,
