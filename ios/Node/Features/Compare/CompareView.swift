@@ -18,7 +18,7 @@ struct CompareView: View {
                     if let error = viewModel.imageLoadError {
                         MetaLabel(text: error, color: NodeColor.syncFail)
                     }
-                    comparisonArea
+                    comparisonBlock
                     intervalCard
                     if ReleaseConfig.timelapseEnabled {
                         timelapseSection
@@ -62,8 +62,16 @@ struct CompareView: View {
         }
     }
 
-    private var comparisonArea: some View {
-        ZStack(alignment: .topTrailing) {
+    private var comparisonBlock: some View {
+        VStack(alignment: .trailing, spacing: NodeSpacing.sp3) {
+            compareModePicker
+                .zIndex(1)
+            comparisonImage
+        }
+    }
+
+    private var comparisonImage: some View {
+        ZStack {
             Group {
                 switch viewModel.displayMode {
                 case .slider:
@@ -98,43 +106,66 @@ struct CompareView: View {
                 ProgressView()
                     .tint(NodeColor.moss)
             }
-
-            compareModePicker
-                .padding(12)
         }
+        .aspectRatio(4 / 3, contentMode: .fit)
+        .frame(maxWidth: .infinity)
     }
 
     private var compareModePicker: some View {
-        HStack(spacing: 2) {
-            modeButton(
-                mode: .slider,
-                systemImage: "slider.horizontal.below.rectangle",
-                accessibilityLabel: "スライダーで比較"
-            )
-            modeButton(
-                mode: .split,
-                systemImage: "rectangle.split.2x1",
-                accessibilityLabel: "並列で比較"
-            )
+        let segmentWidth: CGFloat = 88
+        let pickerHeight: CGFloat = 40
+
+        return ZStack(alignment: .leading) {
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .allowsHitTesting(false)
+
+            Capsule()
+                .fill(NodeColor.bone)
+                .frame(width: segmentWidth, height: pickerHeight)
+                .offset(x: viewModel.displayMode == .slider ? 0 : segmentWidth)
+                .animation(.smooth(duration: 0.2), value: viewModel.displayMode)
+                .allowsHitTesting(false)
+
+            HStack(spacing: 0) {
+                modeButton(
+                    mode: .slider,
+                    systemImage: "slider.horizontal.below.rectangle",
+                    accessibilityLabel: "スライダーで比較",
+                    width: segmentWidth,
+                    height: pickerHeight
+                )
+                modeButton(
+                    mode: .split,
+                    systemImage: "rectangle.split.2x1",
+                    accessibilityLabel: "並列で比較",
+                    width: segmentWidth,
+                    height: pickerHeight
+                )
+            }
         }
-        .padding(4)
-        .background(.ultraThinMaterial)
+        .frame(width: segmentWidth * 2, height: pickerHeight)
         .clipShape(Capsule())
     }
 
-    private func modeButton(mode: CompareDisplayMode, systemImage: String, accessibilityLabel: String) -> some View {
+    private func modeButton(
+        mode: CompareDisplayMode,
+        systemImage: String,
+        accessibilityLabel: String,
+        width: CGFloat,
+        height: CGFloat
+    ) -> some View {
         let isSelected = viewModel.displayMode == mode
         return Button {
             selectMode(mode)
         } label: {
             Image(systemName: systemImage)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(isSelected ? NodeColor.graphite : NodeColor.fog)
-                .frame(width: 32, height: 28)
-                .background(isSelected ? NodeColor.bone : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: NodeRadius.sm))
+                .frame(width: width, height: height)
+                .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderless)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
