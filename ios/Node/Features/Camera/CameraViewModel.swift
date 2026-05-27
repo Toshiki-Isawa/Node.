@@ -58,19 +58,22 @@ final class CameraViewModel: ObservableObject {
     private let observationImageService: ObservationImageService
     private let syncEngine: SyncEngine
     private let analyticsService: AnalyticsService
+    private let reviewPromptService: ReviewPromptService
 
     init(
         modelContext: ModelContext,
         imageStore: ImageStore,
         observationImageService: ObservationImageService,
         syncEngine: SyncEngine,
-        analyticsService: AnalyticsService
+        analyticsService: AnalyticsService,
+        reviewPromptService: ReviewPromptService
     ) {
         self.modelContext = modelContext
         self.imageStore = imageStore
         self.observationImageService = observationImageService
         self.syncEngine = syncEngine
         self.analyticsService = analyticsService
+        self.reviewPromptService = reviewPromptService
         reloadPlants()
     }
 
@@ -239,6 +242,7 @@ final class CameraViewModel: ObservableObject {
                 "seq": plant.observations.count,
                 "is_first_for_plant": plant.observations.count == 1,
             ])
+            reviewPromptService.signalEligibleEvent(.observationCaptured)
             return true
         } catch {
             errorMessage = "保存に失敗しました。"

@@ -33,6 +33,9 @@ struct SettingsView: View {
                     plansSection
                 }
                 actionsSection
+                if AppInfo.writeReviewURL != nil {
+                    appSection
+                }
                 legalSection
                 if ReleaseConfig.cloudSyncEnabled {
                     accountSection
@@ -499,6 +502,42 @@ struct SettingsView: View {
             .foregroundStyle(NodeColor.mist)
             .frame(maxWidth: .infinity)
             .padding(.top, NodeSpacing.sp2)
+    }
+
+    private var appSection: some View {
+        SettingsCard(title: "アプリ") {
+            Button {
+                guard let url = AppInfo.writeReviewURL else { return }
+                openURL(url)
+                analyticsService.capture(AnalyticsEvent.reviewPromptShown, properties: [
+                    "trigger": "settings_manual",
+                ])
+            } label: {
+                HStack(spacing: NodeSpacing.sp3) {
+                    Image(systemName: "star")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundStyle(NodeColor.bone)
+                        .frame(width: 20)
+
+                    VStack(alignment: .leading, spacing: NodeSpacing.sp1) {
+                        Text("Node. を評価する")
+                            .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                            .foregroundStyle(NodeColor.bone)
+                        Text("App Store のレビュー画面を開きます")
+                            .font(NodeFont.text(12))
+                            .foregroundStyle(NodeColor.fog)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(NodeColor.mist)
+                }
+                .padding(.vertical, NodeSpacing.sp1)
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     private var legalSection: some View {

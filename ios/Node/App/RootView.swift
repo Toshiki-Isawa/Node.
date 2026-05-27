@@ -1,9 +1,11 @@
+import StoreKit
 import SwiftData
 import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var environment: AppEnvironment
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.requestReview) private var requestReview
 
     @State private var selectedTab: AppTab = .collection
     @State private var showCamera = false
@@ -41,7 +43,8 @@ struct RootView: View {
             imageStore: environment.imageStore,
             observationImageService: environment.observationImageService,
             syncEngine: environment.syncEngine,
-            analyticsService: environment.analyticsService
+            analyticsService: environment.analyticsService,
+            reviewPromptService: environment.reviewPromptService
         ))
         _settingsViewModel = StateObject(wrappedValue: SettingsViewModel(
             modelContext: modelContext,
@@ -64,6 +67,11 @@ struct RootView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: CareNotificationService.openCollectionNotification)) { _ in
             selectTab(.collection)
+        }
+        .onChange(of: environment.reviewPromptService.pendingPromptToken) { _, token in
+            guard token != nil else { return }
+            requestReview()
+            environment.reviewPromptService.consumeToken()
         }
     }
 

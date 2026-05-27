@@ -80,6 +80,7 @@
 		D3B3B76303C8E0CBC6B80DE8 /* EditObservationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A3F2726954C09CA5E7EB98F /* EditObservationViewModel.swift */; };
 		D48DA4BBA82D0A6A0CE17E5A /* PrivacyPolicyWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C328E474E58EDDEDE3A2A9 /* PrivacyPolicyWebView.swift */; };
 		D81AC9C40560EA4D66F1CA5F /* privacy.html in Resources */ = {isa = PBXBuildFile; fileRef = 72CE44D9237E8BC2FB59E903 /* privacy.html */; };
+		DAC10CB53FB4425E82984C83 /* ReviewPromptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB90BF357EB15C0880EB9B8 /* ReviewPromptService.swift */; };
 		DBA0E539658898F5D87F1978 /* Products.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 8C1EF377B28E5A58DE9C446B /* Products.storekit */; };
 		E666124105AEBC146A1A1E5A /* CarePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90071E964F657FB06EB117CC /* CarePreferences.swift */; };
 		E95A1AFE72BCF507A2BB7AF5 /* ObservationImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F28E9404B202F795DC1613 /* ObservationImageService.swift */; };
@@ -112,9 +113,10 @@
 		46306554A82171C0E12FD9B2 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
 		4804134E2D404667CBD3EE44 /* LegalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalConfig.swift; sourceTree = "<group>"; };
 		4B14D87D42DD6392A3545B38 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
-		51A94ACB1051042365F85673 /* Node.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Node.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		51A94ACB1051042365F85673 /* Node.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Node.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D96D305566A34F142C1DC1B /* PlanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanService.swift; sourceTree = "<group>"; };
 		5EC35D87B8BEE0926478E0BA /* ObservationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationDetailView.swift; sourceTree = "<group>"; };
+		5FB90BF357EB15C0880EB9B8 /* ReviewPromptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptService.swift; sourceTree = "<group>"; };
 		613763BA1253878754516768 /* PlantDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlantDetailViewModel.swift; sourceTree = "<group>"; };
 		62BAFEC3B48020BC8A506801 /* ImageComparisonSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageComparisonSlider.swift; sourceTree = "<group>"; };
 		635E2DE38CF53ED88944069E /* EditGrowthLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGrowthLogViewModel.swift; sourceTree = "<group>"; };
@@ -131,7 +133,7 @@
 		7AFDCBFBE3ABEB2BA466EBC1 /* AddPlantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPlantView.swift; sourceTree = "<group>"; };
 		7D3A190C3DF695FB5C5BF130 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		8651BD6869DF8D2A2609AC29 /* CollectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewModel.swift; sourceTree = "<group>"; };
-		8C1EF377B28E5A58DE9C446B /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
+		8C1EF377B28E5A58DE9C446B /* Products.storekit */ = {isa = PBXFileReference; path = Products.storekit; sourceTree = "<group>"; };
 		8CB44A47DD8FBCD85B28DED9 /* AppTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypes.swift; sourceTree = "<group>"; };
 		90071E964F657FB06EB117CC /* CarePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePreferences.swift; sourceTree = "<group>"; };
 		91C328E474E58EDDEDE3A2A9 /* PrivacyPolicyWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyWebView.swift; sourceTree = "<group>"; };
@@ -442,6 +444,7 @@
 				B7F28E9404B202F795DC1613 /* ObservationImageService.swift */,
 				5D96D305566A34F142C1DC1B /* PlanService.swift */,
 				2CBF394417CDAEE1D8CDA206 /* RecordDeletionService.swift */,
+				5FB90BF357EB15C0880EB9B8 /* ReviewPromptService.swift */,
 				E9BD926FBE5450B3BDE14A39 /* StorageStatsService.swift */,
 				F73C73C03D6904DF08D3FD35 /* SubscriptionService.swift */,
 				20FCFA3E8DFF79FB2756DB86 /* SupabaseService.swift */,
@@ -511,6 +514,7 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					CAE125A90594DE34FF5C5A6E = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -613,6 +617,7 @@
 				7C4E608186F298A71205F8FC /* QuickLogViewModel.swift in Sources */,
 				A1AE385A5D0B32C0E7A10425 /* RecordDeletionService.swift in Sources */,
 				283DB88DC0528D6F5195B2F1 /* ReleaseConfig.swift in Sources */,
+				DAC10CB53FB4425E82984C83 /* ReviewPromptService.swift in Sources */,
 				747823492E7FEAF383160034 /* RootView.swift in Sources */,
 				F25D4090C87A6F39A53BF404 /* SettingsView.swift in Sources */,
 				B3DB54FBE62CFFEF32FAB578 /* SettingsViewModel.swift in Sources */,
@@ -799,7 +804,6 @@
 				CODE_SIGN_ENTITLEMENTS = Node/Node.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 456WBLCLPJ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Node/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Node.;

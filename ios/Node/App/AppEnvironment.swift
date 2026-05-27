@@ -39,6 +39,7 @@ final class AppEnvironment: ObservableObject {
     let timelapseService: TimelapseService
     let analyticsService: AnalyticsService
     let careNotificationService: CareNotificationService
+    let reviewPromptService: ReviewPromptService
 
     let authViewModel: AuthViewModel
 
@@ -56,6 +57,10 @@ final class AppEnvironment: ObservableObject {
         )
         let analyticsService = AnalyticsService()
         let careNotificationService = CareNotificationService(
+            modelContext: modelContext,
+            analyticsService: analyticsService
+        )
+        let reviewPromptService = ReviewPromptService(
             modelContext: modelContext,
             analyticsService: analyticsService
         )
@@ -89,6 +94,7 @@ final class AppEnvironment: ObservableObject {
         )
         self.analyticsService = analyticsService
         self.careNotificationService = careNotificationService
+        self.reviewPromptService = reviewPromptService
         self.authViewModel = authViewModel
 
         ImagePathMigration.migrateStoredPathsIfNeeded(modelContext: modelContext, imageStore: imageStore)
