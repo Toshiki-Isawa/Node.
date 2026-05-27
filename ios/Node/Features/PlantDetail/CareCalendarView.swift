@@ -9,11 +9,9 @@ struct CareCalendarView: View {
         VStack(alignment: .leading, spacing: 0) {
             accordionHeader
 
-            if viewModel.isCalendarExpanded {
-                expandedContent
-                    .padding(.top, NodeSpacing.sp4)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            }
+            expandedContent
+                .padding(.top, viewModel.isCalendarExpanded ? NodeSpacing.sp4 : 0)
+                .calendarAccordionReveal(isExpanded: viewModel.isCalendarExpanded)
         }
         .padding(NodeSpacing.sp4)
         .background(
@@ -24,20 +22,22 @@ struct CareCalendarView: View {
                         .stroke(NodeColor.hairline, lineWidth: 1)
                 )
         )
-        .animation(NodeMotion.quietAnimation, value: viewModel.isCalendarExpanded)
     }
 
     private var accordionHeader: some View {
         Button {
-            viewModel.toggleCalendarExpanded()
+            withAnimation(NodeMotion.quietAnimation) {
+                viewModel.toggleCalendarExpanded()
+            }
         } label: {
             VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
                 HStack {
                     MetaLabel(text: "ケアカレンダー", size: 9)
                     Spacer()
-                    Image(systemName: viewModel.isCalendarExpanded ? "chevron.up" : "chevron.down")
+                    Image(systemName: "chevron.down")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(NodeColor.fog)
+                        .rotationEffect(.degrees(viewModel.isCalendarExpanded ? 180 : 0))
                 }
 
                 summaryRow
@@ -250,6 +250,47 @@ struct CareCalendarView: View {
                 .frame(height: 1)
                 .offset(y: -NodeSpacing.sp2)
         }
+    }
+}
+
+// MARK: - Accordion reveal
+
+private struct CalendarAccordionHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+private struct CalendarAccordionRevealModifier: ViewModifier {
+    let isExpanded: Bool
+    @State private var contentHeight: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .fixedSize(horizontal: false, vertical: true)
+            .background {
+                GeometryReader { proxy in
+                    Color.clear
+                        .preference(key: CalendarAccordionHeightKey.self, value: proxy.size.height)
+                }
+            }
+            .onPreferenceChange(CalendarAccordionHeightKey.self) { height in
+                guard height > 0, abs(height - contentHeight) > 0.5 else { return }
+                contentHeight = height
+            }
+            .frame(height: isExpanded ? contentHeight : 0, alignment: .top)
+            .clipped()
+            .opacity(isExpanded ? 1 : 0)
+            .allowsHitTesting(isExpanded)
+            .accessibilityHidden(!isExpanded)
+    }
+}
+
+private extension View {
+    func calendarAccordionReveal(isExpanded: Bool) -> some View {
+        modifier(CalendarAccordionRevealModifier(isExpanded: isExpanded))
     }
 }
 
