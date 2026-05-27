@@ -23,4 +23,7 @@ enum LegalConfig {
     static var effectivePrivacyPolicyURL: URL? {
         privacyPolicyURL ?? bundledPrivacyPolicyURL
     }
+
+    /// フィードバック / お問い合わせ受信用メールアドレス。privacy-policy.md と一致。
+    static let feedbackEmail = "node.botanical@gmail.com"
 }

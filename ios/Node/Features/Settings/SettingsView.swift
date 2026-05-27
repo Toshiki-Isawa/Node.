@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
     @State private var showPrivacyPolicy = false
+    @State private var showFeedbackFallback = false
 
     var body: some View {
         ScrollView {
@@ -33,9 +34,7 @@ struct SettingsView: View {
                     plansSection
                 }
                 actionsSection
-                if AppInfo.writeReviewURL != nil {
-                    appSection
-                }
+                appSection
                 legalSection
                 if ReleaseConfig.cloudSyncEnabled {
                     accountSection
@@ -506,38 +505,128 @@ struct SettingsView: View {
 
     private var appSection: some View {
         SettingsCard(title: "アプリ") {
-            Button {
-                guard let url = AppInfo.writeReviewURL else { return }
-                openURL(url)
-                analyticsService.capture(AnalyticsEvent.reviewPromptShown, properties: [
-                    "trigger": "settings_manual",
-                ])
-            } label: {
-                HStack(spacing: NodeSpacing.sp3) {
-                    Image(systemName: "star")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundStyle(NodeColor.bone)
-                        .frame(width: 20)
-
-                    VStack(alignment: .leading, spacing: NodeSpacing.sp1) {
-                        Text("Node. を評価する")
-                            .font(NodeFont.text(NodeFont.callout, weight: .medium))
-                            .foregroundStyle(NodeColor.bone)
-                        Text("App Store のレビュー画面を開きます")
-                            .font(NodeFont.text(12))
-                            .foregroundStyle(NodeColor.fog)
-                    }
-
-                    Spacer(minLength: 0)
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(NodeColor.mist)
+            VStack(spacing: NodeSpacing.sp3) {
+                if AppInfo.writeReviewURL != nil {
+                    reviewRow
                 }
-                .padding(.vertical, NodeSpacing.sp1)
+                feedbackRow
             }
-            .buttonStyle(.plain)
         }
+        .alert("メールアプリが開けません", isPresented: $showFeedbackFallback) {
+            Button("メールアドレスをコピー") {
+                UIPasteboard.general.string = LegalConfig.feedbackEmail
+            }
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("\(LegalConfig.feedbackEmail) までご連絡ください。")
+        }
+    }
+
+    private var reviewRow: some View {
+        Button {
+            guard let url = AppInfo.writeReviewURL else { return }
+            openURL(url)
+            analyticsService.capture(AnalyticsEvent.reviewPromptShown, properties: [
+                "trigger": "settings_manual",
+            ])
+        } label: {
+            appRow(
+                systemImage: "star",
+                title: "Node. を評価する",
+                subtitle: "App Store のレビュー画面を開きます"
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var feedbackRow: some View {
+        Button {
+            openFeedbackMailto()
+        } label: {
+            appRow(
+                systemImage: "envelope",
+                title: "フィードバックを送る",
+                subtitle: "不具合・要望・感想をメールでお寄せください"
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func appRow(systemImage: String, title: String, subtitle: String) -> some View {
+        HStack(spacing: NodeSpacing.sp3) {
+            Image(systemName: systemImage)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(NodeColor.bone)
+                .frame(width: 20)
+
+            VStack(alignment: .leading, spacing: NodeSpacing.sp1) {
+                Text(title)
+                    .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                    .foregroundStyle(NodeColor.bone)
+                Text(subtitle)
+                    .font(NodeFont.text(12))
+                    .foregroundStyle(NodeColor.fog)
+            }
+
+            Spacer(minLength: 0)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(NodeColor.mist)
+        }
+        .padding(.vertical, NodeSpacing.sp1)
+    }
+
+    private func openFeedbackMailto() {
+        let subject = "Node. v\(AppInfo.marketingVersion) (\(AppInfo.buildNumber)) フィードバック"
+        let body = """
+        （ここにご意見・不具合・要望などをお書きください）
+
+
+        ──────────
+        環境情報（編集できます）
+        アプリ: \(AppInfo.marketingVersion) (\(AppInfo.buildNumber))
+        iOS: \(UIDevice.current.systemVersion)
+        端末: \(deviceModelIdentifier())
+        """
+
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = LegalConfig.feedbackEmail
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: subject),
+            URLQueryItem(name: "body", value: body),
+        ]
+
+        guard let url = components.url else {
+            showFeedbackFallback = true
+            analyticsService.capture(AnalyticsEvent.feedbackMailtoOpened, properties: [
+                "result": "fallback",
+            ])
+            return
+        }
+
+        UIApplication.shared.open(url, options: [:]) { success in
+            if success {
+                analyticsService.capture(AnalyticsEvent.feedbackMailtoOpened, properties: [
+                    "result": "opened",
+                ])
+            } else {
+                showFeedbackFallback = true
+                analyticsService.capture(AnalyticsEvent.feedbackMailtoOpened, properties: [
+                    "result": "fallback",
+                ])
+            }
+        }
+    }
+
+    private func deviceModelIdentifier() -> String {
+        var info = utsname()
+        uname(&info)
+        let id = withUnsafePointer(to: &info.machine) { ptr -> String in
+            ptr.withMemoryRebound(to: CChar.self, capacity: 1) { String(cString: $0) }
+        }
+        return id.isEmpty ? UIDevice.current.model : id
     }
 
     private var legalSection: some View {
