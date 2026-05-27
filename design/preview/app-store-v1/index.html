@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Node. — App Store スクリーンショット v1.0</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  /*
+   * Renders the six v1.0 App Store screenshots at iPhone 6.9"
+   * (1290 × 2796) by default. Switch the body class to `.size-65`
+   * to render at 6.5" (1242 × 2688). Each frame is intended to be
+   * captured one-by-one (e.g. Playwright / DevTools "Capture node").
+   *
+   * Plan: ../../docs/v1.0-app-store-screenshots.md
+   * v1.0 制約: Timelapse / Search / Pack / 同期 / 広告 は一切登場させない。
+   */
+
+  :root {
+    --frame-w: 1290px;
+    --frame-h: 2796px;
+    --device-scale: 2.55;
+    --safe-x: 80px;
+    --safe-top: 96px;
+  }
+
+  html, body { margin: 0; padding: 0; background: #1a1a1a; }
+  body {
+    font-family: var(--font-text);
+    color: var(--c-bone);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+    padding: 48px 0;
+  }
+
+  body.size-65 {
+    --frame-w: 1242px;
+    --frame-h: 2688px;
+    --device-scale: 2.45;
+  }
+
+  /* Each App Store frame */
+  .frame {
+    width: var(--frame-w);
+    height: var(--frame-h);
+    background: var(--c-void);
+    position: relative;
+    overflow: hidden;
+    color: var(--c-bone);
+    isolation: isolate;
+  }
+
+  /* Subtle vignette so the phone reads as the focal point */
+  .frame::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(120% 70% at 50% 100%, transparent 40%, rgba(0,0,0,0.45) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Copy block (top) */
+  .frame .copy {
+    position: relative;
+    z-index: 1;
+    padding: var(--safe-top) var(--safe-x) 0;
+  }
+  .frame .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-moss);
+    margin-bottom: 28px;
+  }
+  .frame .headline {
+    font-family: var(--font-display);
+    font-size: 104px;
+    font-weight: 300;
+    letter-spacing: -0.025em;
+    line-height: 1.02;
+    color: var(--c-bone);
+    margin: 0;
+  }
+  .frame .headline em {
+    font-style: normal;
+    color: var(--c-moss);
+  }
+  .frame .sub {
+    margin-top: 36px;
+    font-family: var(--font-text);
+    font-size: 30px;
+    line-height: 1.45;
+    color: var(--c-fog);
+    max-width: 1000px;
+    letter-spacing: 0.01em;
+  }
+
+  /* Device stage (bottom) */
+  .frame .stage {
+    position: absolute;
+    left: 50%;
+    bottom: 96px;
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+  .frame .device-scaler {
+    transform: scale(var(--device-scale));
+    transform-origin: bottom center;
+  }
+
+  /* Brand mark (bottom-right) */
+  .frame .wordmark {
+    position: absolute;
+    right: var(--safe-x);
+    bottom: 40px;
+    z-index: 2;
+    font-family: var(--font-display);
+    font-size: 40px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--c-bone);
+  }
+  .frame .wordmark .dot { color: var(--c-moss); }
+
+  /* Frame index badge — for review only, not in the final PNG */
+  .frame .badge {
+    position: absolute;
+    top: 36px; right: 40px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-mist);
+    z-index: 3;
+    opacity: 0;          /* hide by default; set body.show-badges to reveal */
+  }
+  body.show-badges .frame .badge { opacity: 1; }
+
+  /* Toolbar */
+  .toolbar {
+    position: fixed;
+    top: 12px; left: 12px;
+    z-index: 1000;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--c-bone);
+  }
+  .toolbar button {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--c-bone);
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font: inherit;
+  }
+  .toolbar button:hover { background: rgba(255,255,255,0.16); }
+</style>
+</head>
+<body>
+  <div class="toolbar">
+    <span>App Store v1.0</span>
+    <button id="t-size">6.9" / 6.5"</button>
+    <button id="t-badges">badges</button>
+  </div>
+
+  <div id="stage"></div>
+
+  <!-- React + UI kit -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="../../ui_kits/node-ios/ios-frame.jsx"></script>
+  <script type="text/babel" src="../../ui_kits/node-ios/shared.jsx"></script>
+  <script type="text/babel" src="../../ui_kits/node-ios/CollectionScreen.jsx"></script>
+  <script type="text/babel" src="../../ui_kits/node-ios/PlantDetailScreen.jsx"></script>
+  <script type="text/babel" src="../../ui_kits/node-ios/CameraScreen.jsx"></script>
+  <script type="text/babel" src="../../ui_kits/node-ios/CompareScreen.jsx"></script>
+  <script type="text/babel" src="../../ui_kits/node-ios/QuickLogScreen.jsx"></script>
+
+  <script type="text/babel">
+    const { useEffect } = React;
+
+    // One App Store frame: copy block + scaled device mock
+    function Frame({ id, eyebrow, headline, sub, children }) {
+      return (
+        <div className="frame" data-frame={id}>
+          <div className="badge">FRAME {String(id).padStart(2, '0')}</div>
+          <div className="copy">
+            <div className="eyebrow">{eyebrow}</div>
+            <h1 className="headline" dangerouslySetInnerHTML={{ __html: headline }} />
+            <div className="sub">{sub}</div>
+          </div>
+          <div className="stage">
+            <div className="device-scaler">
+              <IOSDevice dark={true} width={360} height={780}>
+                {children}
+              </IOSDevice>
+            </div>
+          </div>
+          <div className="wordmark">Node<span className="dot">.</span></div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <React.Fragment>
+          {/* 1 — Before / After (最重要) */}
+          <Frame
+            id={1}
+            eyebrow="Before / After"
+            headline="植物の時間を、<em>残す。</em>"
+            sub="1日目から今日まで。並べるだけで、成長は見える。"
+          >
+            <CompareScreen plantId="mons" />
+          </Frame>
+
+          {/* 2 — Compare の積み上がり指標 */}
+          <Frame
+            id={2}
+            eyebrow="Compare"
+            headline="観測は、<em>積み上がる。</em>"
+            sub="経過日数・観測数・水やり回数を、ひとつの画面で。"
+          >
+            <CompareScreen plantId="agave" />
+          </Frame>
+
+          {/* 3 — Timeline */}
+          <Frame
+            id={3}
+            eyebrow="Timeline"
+            headline="日々を、<em>節として。</em>"
+            sub="撮るたびに、Timeline が静かに伸びていく。"
+          >
+            <PlantDetailScreen plantId="plat" />
+          </Frame>
+
+          {/* 4 — Observation (Camera + ghost guide) */}
+          <Frame
+            id={4}
+            eyebrow="Observation"
+            headline="構図は、<em>毎回そろう。</em>"
+            sub="直前の観測を薄く重ねて、定点撮影を習慣に。"
+          >
+            <CameraScreen plantId="agave" />
+          </Frame>
+
+          {/* 5 — Quick Log */}
+          <Frame
+            id={5}
+            eyebrow="Quick Log"
+            headline="水やりも、<em>ひと記録。</em>"
+            sub="撮らない日も、節として残す。"
+          >
+            <QuickLogScreen plantId="eucho" />
+          </Frame>
+
+          {/* 6 — Collection */}
+          <Frame
+            id={6}
+            eyebrow="Collection"
+            headline="一覧は、<em>静かに。</em>"
+            sub="管理画面ではなく、書架のような並び。"
+          >
+            <CollectionScreen onPlantTap={()=>{}} />
+          </Frame>
+        </React.Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('stage')).render(<App />);
+
+    // toolbar
+    document.getElementById('t-size').addEventListener('click', () => {
+      document.body.classList.toggle('size-65');
+    });
+    document.getElementById('t-badges').addEventListener('click', () => {
+      document.body.classList.toggle('show-badges');
+    });
+  </script>
+</body>
+</html>
