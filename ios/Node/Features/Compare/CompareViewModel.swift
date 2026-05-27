@@ -22,6 +22,8 @@ final class CompareViewModel: ObservableObject {
     @Published var beforePickerDay: Date?
     @Published var afterPickerDay: Date?
     @Published var activeCalendarSide: CompareSide?
+    @Published var displayMode: CompareDisplayMode = ComparePreferences.loadDisplayMode()
+    @Published var sliderPosition: CGFloat = 0.5
 
     private let observationImageService: ObservationImageService
 
@@ -194,6 +196,12 @@ final class CompareViewModel: ObservableObject {
 
     func closeCalendar() {
         activeCalendarSide = nil
+    }
+
+    func setDisplayMode(_ mode: CompareDisplayMode) {
+        guard displayMode != mode else { return }
+        displayMode = mode
+        ComparePreferences.saveDisplayMode(mode)
     }
 
     // MARK: - Calendar

@@ -19,6 +19,7 @@ enum AnalyticsEvent {
 
     static let timelineViewed = "timeline_viewed"
     static let compareOpened = "compare_opened"
+    static let compareModeChanged = "compare_mode_changed"
     static let settingsOpened = "settings_opened"
 
     static let feedbackMailtoOpened = "feedback_mailto_opened"

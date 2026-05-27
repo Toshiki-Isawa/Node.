@@ -11,8 +11,7 @@ struct ImageComparisonSlider: View {
     var onBeforeDateTap: () -> Void
     var onAfterDateTap: () -> Void
     var aspectRatio: CGFloat = 4 / 3
-
-    @State private var sliderPosition: CGFloat = 0.5
+    @Binding var sliderPosition: CGFloat
 
     var body: some View {
         GeometryReader { geo in

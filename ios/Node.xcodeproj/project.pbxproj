@@ -37,6 +37,7 @@
 		5587076B456BADEA42474DD4 /* AddPlantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFDCBFBE3ABEB2BA466EBC1 /* AddPlantView.swift */; };
 		56FEBE3F76796AC7A38375CF /* ObservationImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18678AB5B6500AB565F6F524 /* ObservationImageProcessor.swift */; };
 		57D58C5F5EF732B96DE51684 /* ImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7FAE20867D33B75380E98A /* ImageStore.swift */; };
+		59049BFCCCB3754AFA883FE9 /* CompareDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A707DA704BA0C75E5890ED5 /* CompareDisplayMode.swift */; };
 		5A53BCE689FE86CD4E1D20B0 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6DCEF89DA333D9D6622BCB /* SyncEngine.swift */; };
 		5EE938DA38BE6CD310F6D311 /* ImageComparisonSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BAFEC3B48020BC8A506801 /* ImageComparisonSlider.swift */; };
 		5F84C1D337C715F08706BE21 /* UserPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADB233720CA6AF7B11B49A55 /* UserPlan.swift */; };
@@ -59,6 +60,7 @@
 		8EA899236AFFE6E438D3787E /* BulkQuickLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635A8AD5CF2524E5CCD3009 /* BulkQuickLogSheet.swift */; };
 		92687FE048CCD13A42ACE8D5 /* BulkQuickLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F36E383B38C10B3743111 /* BulkQuickLogViewModel.swift */; };
 		981B76BBD2120817C7DAE678 /* NodeDateFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = B722B9F5F6CB8B1DD3FB26D4 /* NodeDateFormat.swift */; };
+		98C9519BD239936B6727159C /* ImageComparisonSplit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BEFA88054B936DF821ACD9 /* ImageComparisonSplit.swift */; };
 		A1AE385A5D0B32C0E7A10425 /* RecordDeletionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBF394417CDAEE1D8CDA206 /* RecordDeletionService.swift */; };
 		A45E1FEB2F54601A3E2E749E /* TimelapseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D79DC9E2B71F66BCED7BB072 /* TimelapseView.swift */; };
 		AC13C970CA2A38B2413CA780 /* StorageStatsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9BD926FBE5450B3BDE14A39 /* StorageStatsService.swift */; };
@@ -100,6 +102,7 @@
 		2B0EE5361A5A906664DA3DDA /* CompareRequirementSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareRequirementSheet.swift; sourceTree = "<group>"; };
 		2C646E69668CA8975B0355C1 /* WateringIntervalSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WateringIntervalSection.swift; sourceTree = "<group>"; };
 		2CBF394417CDAEE1D8CDA206 /* RecordDeletionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordDeletionService.swift; sourceTree = "<group>"; };
+		30BEFA88054B936DF821ACD9 /* ImageComparisonSplit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageComparisonSplit.swift; sourceTree = "<group>"; };
 		31085A570CF2D48C986525E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3A3F2726954C09CA5E7EB98F /* EditObservationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditObservationViewModel.swift; sourceTree = "<group>"; };
 		3B6A25FC8A975F1AF1CDA7EB /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
@@ -124,6 +127,7 @@
 		72CE44D9237E8BC2FB59E903 /* privacy.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = privacy.html; sourceTree = "<group>"; };
 		73B66A1059A19B2D24E0FFBC /* ReleaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseConfig.swift; sourceTree = "<group>"; };
 		78DEBCDB5187CC0311F7CF00 /* EditGrowthLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGrowthLogSheet.swift; sourceTree = "<group>"; };
+		7A707DA704BA0C75E5890ED5 /* CompareDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareDisplayMode.swift; sourceTree = "<group>"; };
 		7AFDCBFBE3ABEB2BA466EBC1 /* AddPlantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPlantView.swift; sourceTree = "<group>"; };
 		7D3A190C3DF695FB5C5BF130 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		8651BD6869DF8D2A2609AC29 /* CollectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewModel.swift; sourceTree = "<group>"; };
@@ -214,6 +218,7 @@
 			isa = PBXGroup;
 			children = (
 				62BAFEC3B48020BC8A506801 /* ImageComparisonSlider.swift */,
+				30BEFA88054B936DF821ACD9 /* ImageComparisonSplit.swift */,
 				C52B2E6D6A59DB752B41C3FB /* NodeCalendarMonthNavigator.swift */,
 				173EB8C58286F7A75BD73E10 /* NodeComponents.swift */,
 				6952EE3AD2E917CBFE2DAF1B /* NodeTabBar.swift */,
@@ -406,6 +411,7 @@
 		E67C60C59379D72433992326 /* Compare */ = {
 			isa = PBXGroup;
 			children = (
+				7A707DA704BA0C75E5890ED5 /* CompareDisplayMode.swift */,
 				2A0D902F5AE65DD571538F9B /* CompareObservationCalendar.swift */,
 				2B0EE5361A5A906664DA3DDA /* CompareRequirementSheet.swift */,
 				DD2A1C1F7EDFB8FBAD4441EA /* CompareView.swift */,
@@ -571,6 +577,7 @@
 				E666124105AEBC146A1A1E5A /* CarePreferences.swift in Sources */,
 				ADCE2FA7EE0C2137B1002AE0 /* CollectionView.swift in Sources */,
 				8DBEE6BC9CF874D5DDEBB20C /* CollectionViewModel.swift in Sources */,
+				59049BFCCCB3754AFA883FE9 /* CompareDisplayMode.swift in Sources */,
 				08BB455835FD98B67480F4BF /* CompareObservationCalendar.swift in Sources */,
 				3BF2CC6ED01315EAAE225910 /* CompareRequirementSheet.swift in Sources */,
 				C8874DDE32E6EC333E2C49D7 /* CompareView.swift in Sources */,
@@ -582,6 +589,7 @@
 				1F508F914083EB39DBAE04B8 /* EditPlantView.swift in Sources */,
 				8C64E0236E6EFBF60D2F2D09 /* EditPlantViewModel.swift in Sources */,
 				5EE938DA38BE6CD310F6D311 /* ImageComparisonSlider.swift in Sources */,
+				98C9519BD239936B6727159C /* ImageComparisonSplit.swift in Sources */,
 				7B66FA02A6622F4491B77732 /* ImagePathMigration.swift in Sources */,
 				57D58C5F5EF732B96DE51684 /* ImageStore.swift in Sources */,
 				1E814D6132779360A764E221 /* LegalConfig.swift in Sources */,

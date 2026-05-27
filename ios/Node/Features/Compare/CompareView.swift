@@ -3,6 +3,7 @@ import SwiftUI
 struct CompareView: View {
     @ObservedObject var viewModel: CompareViewModel
     let imageStore: ImageStore
+    var analyticsService: AnalyticsService?
     var onBack: () -> Void
     var onTimelapse: () -> Void
 
@@ -17,7 +18,7 @@ struct CompareView: View {
                     if let error = viewModel.imageLoadError {
                         MetaLabel(text: error, color: NodeColor.syncFail)
                     }
-                    comparisonSlider
+                    comparisonArea
                     intervalCard
                     if ReleaseConfig.timelapseEnabled {
                         timelapseSection
@@ -61,25 +62,90 @@ struct CompareView: View {
         }
     }
 
-    private var comparisonSlider: some View {
-        ZStack {
-            ImageComparisonSlider(
-                beforeImagePath: viewModel.beforeImagePath,
-                afterImagePath: viewModel.afterImagePath,
-                imageStore: imageStore,
-                beforeDayNumber: viewModel.beforeObservation.map(viewModel.observationDayNumber),
-                afterDayNumber: viewModel.afterObservation.map(viewModel.observationDayNumber),
-                beforeDateText: viewModel.beforeObservation?.createdAt.nodeMonthDay() ?? "—",
-                afterDateText: viewModel.afterObservation?.createdAt.nodeMonthDay() ?? "—",
-                onBeforeDateTap: { viewModel.openCalendar(for: .before) },
-                onAfterDateTap: { viewModel.openCalendar(for: .after) }
-            )
+    private var comparisonArea: some View {
+        ZStack(alignment: .topTrailing) {
+            Group {
+                switch viewModel.displayMode {
+                case .slider:
+                    ImageComparisonSlider(
+                        beforeImagePath: viewModel.beforeImagePath,
+                        afterImagePath: viewModel.afterImagePath,
+                        imageStore: imageStore,
+                        beforeDayNumber: viewModel.beforeObservation.map(viewModel.observationDayNumber),
+                        afterDayNumber: viewModel.afterObservation.map(viewModel.observationDayNumber),
+                        beforeDateText: viewModel.beforeObservation?.createdAt.nodeMonthDay() ?? "—",
+                        afterDateText: viewModel.afterObservation?.createdAt.nodeMonthDay() ?? "—",
+                        onBeforeDateTap: { viewModel.openCalendar(for: .before) },
+                        onAfterDateTap: { viewModel.openCalendar(for: .after) },
+                        sliderPosition: $viewModel.sliderPosition
+                    )
+                case .split:
+                    ImageComparisonSplit(
+                        beforeImagePath: viewModel.beforeImagePath,
+                        afterImagePath: viewModel.afterImagePath,
+                        imageStore: imageStore,
+                        beforeDayNumber: viewModel.beforeObservation.map(viewModel.observationDayNumber),
+                        afterDayNumber: viewModel.afterObservation.map(viewModel.observationDayNumber),
+                        beforeDateText: viewModel.beforeObservation?.createdAt.nodeMonthDay() ?? "—",
+                        afterDateText: viewModel.afterObservation?.createdAt.nodeMonthDay() ?? "—",
+                        onBeforeDateTap: { viewModel.openCalendar(for: .before) },
+                        onAfterDateTap: { viewModel.openCalendar(for: .after) }
+                    )
+                }
+            }
 
             if viewModel.isLoadingImages {
                 ProgressView()
                     .tint(NodeColor.moss)
             }
+
+            compareModePicker
+                .padding(12)
         }
+    }
+
+    private var compareModePicker: some View {
+        HStack(spacing: 2) {
+            modeButton(
+                mode: .slider,
+                systemImage: "slider.horizontal.below.rectangle",
+                accessibilityLabel: "スライダーで比較"
+            )
+            modeButton(
+                mode: .split,
+                systemImage: "rectangle.split.2x1",
+                accessibilityLabel: "並列で比較"
+            )
+        }
+        .padding(4)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+    }
+
+    private func modeButton(mode: CompareDisplayMode, systemImage: String, accessibilityLabel: String) -> some View {
+        let isSelected = viewModel.displayMode == mode
+        return Button {
+            selectMode(mode)
+        } label: {
+            Image(systemName: systemImage)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(isSelected ? NodeColor.graphite : NodeColor.fog)
+                .frame(width: 32, height: 28)
+                .background(isSelected ? NodeColor.bone : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: NodeRadius.sm))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func selectMode(_ mode: CompareDisplayMode) {
+        guard viewModel.displayMode != mode else { return }
+        viewModel.setDisplayMode(mode)
+        analyticsService?.capture(
+            AnalyticsEvent.compareModeChanged,
+            properties: ["mode": mode.analyticsValue]
+        )
     }
 
     private func calendarSheet(for side: CompareSide) -> some View {

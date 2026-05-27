@@ -218,7 +218,10 @@ struct RootView: View {
     private func openCompare(for plant: Plant) {
         compareViewModel.configure(plant: plant)
         navigationPath.append(.compare(plant.id))
-        environment.analyticsService.capture(AnalyticsEvent.compareOpened)
+        environment.analyticsService.capture(
+            AnalyticsEvent.compareOpened,
+            properties: ["mode": compareViewModel.displayMode.analyticsValue]
+        )
     }
 
     private func handleShootTap() {
@@ -284,6 +287,7 @@ struct RootView: View {
         CompareView(
             viewModel: compareViewModel,
             imageStore: environment.imageStore,
+            analyticsService: environment.analyticsService,
             onBack: { navigationPath.removeLast() },
             onTimelapse: {
                 timelapseTarget = PlantSheetTarget(plant: plant)
