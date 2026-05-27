@@ -19,7 +19,9 @@ struct CompareView: View {
                     }
                     comparisonSlider
                     intervalCard
-                    timelapseSection
+                    if ReleaseConfig.timelapseEnabled {
+                        timelapseSection
+                    }
                 }
             }
             .padding(.horizontal, NodeSpacing.sp4)
