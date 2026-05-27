@@ -56,6 +56,14 @@ enum GrowthLogType: String, Codable, CaseIterable, Identifiable {
     ]
 }
 
+/// 一括クイックログの起動元。初期選択のプリセットに使う。
+enum BulkQuickLogContext {
+    /// Collection ヘッダーの一括ボタン
+    case general
+    /// 「今日の水やり」バナー
+    case wateringReminder
+}
+
 enum PlantCategory: String, Codable, CaseIterable, Identifiable {
     case agave = "アガベ"
     case caudex = "塊根"

@@ -7,7 +7,7 @@ struct CollectionView: View {
     let observationImageService: ObservationImageService
     var onPlantTap: (Plant) -> Void
     var onAddPlant: () -> Void
-    var onBulkQuickLog: () -> Void
+    var onBulkQuickLog: (BulkQuickLogContext) -> Void
     var onSettings: () -> Void
 
     @State private var isSearchActive = false
@@ -74,7 +74,7 @@ struct CollectionView: View {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(isSearchActive ? NodeColor.mossSoft : NodeColor.fog)
                     }
-                    Button(action: onBulkQuickLog) {
+                    Button(action: { onBulkQuickLog(.general) }) {
                         Image(systemName: "drop.fill")
                             .foregroundStyle(NodeColor.mossSoft)
                             .overlay(alignment: .topTrailing) {
@@ -177,7 +177,7 @@ struct CollectionView: View {
     }
 
     private var todayWateringBanner: some View {
-        Button(action: onBulkQuickLog) {
+        Button(action: { onBulkQuickLog(.wateringReminder) }) {
             HStack(spacing: NodeSpacing.sp3) {
                 Image(systemName: "drop.fill")
                     .font(.system(size: 16))

@@ -4,15 +4,16 @@ struct BulkQuickLogSheet: View {
     @ObservedObject var viewModel: BulkQuickLogViewModel
     var onObserveAfterSave: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
+    @State private var isPlantListExpanded = true
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: NodeSpacing.sp5) {
-                    plantSelectionSection
                     careTypeSection
                     dateTimeSection
                     memoField
+                    plantSelectionSection
                 }
                 .padding(.horizontal, NodeSpacing.sp5)
                 .padding(.top, NodeSpacing.sp2)
@@ -37,13 +38,80 @@ struct BulkQuickLogSheet: View {
             .safeAreaInset(edge: .bottom) {
                 actionButtons
             }
+            .onAppear {
+                isPlantListExpanded = !viewModel.shouldCollapsePlantListByDefault
+            }
+            .onChange(of: viewModel.selectedCount) { _, count in
+                if count == 0 {
+                    isPlantListExpanded = true
+                }
+            }
         }
     }
 
     private var plantSelectionSection: some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
-            MetaLabel(text: "植物", size: 9)
+            HStack(alignment: .firstTextBaseline) {
+                MetaLabel(text: "植物", size: 9)
+                Spacer()
+                if viewModel.selectedCount > BulkQuickLogViewModel.plantListCollapseThreshold {
+                    Button(isPlantListExpanded ? "閉じる" : "変更") {
+                        withAnimation(NodeMotion.quietAnimation) {
+                            isPlantListExpanded.toggle()
+                        }
+                    }
+                    .font(NodeFont.text(12, weight: .medium))
+                    .foregroundStyle(NodeColor.mossSoft)
+                }
+            }
 
+            if isPlantListExpanded {
+                expandedPlantSelection
+            } else {
+                collapsedPlantSummary
+            }
+        }
+    }
+
+    private var collapsedPlantSummary: some View {
+        Button {
+            withAnimation(NodeMotion.quietAnimation) {
+                isPlantListExpanded = true
+            }
+        } label: {
+            HStack(spacing: NodeSpacing.sp3) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(viewModel.selectedCount)件選択中")
+                        .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                        .foregroundStyle(NodeColor.bone)
+                    Text(viewModel.selectedPlantSummaryText)
+                        .font(NodeFont.text(NodeFont.caption))
+                        .foregroundStyle(NodeColor.fog)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(NodeColor.mist)
+            }
+            .padding(NodeSpacing.sp3)
+            .background(
+                RoundedRectangle(cornerRadius: NodeRadius.lg)
+                    .fill(NodeColor.bark.opacity(0.5))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: NodeRadius.lg)
+                    .stroke(NodeColor.hairline, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var expandedPlantSelection: some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: NodeSpacing.sp2) {
                     filterChip("すべて", isSelected: viewModel.selectedCount == viewModel.plants.count && !viewModel.plants.isEmpty) {

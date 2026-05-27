@@ -3,11 +3,15 @@ import SwiftData
 
 @MainActor
 final class BulkQuickLogViewModel: ObservableObject {
+    static let plantListCollapseThreshold = 3
+
     @Published var plants: [Plant] = []
     @Published var selectedPlantIDs: Set<UUID> = []
     @Published var selectedTypes: Set<GrowthLogType> = []
     @Published var memo = ""
     @Published var recordedAt = Date.now
+
+    let context: BulkQuickLogContext
 
     private let modelContext: ModelContext
     private let syncEngine: SyncEngine
@@ -16,15 +20,15 @@ final class BulkQuickLogViewModel: ObservableObject {
     init(
         modelContext: ModelContext,
         syncEngine: SyncEngine,
-        analyticsService: AnalyticsService
+        analyticsService: AnalyticsService,
+        context: BulkQuickLogContext = .general
     ) {
         self.modelContext = modelContext
         self.syncEngine = syncEngine
         self.analyticsService = analyticsService
+        self.context = context
         reload()
-        if !plantsNeedingWater.isEmpty {
-            selectedPlantIDs = Set(plantsNeedingWater.map(\.id))
-        }
+        applyContextPreset()
     }
 
     func reload() {
@@ -45,6 +49,21 @@ final class BulkQuickLogViewModel: ObservableObject {
 
     var selectedCount: Int {
         selectedPlantIDs.count
+    }
+
+    var shouldCollapsePlantListByDefault: Bool {
+        selectedCount > Self.plantListCollapseThreshold
+    }
+
+    var selectedPlantSummaryText: String {
+        let selected = selectedPlants
+        guard !selected.isEmpty else { return "植物を選択してください" }
+
+        let names = selected.prefix(2).map(\.name).joined(separator: "、")
+        if selected.count <= 2 {
+            return names
+        }
+        return "\(names) 他 \(selected.count - 2) 株"
     }
 
     var trimmedMemo: String {
@@ -142,5 +161,12 @@ final class BulkQuickLogViewModel: ObservableObject {
             "plant_count": selectedPlants.count,
             "type_count": orderedTypes.count,
         ])
+    }
+
+    private func applyContextPreset() {
+        selectedTypes = [.water]
+        if !plantsNeedingWater.isEmpty {
+            selectedPlantIDs = Set(plantsNeedingWater.map(\.id))
+        }
     }
 }

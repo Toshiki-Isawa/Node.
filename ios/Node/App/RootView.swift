@@ -12,6 +12,7 @@ struct RootView: View {
     @State private var navigationPath: [AppNavigationRoute] = []
     @State private var quickLogTarget: PlantSheetTarget?
     @State private var showBulkQuickLog = false
+    @State private var bulkQuickLogContext: BulkQuickLogContext = .general
     @State private var editPlantTarget: PlantSheetTarget?
     @State private var timelapseTarget: PlantSheetTarget?
     @State private var showSettings = false
@@ -169,7 +170,8 @@ struct RootView: View {
                 viewModel: BulkQuickLogViewModel(
                     modelContext: modelContext,
                     syncEngine: environment.syncEngine,
-                    analyticsService: environment.analyticsService
+                    analyticsService: environment.analyticsService,
+                    context: bulkQuickLogContext
                 ),
                 onObserveAfterSave: {
                     cameraViewModel.reloadPlants()
@@ -255,7 +257,10 @@ struct RootView: View {
                 observationImageService: environment.observationImageService,
                 onPlantTap: { plant in navigationPath.append(.plant(plant.id)) },
                 onAddPlant: { showAddPlant = true },
-                onBulkQuickLog: { showBulkQuickLog = true },
+                onBulkQuickLog: { context in
+                    bulkQuickLogContext = context
+                    showBulkQuickLog = true
+                },
                 onSettings: { showSettings = true }
             )
         case .timeline:
