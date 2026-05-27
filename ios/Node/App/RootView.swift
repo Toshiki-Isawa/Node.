@@ -59,6 +59,9 @@ struct RootView: View {
                 SignInView(viewModel: environment.authViewModel)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: CareNotificationService.openCollectionNotification)) { _ in
+            selectTab(.collection)
+        }
     }
 
     private var mainShell: some View {
@@ -191,7 +194,8 @@ struct RootView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(
                 viewModel: settingsViewModel,
-                planService: environment.planService
+                planService: environment.planService,
+                careNotificationService: environment.careNotificationService
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)

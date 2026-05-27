@@ -28,6 +28,11 @@ struct CollectionView: View {
                         .padding(.horizontal, NodeSpacing.sp5)
                         .padding(.bottom, NodeSpacing.sp4)
                 }
+                if viewModel.plantsNeedingWaterCount > 0 {
+                    todayWateringBanner
+                        .padding(.horizontal, NodeSpacing.sp5)
+                        .padding(.bottom, NodeSpacing.sp4)
+                }
                 categoryChips
                 plantGrid
             }
@@ -169,6 +174,38 @@ struct CollectionView: View {
                         .stroke(NodeColor.hairline, lineWidth: 1)
                 )
         )
+    }
+
+    private var todayWateringBanner: some View {
+        Button(action: onBulkQuickLog) {
+            HStack(spacing: NodeSpacing.sp3) {
+                Image(systemName: "drop.fill")
+                    .font(.system(size: 16))
+                    .foregroundStyle(NodeColor.mossSoft)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("今日の水やり: \(viewModel.plantsNeedingWaterCount) 株")
+                        .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                        .foregroundStyle(NodeColor.bone)
+                    Text("タップして一括ケアログを開く")
+                        .font(NodeFont.text(11))
+                        .foregroundStyle(NodeColor.fog)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(NodeColor.mist)
+            }
+            .padding(NodeSpacing.sp3)
+            .background(
+                RoundedRectangle(cornerRadius: NodeRadius.lg)
+                    .fill(NodeColor.bark)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: NodeRadius.lg)
+                            .stroke(NodeColor.moss.opacity(0.35), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var categoryChips: some View {

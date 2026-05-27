@@ -38,6 +38,7 @@ final class AppEnvironment: ObservableObject {
     let cameraService: CameraService
     let timelapseService: TimelapseService
     let analyticsService: AnalyticsService
+    let careNotificationService: CareNotificationService
 
     let authViewModel: AuthViewModel
 
@@ -54,6 +55,7 @@ final class AppEnvironment: ObservableObject {
             subscriptionService: subscriptionService
         )
         let analyticsService = AnalyticsService()
+        let careNotificationService = CareNotificationService(modelContext: modelContext)
         let syncEngine = SyncEngine(
             modelContext: modelContext,
             imageStore: imageStore,
@@ -83,6 +85,7 @@ final class AppEnvironment: ObservableObject {
             observationImageService: observationImageService
         )
         self.analyticsService = analyticsService
+        self.careNotificationService = careNotificationService
         self.authViewModel = authViewModel
 
         ImagePathMigration.migrateStoredPathsIfNeeded(modelContext: modelContext, imageStore: imageStore)
@@ -104,9 +107,16 @@ final class AppEnvironment: ObservableObject {
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
 
+        careNotificationService.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+
         if ReleaseConfig.cloudSyncEnabled {
             syncEngine.start()
         }
+
+        Task { await careNotificationService.bootstrap() }
     }
 
     private var cancellables = Set<AnyCancellable>()

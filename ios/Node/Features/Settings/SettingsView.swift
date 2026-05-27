@@ -1,9 +1,12 @@
 import SwiftUI
+import UIKit
 
 struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
     @ObservedObject var planService: PlanService
+    @ObservedObject var careNotificationService: CareNotificationService
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
@@ -19,6 +22,7 @@ struct SettingsView: View {
                 } else {
                     localOnlyNoticeSection
                 }
+                careNotificationSection
                 localSection
                 if ReleaseConfig.cloudSyncEnabled {
                     syncSection
@@ -131,6 +135,108 @@ struct SettingsView: View {
 
     private var storageLimitLabel: String {
         "クラウド容量 \(StorageFormat.bytes(viewModel.plan.storageLimitBytes))"
+    }
+
+    private var careNotificationSection: some View {
+        SettingsCard(title: "ケア通知") {
+            VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
+                Toggle(isOn: wateringToggleBinding) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("水やり通知")
+                            .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                            .foregroundStyle(NodeColor.bone)
+                        Text("水やり間隔を設定した株が時期を迎えた朝に通知します。")
+                            .font(NodeFont.text(12))
+                            .foregroundStyle(NodeColor.fog)
+                    }
+                }
+                .tint(NodeColor.moss)
+
+                if careNotificationService.preferences.isWateringRemindersEnabled {
+                    DatePicker(
+                        "通知時刻",
+                        selection: timeBinding,
+                        in: timePickerRange,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .datePickerStyle(.compact)
+                    .tint(NodeColor.moss)
+                    .foregroundStyle(NodeColor.paper)
+
+                    Text("受け取り可能な時間帯は 08:00〜21:59 です（22:00〜翌 08:00 は配信しません）。")
+                        .font(NodeFont.text(11))
+                        .foregroundStyle(NodeColor.fog)
+
+                    if careNotificationService.authorizationStatus == .denied {
+                        notificationPermissionWarning
+                    }
+                }
+            }
+        }
+    }
+
+    private var wateringToggleBinding: Binding<Bool> {
+        Binding(
+            get: { careNotificationService.preferences.isWateringRemindersEnabled },
+            set: { newValue in
+                var next = careNotificationService.preferences
+                next.isWateringRemindersEnabled = newValue
+                Task { await careNotificationService.updatePreferences(next) }
+            }
+        )
+    }
+
+    private var timeBinding: Binding<Date> {
+        Binding(
+            get: {
+                var components = DateComponents()
+                components.hour = careNotificationService.preferences.hour
+                components.minute = careNotificationService.preferences.minute
+                return Calendar.current.date(from: components) ?? Date()
+            },
+            set: { newDate in
+                let comps = Calendar.current.dateComponents([.hour, .minute], from: newDate)
+                var next = careNotificationService.preferences
+                next.hour = CarePreferences.clampHour(comps.hour ?? 8)
+                next.minute = CarePreferences.clampMinute(comps.minute ?? 0)
+                Task { await careNotificationService.updatePreferences(next) }
+            }
+        )
+    }
+
+    private var timePickerRange: ClosedRange<Date> {
+        let calendar = Calendar.current
+        var startComps = DateComponents()
+        startComps.hour = CarePreferences.earliestHour
+        startComps.minute = 0
+        var endComps = DateComponents()
+        endComps.hour = CarePreferences.latestHour - 1
+        endComps.minute = 59
+        let start = calendar.date(from: startComps) ?? Date()
+        let end = calendar.date(from: endComps) ?? Date()
+        return start...end
+    }
+
+    private var notificationPermissionWarning: some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+            Text("通知が許可されていません")
+                .font(NodeFont.text(12, weight: .medium))
+                .foregroundStyle(NodeColor.syncFail)
+            Text("システム設定で Node. の通知を許可すると、設定した時刻に配信されます。")
+                .font(NodeFont.text(11))
+                .foregroundStyle(NodeColor.fog)
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    openURL(url)
+                }
+            } label: {
+                Text("システム設定を開く")
+                    .font(NodeFont.text(12, weight: .medium))
+                    .foregroundStyle(NodeColor.mossSoft)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.top, NodeSpacing.sp1)
     }
 
     private var localOnlyNoticeSection: some View {

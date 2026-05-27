@@ -6,6 +6,7 @@ import SwiftUI
 struct NodeApp: App {
     let modelContainer: ModelContainer
     @StateObject private var environment: AppEnvironment
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let container = try! ModelContainerFactory.makeContainer()
@@ -26,6 +27,13 @@ struct NodeApp: App {
                 .preferredColorScheme(ColorScheme.dark)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    guard phase == .active else { return }
+                    Task {
+                        await environment.careNotificationService.refreshAuthorizationStatus()
+                        await environment.careNotificationService.rescheduleIfNeeded()
+                    }
                 }
         }
         .modelContainer(modelContainer)
