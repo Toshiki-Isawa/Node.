@@ -94,7 +94,7 @@ struct SettingsView: View {
                 Color.clear.frame(width: 20, height: 20)
             }
         }
-        .padding(.top, NodeSpacing.sp2)
+        .padding(.top, NodeSpacing.sp5)
     }
 
     private var currentPlanSection: some View {
