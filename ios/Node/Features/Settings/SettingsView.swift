@@ -163,7 +163,7 @@ struct SettingsView: View {
                     .tint(NodeColor.moss)
                     .foregroundStyle(NodeColor.paper)
 
-                    Text("受け取り可能な時間帯は 08:00〜21:59 です（22:00〜翌 08:00 は配信しません）。")
+                    Text("通知時刻は 04:00〜23:59 の範囲で設定できます。")
                         .font(NodeFont.text(11))
                         .foregroundStyle(NodeColor.fog)
 

@@ -1,9 +1,9 @@
 import Foundation
 
-/// ケア通知のユーザー設定。Quiet Hours は受信窓 08:00–22:00 に制限する。
+/// ケア通知のユーザー設定。受信窓は 04:00–23:59 に制限する。
 struct CarePreferences: Codable, Equatable {
-    static let earliestHour = 8
-    static let latestHour = 22
+    static let earliestHour = 4
+    static let latestHour = 24
 
     var isWateringRemindersEnabled: Bool
     var hour: Int
