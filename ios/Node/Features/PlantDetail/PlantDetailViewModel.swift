@@ -145,11 +145,6 @@ final class PlantDetailViewModel: ObservableObject {
             .max()
     }
 
-    var lastWaterDateText: String {
-        guard let lastWateredDate else { return "記録なし" }
-        return lastWateredDate.nodeMonthDay()
-    }
-
     var nextWaterDate: Date? {
         guard let interval = plant.wateringIntervalDays, interval > 0 else { return nil }
         return calendar.date(
@@ -165,13 +160,41 @@ final class PlantDetailViewModel: ObservableObject {
         return overdue > 0 ? overdue : nil
     }
 
-    var nextWaterDateText: String {
-        guard let nextWaterDate else { return "頻度未設定" }
-        let formatted = nextWaterDate.nodeMonthDay()
-        if let overdue = wateringOverdueDays {
-            return "\(formatted) · \(overdue)日遅れ"
+    var lastWaterPrimaryText: String {
+        guard let lastWateredDate else { return "記録なし" }
+        let days = calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: lastWateredDate),
+            to: calendar.startOfDay(for: .now)
+        ).day ?? 0
+        switch days {
+        case 0: return "今日"
+        case 1: return "昨日"
+        default: return "\(days)日前"
         }
-        return formatted
+    }
+
+    var lastWaterSecondaryDateText: String? {
+        lastWateredDate?.nodeMonthDay()
+    }
+
+    var nextWaterPrimaryText: String {
+        guard let interval = plant.wateringIntervalDays, interval > 0 else {
+            return "頻度未設定"
+        }
+        if let overdue = wateringOverdueDays {
+            return "\(overdue)日遅れ"
+        }
+        let daysUntil = interval - plant.daysSinceLastWater
+        switch daysUntil {
+        case 0: return "今日"
+        case 1: return "明日"
+        default: return "あと\(daysUntil)日"
+        }
+    }
+
+    var nextWaterSecondaryDateText: String? {
+        nextWaterDate?.nodeMonthDay()
     }
 
     var isNextWaterOverdue: Bool {

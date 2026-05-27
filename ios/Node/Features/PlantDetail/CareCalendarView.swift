@@ -51,28 +51,31 @@ struct CareCalendarView: View {
         HStack(spacing: NodeSpacing.sp6) {
             summaryItem(
                 label: "前回",
-                value: viewModel.lastWaterDateText,
+                primaryText: viewModel.lastWaterPrimaryText,
+                secondaryDateText: viewModel.lastWaterSecondaryDateText,
                 icon: "drop.fill",
                 iconColor: CareLogColor.water,
-                valueColor: NodeColor.paper
+                primaryColor: NodeColor.paper
             )
 
             summaryItem(
                 label: "次回",
-                value: viewModel.nextWaterDateText,
+                primaryText: viewModel.nextWaterPrimaryText,
+                secondaryDateText: viewModel.nextWaterSecondaryDateText,
                 icon: "calendar",
                 iconColor: NodeColor.mossSoft,
-                valueColor: viewModel.isNextWaterOverdue ? NodeColor.syncFail : NodeColor.paper
+                primaryColor: viewModel.isNextWaterOverdue ? NodeColor.syncFail : NodeColor.paper
             )
         }
     }
 
     private func summaryItem(
         label: String,
-        value: String,
+        primaryText: String,
+        secondaryDateText: String?,
         icon: String,
         iconColor: Color,
-        valueColor: Color
+        primaryColor: Color
     ) -> some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp1) {
             HStack(spacing: 4) {
@@ -81,9 +84,14 @@ struct CareCalendarView: View {
                     .foregroundStyle(iconColor)
                 MetaLabel(text: label, color: NodeColor.mist, size: 9)
             }
-            Text(value)
+            Text(primaryText)
                 .font(NodeFont.text(NodeFont.callout, weight: .medium))
-                .foregroundStyle(valueColor)
+                .foregroundStyle(primaryColor)
+            if let secondaryDateText {
+                Text(secondaryDateText)
+                    .font(NodeFont.text(11))
+                    .foregroundStyle(NodeColor.fog)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
