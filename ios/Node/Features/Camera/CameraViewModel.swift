@@ -57,17 +57,20 @@ final class CameraViewModel: ObservableObject {
     private let imageStore: ImageStore
     private let observationImageService: ObservationImageService
     private let syncEngine: SyncEngine
+    private let analyticsService: AnalyticsService
 
     init(
         modelContext: ModelContext,
         imageStore: ImageStore,
         observationImageService: ObservationImageService,
-        syncEngine: SyncEngine
+        syncEngine: SyncEngine,
+        analyticsService: AnalyticsService
     ) {
         self.modelContext = modelContext
         self.imageStore = imageStore
         self.observationImageService = observationImageService
         self.syncEngine = syncEngine
+        self.analyticsService = analyticsService
         reloadPlants()
     }
 
@@ -232,6 +235,10 @@ final class CameraViewModel: ObservableObject {
             lastSavedAt = observedAt
             sessionSaveCount += 1
             syncEngine.enqueueSync()
+            analyticsService.capture(AnalyticsEvent.observationCaptured, properties: [
+                "seq": plant.observations.count,
+                "is_first_for_plant": plant.observations.count == 1,
+            ])
             return true
         } catch {
             errorMessage = "保存に失敗しました。"

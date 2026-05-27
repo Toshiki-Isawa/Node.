@@ -30,6 +30,7 @@ struct NodeApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
+                    environment.analyticsService.capture(AnalyticsEvent.appForeground)
                     Task {
                         await environment.careNotificationService.refreshAuthorizationStatus()
                         await environment.careNotificationService.rescheduleIfNeeded()

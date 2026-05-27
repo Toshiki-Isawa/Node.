@@ -16,17 +16,20 @@ final class AddPlantViewModel: ObservableObject {
     private let imageStore: ImageStore
     private let syncEngine: SyncEngine
     private let supabaseService: SupabaseService
+    private let analyticsService: AnalyticsService
 
     init(
         modelContext: ModelContext,
         imageStore: ImageStore,
         syncEngine: SyncEngine,
-        supabaseService: SupabaseService
+        supabaseService: SupabaseService,
+        analyticsService: AnalyticsService
     ) {
         self.modelContext = modelContext
         self.imageStore = imageStore
         self.syncEngine = syncEngine
         self.supabaseService = supabaseService
+        self.analyticsService = analyticsService
     }
 
     var canSave: Bool {
@@ -84,6 +87,10 @@ final class AddPlantViewModel: ObservableObject {
 
         try modelContext.save()
         syncEngine.enqueueSync()
+        analyticsService.capture(AnalyticsEvent.plantAdded, properties: [
+            "has_initial_image": initialImage != nil,
+            "has_watering_interval": wateringIntervalDays != nil,
+        ])
         return plant
     }
 

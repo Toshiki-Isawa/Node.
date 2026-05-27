@@ -9,10 +9,16 @@ final class CollectionViewModel: ObservableObject {
 
     private let modelContext: ModelContext
     private let recordDeletionService: RecordDeletionService
+    private let analyticsService: AnalyticsService
 
-    init(modelContext: ModelContext, recordDeletionService: RecordDeletionService) {
+    init(
+        modelContext: ModelContext,
+        recordDeletionService: RecordDeletionService,
+        analyticsService: AnalyticsService
+    ) {
         self.modelContext = modelContext
         self.recordDeletionService = recordDeletionService
+        self.analyticsService = analyticsService
         reload()
     }
 
@@ -65,7 +71,11 @@ final class CollectionViewModel: ObservableObject {
     }
 
     func deletePlant(_ plant: Plant) throws {
+        let observationCount = plant.observations.count
         try recordDeletionService.deletePlant(plant)
+        analyticsService.capture(AnalyticsEvent.plantDeleted, properties: [
+            "observation_count": observationCount,
+        ])
         reload()
     }
 }

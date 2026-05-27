@@ -11,10 +11,16 @@ final class BulkQuickLogViewModel: ObservableObject {
 
     private let modelContext: ModelContext
     private let syncEngine: SyncEngine
+    private let analyticsService: AnalyticsService
 
-    init(modelContext: ModelContext, syncEngine: SyncEngine) {
+    init(
+        modelContext: ModelContext,
+        syncEngine: SyncEngine,
+        analyticsService: AnalyticsService
+    ) {
         self.modelContext = modelContext
         self.syncEngine = syncEngine
+        self.analyticsService = analyticsService
         reload()
         if !plantsNeedingWater.isEmpty {
             selectedPlantIDs = Set(plantsNeedingWater.map(\.id))
@@ -132,5 +138,9 @@ final class BulkQuickLogViewModel: ObservableObject {
 
         try modelContext.save()
         syncEngine.enqueueSync()
+        analyticsService.capture(AnalyticsEvent.bulkQuickLogUsed, properties: [
+            "plant_count": selectedPlants.count,
+            "type_count": orderedTypes.count,
+        ])
     }
 }

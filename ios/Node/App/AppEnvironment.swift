@@ -55,7 +55,10 @@ final class AppEnvironment: ObservableObject {
             subscriptionService: subscriptionService
         )
         let analyticsService = AnalyticsService()
-        let careNotificationService = CareNotificationService(modelContext: modelContext)
+        let careNotificationService = CareNotificationService(
+            modelContext: modelContext,
+            analyticsService: analyticsService
+        )
         let syncEngine = SyncEngine(
             modelContext: modelContext,
             imageStore: imageStore,
@@ -91,6 +94,7 @@ final class AppEnvironment: ObservableObject {
         ImagePathMigration.migrateStoredPathsIfNeeded(modelContext: modelContext, imageStore: imageStore)
 
         analyticsService.configure()
+        analyticsService.capture(AnalyticsEvent.appLaunch)
 
         authViewModel.objectWillChange
             .receive(on: DispatchQueue.main)

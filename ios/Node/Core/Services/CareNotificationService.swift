@@ -22,14 +22,17 @@ final class CareNotificationService: NSObject, ObservableObject {
     private let modelContext: ModelContext
     private let defaults: UserDefaults
     private let center: UNUserNotificationCenter
+    private let analyticsService: AnalyticsService
     private var isBootstrapped = false
 
     init(
         modelContext: ModelContext,
+        analyticsService: AnalyticsService,
         defaults: UserDefaults = .standard,
         center: UNUserNotificationCenter = .current()
     ) {
         self.modelContext = modelContext
+        self.analyticsService = analyticsService
         self.defaults = defaults
         self.center = center
         self.preferences = Self.loadPreferences(from: defaults)
@@ -54,10 +57,16 @@ final class CareNotificationService: NSObject, ObservableObject {
     func requestAuthorizationIfNeeded() async -> Bool {
         do {
             let granted = try await center.requestAuthorization(options: [.alert, .badge, .sound])
+            analyticsService.capture(AnalyticsEvent.notificationPermissionRequested, properties: [
+                "granted": granted,
+            ])
             await refreshAuthorizationStatus()
             return granted
         } catch {
             Self.logger.error("Notification authorization failed: \(error.localizedDescription, privacy: .public)")
+            analyticsService.capture(AnalyticsEvent.notificationPermissionRequested, properties: [
+                "granted": false,
+            ])
             await refreshAuthorizationStatus()
             return false
         }
@@ -212,6 +221,7 @@ extension CareNotificationService: UNUserNotificationCenterDelegate {
         case Self.actionDoneIdentifier:
             await applyWateringDone()
         case Self.actionOpenIdentifier, UNNotificationDefaultActionIdentifier:
+            analyticsService.capture(AnalyticsEvent.notificationOpenAppAction)
             NotificationCenter.default.post(name: Self.openCollectionNotification, object: nil)
         default:
             break
@@ -238,6 +248,9 @@ extension CareNotificationService: UNUserNotificationCenterDelegate {
         }
         do {
             try modelContext.save()
+            analyticsService.capture(AnalyticsEvent.notificationWateringDoneAction, properties: [
+                "plant_count": targets.count,
+            ])
         } catch {
             Self.logger.error("Failed to save bulk water logs: \(error.localizedDescription, privacy: .public)")
         }

@@ -25,7 +25,8 @@ struct RootView: View {
     init(modelContext: ModelContext, environment: AppEnvironment) {
         _collectionViewModel = StateObject(wrappedValue: CollectionViewModel(
             modelContext: modelContext,
-            recordDeletionService: environment.recordDeletionService
+            recordDeletionService: environment.recordDeletionService,
+            analyticsService: environment.analyticsService
         ))
         _timelineViewModel = StateObject(wrappedValue: TimelineViewModel(
             modelContext: modelContext,
@@ -38,7 +39,8 @@ struct RootView: View {
             modelContext: modelContext,
             imageStore: environment.imageStore,
             observationImageService: environment.observationImageService,
-            syncEngine: environment.syncEngine
+            syncEngine: environment.syncEngine,
+            analyticsService: environment.analyticsService
         ))
         _settingsViewModel = StateObject(wrappedValue: SettingsViewModel(
             modelContext: modelContext,
@@ -107,7 +109,8 @@ struct RootView: View {
                 modelContext: modelContext,
                 imageStore: environment.imageStore,
                 syncEngine: environment.syncEngine,
-                supabaseService: environment.supabaseService
+                supabaseService: environment.supabaseService,
+                analyticsService: environment.analyticsService
             ))
             .onDisappear {
                 collectionViewModel.reload()
@@ -131,7 +134,8 @@ struct RootView: View {
                     plant: target.plant,
                     modelContext: modelContext,
                     syncEngine: environment.syncEngine,
-                    recordDeletionService: environment.recordDeletionService
+                    recordDeletionService: environment.recordDeletionService,
+                    analyticsService: environment.analyticsService
                 ),
                 onDeleted: {
                     popNavigation(forPlantId: target.plant.id)
@@ -152,7 +156,8 @@ struct RootView: View {
                 viewModel: QuickLogViewModel(
                     plant: target.plant,
                     modelContext: modelContext,
-                    syncEngine: environment.syncEngine
+                    syncEngine: environment.syncEngine,
+                    analyticsService: environment.analyticsService
                 )
             )
             .presentationDetents([.fraction(0.58), .large])
@@ -163,7 +168,8 @@ struct RootView: View {
             BulkQuickLogSheet(
                 viewModel: BulkQuickLogViewModel(
                     modelContext: modelContext,
-                    syncEngine: environment.syncEngine
+                    syncEngine: environment.syncEngine,
+                    analyticsService: environment.analyticsService
                 ),
                 onObserveAfterSave: {
                     cameraViewModel.reloadPlants()
@@ -195,17 +201,22 @@ struct RootView: View {
             SettingsView(
                 viewModel: settingsViewModel,
                 planService: environment.planService,
-                careNotificationService: environment.careNotificationService
+                careNotificationService: environment.careNotificationService,
+                analyticsService: environment.analyticsService
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .presentationBackground(NodeColor.graphite)
+            .onAppear {
+                environment.analyticsService.capture(AnalyticsEvent.settingsOpened)
+            }
         }
     }
 
     private func openCompare(for plant: Plant) {
         compareViewModel.configure(plant: plant)
         navigationPath.append(.compare(plant.id))
+        environment.analyticsService.capture(AnalyticsEvent.compareOpened)
     }
 
     private func handleShootTap() {
@@ -221,6 +232,9 @@ struct RootView: View {
     private func selectTab(_ tab: AppTab) {
         navigationPath.removeAll()
         selectedTab = tab
+        if tab == .timeline {
+            environment.analyticsService.capture(AnalyticsEvent.timelineViewed)
+        }
     }
 
     private var selectedTabBinding: Binding<AppTab> {

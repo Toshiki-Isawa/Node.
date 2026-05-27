@@ -10,11 +10,18 @@ final class QuickLogViewModel: ObservableObject {
     let plant: Plant
     private let modelContext: ModelContext
     private let syncEngine: SyncEngine
+    private let analyticsService: AnalyticsService
 
-    init(plant: Plant, modelContext: ModelContext, syncEngine: SyncEngine) {
+    init(
+        plant: Plant,
+        modelContext: ModelContext,
+        syncEngine: SyncEngine,
+        analyticsService: AnalyticsService
+    ) {
         self.plant = plant
         self.modelContext = modelContext
         self.syncEngine = syncEngine
+        self.analyticsService = analyticsService
     }
 
     var recordedAtRange: ClosedRange<Date> {
@@ -79,5 +86,10 @@ final class QuickLogViewModel: ObservableObject {
         plant.updatedAt = .now
         try modelContext.save()
         syncEngine.enqueueSync()
+        for type in orderedTypes {
+            analyticsService.capture(AnalyticsEvent.quickLogAdded, properties: [
+                "type": type.rawValue,
+            ])
+        }
     }
 }

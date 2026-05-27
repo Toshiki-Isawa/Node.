@@ -5,6 +5,7 @@ struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
     @ObservedObject var planService: PlanService
     @ObservedObject var careNotificationService: CareNotificationService
+    @ObservedObject var analyticsService: AnalyticsService
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
 
@@ -23,6 +24,7 @@ struct SettingsView: View {
                     localOnlyNoticeSection
                 }
                 careNotificationSection
+                analyticsOptOutSection
                 localSection
                 if ReleaseConfig.cloudSyncEnabled {
                     syncSection
@@ -135,6 +137,31 @@ struct SettingsView: View {
 
     private var storageLimitLabel: String {
         "クラウド容量 \(StorageFormat.bytes(viewModel.plan.storageLimitBytes))"
+    }
+
+    private var analyticsOptOutSection: some View {
+        SettingsCard(title: "アプリ改善") {
+            Toggle(isOn: analyticsToggleBinding) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("使用状況の送信")
+                        .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                        .foregroundStyle(NodeColor.bone)
+                    Text("匿名のイベント（画面遷移・操作回数など）を PostHog に送信します。個人情報・写真・植物名は含まれません。")
+                        .font(NodeFont.text(11))
+                        .foregroundStyle(NodeColor.fog)
+                }
+            }
+            .tint(NodeColor.moss)
+        }
+    }
+
+    private var analyticsToggleBinding: Binding<Bool> {
+        Binding(
+            get: { !analyticsService.isOptedOut },
+            set: { newValue in
+                analyticsService.setOptedOut(!newValue)
+            }
+        )
     }
 
     private var careNotificationSection: some View {
