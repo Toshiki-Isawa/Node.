@@ -10,11 +10,6 @@ struct QuickLogSheet: View {
 
     private var sheetContent: some View {
         VStack(spacing: NodeSpacing.sp3) {
-            Capsule()
-                .fill(NodeColor.stone)
-                .frame(width: 36, height: 4)
-                .frame(maxWidth: .infinity)
-
             header
 
             VStack(spacing: NodeSpacing.sp2) {
@@ -40,14 +35,7 @@ struct QuickLogSheet: View {
             .opacity(viewModel.canSave ? 1 : 0.45)
         }
         .padding(.horizontal, NodeSpacing.sp5)
-        .padding(.top, 10)
-        .padding(.bottom, NodeSpacing.sp4)
-        .background(NodeColor.charcoal)
-        .clipShape(RoundedRectangle(cornerRadius: NodeRadius.xxl, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: NodeRadius.xxl, style: .continuous)
-                .stroke(NodeColor.hairline, lineWidth: 1)
-        )
+        .padding(.top, NodeSpacing.sp5)
     }
 
     private var header: some View {

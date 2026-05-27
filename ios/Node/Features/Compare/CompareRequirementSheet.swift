@@ -12,11 +12,6 @@ struct CompareRequirementSheet: View {
 
     var body: some View {
         VStack(spacing: NodeSpacing.sp4) {
-            Capsule()
-                .fill(NodeColor.stone)
-                .frame(width: 36, height: 4)
-                .frame(maxWidth: .infinity)
-
             VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
                 MetaLabel(text: plantName, size: 9)
                 Text("比較")
@@ -79,14 +74,7 @@ struct CompareRequirementSheet: View {
             }
         }
         .padding(.horizontal, NodeSpacing.sp5)
-        .padding(.top, 10)
-        .padding(.bottom, NodeSpacing.sp4)
-        .background(NodeColor.charcoal)
-        .clipShape(RoundedRectangle(cornerRadius: NodeRadius.xxl, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: NodeRadius.xxl, style: .continuous)
-                .stroke(NodeColor.hairline, lineWidth: 1)
-        )
+        .padding(.top, NodeSpacing.sp5)
     }
 
     private func statusItem(label: String, value: String) -> some View {
