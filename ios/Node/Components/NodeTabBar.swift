@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum NodeTabBarMetrics {
     /// Floating capsule height (padding + labels).
@@ -10,6 +11,8 @@ enum NodeTabBarMetrics {
 struct NodeTabBar: View {
     @Binding var selectedTab: AppTab
     var onShoot: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: NodeSpacing.sp1) {
@@ -33,15 +36,22 @@ struct NodeTabBar: View {
     private func tabButton(_ tab: AppTab) -> some View {
         let isActive = selectedTab == tab
         return Button {
+            if selectedTab != tab {
+                UISelectionFeedbackGenerator().selectionChanged()
+            }
             selectedTab = tab
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: tab.systemImage)
                     .font(.system(size: 18, weight: isActive ? .medium : .regular))
                     .symbolVariant(isActive ? .fill : .none)
+                    .contentTransition(.symbolEffect(.replace))
+                    .scaleEffect(isActive ? 1.05 : 1)
                 Text(tab.label)
-                    .font(NodeFont.mono(8))
+                    .font(.system(.caption2, design: .monospaced))
                     .tracking(0.3)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
@@ -51,26 +61,39 @@ struct NodeTabBar: View {
                     .fill(isActive ? NodeColor.bark : Color.clear)
             }
             .contentShape(Capsule())
-            .animation(NodeMotion.quietAnimation, value: isActive)
+            .animation(reduceMotion ? nil : NodeMotion.quietAnimation, value: isActive)
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isActive ? .isSelected : [])
+        .buttonStyle(NodePressStyle())
+        .accessibilityLabel(tab.label)
+        .accessibilityAddTraits(isActive ? [.isSelected, .isButton] : .isButton)
     }
 
     private var shootButton: some View {
-        Button(action: onShoot) {
+        Button {
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+            onShoot()
+        } label: {
             VStack(spacing: 4) {
                 Image(systemName: AppTab.shoot.systemImage)
                     .font(.system(size: 20, weight: .regular))
                 Text(AppTab.shoot.label)
-                    .font(NodeFont.mono(8))
+                    .font(.system(.caption2, design: .monospaced))
                     .tracking(0.3)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
             .foregroundStyle(NodeColor.graphite)
-            .background(Capsule().fill(NodeColor.moss))
+            .background(
+                Capsule().fill(NodeColor.moss)
+            )
+            .overlay(
+                Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1)
+            )
         }
         .buttonStyle(NodePressStyle())
+        .accessibilityLabel(AppTab.shoot.label)
+        .accessibilityAddTraits(.isButton)
     }
 }
