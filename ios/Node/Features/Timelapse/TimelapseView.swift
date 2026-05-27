@@ -6,7 +6,6 @@ struct TimelapseView: View {
     @ObservedObject var viewModel: PlantDetailViewModel
     @ObservedObject var timelapseService: TimelapseService
     @ObservedObject var planService: PlanService
-    @ObservedObject var adMobService: AdMobService
     @StateObject private var rangePicker: CompareViewModel
     let imageStore: ImageStore
     @Environment(\.dismiss) private var dismiss
@@ -14,23 +13,17 @@ struct TimelapseView: View {
     @State private var durationSeconds = TimelapseRequirements.defaultDurationSeconds
     @State private var isSavingToPhotos = false
     @State private var saveMessage: String?
-    @State private var isExportUnlocked = false
-    @State private var isPresentingRewardedAd = false
-    @State private var showOfflineAlert = false
-    @State private var exportGateMessage: String?
 
     init(
         viewModel: PlantDetailViewModel,
         timelapseService: TimelapseService,
         planService: PlanService,
-        adMobService: AdMobService,
         observationImageService: ObservationImageService,
         imageStore: ImageStore
     ) {
         self.viewModel = viewModel
         self.timelapseService = timelapseService
         self.planService = planService
-        self.adMobService = adMobService
         self.imageStore = imageStore
         _rangePicker = StateObject(
             wrappedValue: CompareViewModel(observationImageService: observationImageService)
@@ -83,16 +76,6 @@ struct TimelapseView: View {
             rangePicker.configureForTimelapse(plant: viewModel.plant)
         }
         .onDisappear { timelapseService.discardOutput() }
-        .onChange(of: adMobService.hasReachedRetryLimit) { _, reached in
-            if reached {
-                isExportUnlocked = true
-            }
-        }
-        .alert("ネットワーク接続が必要です", isPresented: $showOfflineAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Export を解放するにはインターネット接続が必要です。")
-        }
         .sheet(item: $rangePicker.activeCalendarSide) { side in
             calendarSheet(for: side)
         }
@@ -332,21 +315,12 @@ struct TimelapseView: View {
                 .frame(maxWidth: 220)
                 .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
 
-            if canExport {
-                exportActions(url: url)
-            } else {
-                exportGateCard
-            }
+            exportActions(url: url)
 
             NodeSecondaryButton("もう一度生成", systemImage: "arrow.clockwise") {
-                resetExportGate()
                 timelapseService.discardOutput()
             }
         }
-    }
-
-    private var canExport: Bool {
-        isExportUnlocked || !planService.plan.showsExportAds
     }
 
     @ViewBuilder
@@ -378,57 +352,6 @@ struct TimelapseView: View {
         }
     }
 
-    private var exportGateCard: some View {
-        VStack(spacing: NodeSpacing.sp3) {
-            Text("Export を解放するには短い動画をご覧ください。")
-                .font(NodeFont.text(NodeFont.caption))
-                .foregroundStyle(NodeColor.fog)
-                .multilineTextAlignment(.center)
-
-            if isPresentingRewardedAd || adMobService.state == .presenting {
-                ProgressView()
-                    .tint(NodeColor.moss)
-                MetaLabel(text: "広告を表示中…", color: NodeColor.fog, size: 9)
-            } else if adMobService.state == .loading {
-                ProgressView()
-                    .tint(NodeColor.moss)
-                MetaLabel(text: "広告を読み込み中…", color: NodeColor.fog, size: 9)
-            } else if adMobService.state == .failed {
-                VStack(spacing: NodeSpacing.sp2) {
-                    if let exportGateMessage {
-                        MetaLabel(text: exportGateMessage, color: NodeColor.syncFail, size: 9)
-                    } else {
-                        MetaLabel(text: "広告を読み込めませんでした。", color: NodeColor.syncFail, size: 9)
-                    }
-
-                    if adMobService.hasReachedRetryLimit {
-                        MetaLabel(
-                            text: "Export を解放しました。共有または保存できます。",
-                            color: NodeColor.mossSoft,
-                            size: 9
-                        )
-                    } else {
-                        NodePrimaryButton("再試行") {
-                            Task { await retryRewardedAdLoad() }
-                        }
-                    }
-                }
-            } else {
-                NodePrimaryButton("Export を解放") {
-                    Task { await presentRewardedAdGate() }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(NodeSpacing.sp4)
-        .background(NodeColor.charcoal)
-        .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
-        .overlay(
-            RoundedRectangle(cornerRadius: NodeRadius.lg)
-                .stroke(NodeColor.hairline, lineWidth: 1)
-        )
-    }
-
     private var previewStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: NodeSpacing.sp2) {
@@ -445,12 +368,6 @@ struct TimelapseView: View {
     }
 
     private func generateTimelapse() async {
-        resetExportGate()
-
-        if planService.plan.showsExportAds {
-            await adMobService.preloadRewardedAd(plan: planService.plan)
-        }
-
         await timelapseService.generate(
             observations: viewModel.plant.observations,
             firstIndex: rangePicker.beforeIndex,
@@ -458,67 +375,6 @@ struct TimelapseView: View {
             durationSeconds: durationSeconds,
             maxLongEdge: planService.plan.timelapseMaxLongEdge
         )
-
-        guard timelapseService.outputURL != nil, planService.plan.showsExportAds, !isExportUnlocked else {
-            return
-        }
-
-        if adMobService.hasReachedRetryLimit {
-            isExportUnlocked = true
-            return
-        }
-
-        await presentRewardedAdGate()
-    }
-
-    private func resetExportGate() {
-        isExportUnlocked = false
-        exportGateMessage = nil
-        adMobService.resetForNewExport()
-    }
-
-    private func retryRewardedAdLoad() async {
-        exportGateMessage = nil
-        await adMobService.preloadRewardedAd(plan: planService.plan, isRetry: true)
-
-        if adMobService.hasReachedRetryLimit {
-            isExportUnlocked = true
-            return
-        }
-
-        if adMobService.state == .ready {
-            await presentRewardedAdGate()
-        }
-    }
-
-    private func presentRewardedAdGate() async {
-        guard planService.plan.showsExportAds, !isExportUnlocked else { return }
-
-        if !NetworkMonitor.shared.isConnected {
-            showOfflineAlert = true
-            return
-        }
-
-        isPresentingRewardedAd = true
-        defer { isPresentingRewardedAd = false }
-
-        let result = await adMobService.showRewardedAd(plan: planService.plan)
-
-        switch result {
-        case .completed, .fallbackUnlock:
-            isExportUnlocked = true
-            exportGateMessage = nil
-        case .dismissed:
-            exportGateMessage = "視聴が完了していないため、Export は保留されています。"
-        case .offline:
-            showOfflineAlert = true
-        case .failed:
-            if adMobService.hasReachedRetryLimit {
-                isExportUnlocked = true
-            } else {
-                exportGateMessage = "広告を表示できませんでした。再試行してください。"
-            }
-        }
     }
 
     private func saveToPhotoLibrary(url: URL) async {

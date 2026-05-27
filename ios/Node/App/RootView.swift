@@ -184,7 +184,6 @@ struct RootView: View {
                 ),
                 timelapseService: environment.timelapseService,
                 planService: environment.planService,
-                adMobService: environment.adMobService,
                 observationImageService: environment.observationImageService,
                 imageStore: environment.imageStore
             )

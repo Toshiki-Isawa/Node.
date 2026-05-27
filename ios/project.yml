@@ -13,9 +13,6 @@ packages:
   GoogleSignIn:
     url: https://github.com/google/GoogleSignIn-iOS
     from: 8.0.0
-  GoogleMobileAds:
-    url: https://github.com/googleads/swift-package-manager-google-mobile-ads
-    from: 11.0.0
   PostHog:
     url: https://github.com/PostHog/posthog-ios
     from: 3.0.0
@@ -68,8 +65,6 @@ targets:
         product: Supabase
       - package: GoogleSignIn
         product: GoogleSignIn
-      - package: GoogleMobileAds
-        product: GoogleMobileAds
       - package: PostHog
         product: PostHog
     # v1.0: Sign in with Apple は Personal Team 実機 QA のため未設定。v1.1 で cloudSync 有効化時に復元。

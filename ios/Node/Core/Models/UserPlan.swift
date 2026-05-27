@@ -51,10 +51,6 @@ enum UserPlan: String, Codable, Sendable, CaseIterable {
         }
     }
 
-    var showsExportAds: Bool {
-        self == .seed
-    }
-
     /// タイムラプス Export の長辺上限（px）
     var timelapseMaxLongEdge: CGFloat {
         switch self {

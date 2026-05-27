@@ -38,7 +38,6 @@ final class AppEnvironment: ObservableObject {
     let cameraService: CameraService
     let timelapseService: TimelapseService
     let analyticsService: AnalyticsService
-    let adMobService: AdMobService
 
     let authViewModel: AuthViewModel
 
@@ -55,7 +54,6 @@ final class AppEnvironment: ObservableObject {
             subscriptionService: subscriptionService
         )
         let analyticsService = AnalyticsService()
-        let adMobService = AdMobService(analyticsService: analyticsService)
         let syncEngine = SyncEngine(
             modelContext: modelContext,
             imageStore: imageStore,
@@ -85,7 +83,6 @@ final class AppEnvironment: ObservableObject {
             observationImageService: observationImageService
         )
         self.analyticsService = analyticsService
-        self.adMobService = adMobService
         self.authViewModel = authViewModel
 
         ImagePathMigration.migrateStoredPathsIfNeeded(modelContext: modelContext, imageStore: imageStore)

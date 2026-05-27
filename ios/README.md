@@ -37,7 +37,6 @@ SwiftUI + SwiftData による植物観測アーカイブアプリ。
    - `SUPABASE_ANON_KEY`
    - `GOOGLE_IOS_CLIENT_ID`（Google サインインを使う場合）
    - `GOOGLE_IOS_URL_SCHEME`（Google サインインを使う場合。REVERSED_CLIENT_ID）
-   - `GAD_APP_ID` / `GAD_REWARDED_AD_UNIT_ID`（AdMob。開発中はテスト ID のままで可）
    - `POSTHOG_API_KEY` / `POSTHOG_HOST`（PostHog。未設定時は計測 no-op）
    - `PRIVACY_POLICY_URL` — **v1.0 では未設定**（同梱 HTML を表示。Web 公開時のみ設定）
 3. Bundle ID `app.node.ios` で **Sign in with Apple** ケーパビリティを有効化する。
@@ -61,11 +60,8 @@ SwiftUI + SwiftData による植物観測アーカイブアプリ。
    - Xcode スキーム `Node` の Run オプションで `Node/Config/Products.storekit` が StoreKit Configuration として指定されていることを確認
    - プロダクト ID: `app.node.archive.monthly`（¥480/月）、`app.node.conservatory.monthly`（¥980/月）
 8. ローカルで同期を試す場合は `supabase/functions/.env.example` を `supabase/functions/.env` にコピーし、R2 認証情報を設定して `supabase stop && supabase start` する。
-9. **AdMob / PostHog**（Timelapse Export の Rewarded Ad）:
-   - [AdMob コンソール](https://apps.admob.com/) で iOS アプリ `app.node.ios` を登録し、Rewarded 広告ユニットを作成
-   - [PostHog](https://posthog.com/) でプロジェクトを作成し API Key を取得
-   - Debug ビルドでは Google テスト広告 ID が自動使用される（`ca-app-pub-3940256099942544~1458002511` / `.../1712485313`）
-   - TestFlight / 本番リリース前に `Secrets.xcconfig` の本番 AdMob ID に差し替える
+9. **PostHog**:
+   - [PostHog](https://posthog.com/) でプロジェクトを作成し API Key を取得（未設定時は計測 no-op）
 
 ## アーキテクチャ
 
@@ -108,7 +104,6 @@ Node/
 | `SubscriptionService` | StoreKit 2 商品取得・購入・復元 |
 | `CameraService` | AVFoundation カメラ |
 | `TimelapseService` / `TimelapseVideoGenerator` | 端末内 MP4 生成 |
-| `AdMobService` | Rewarded Ad プリロード・表示（Seed の Export ゲート） |
 | `AnalyticsService` | PostHog イベント送信 |
 | `RecordDeletionService` | 観測 / ログ削除 |
 | `StorageStatsService` | ローカル / 同期状態集計 |
@@ -129,8 +124,7 @@ Collection → Camera → ローカル保存 → SyncEngine → Supabase + R2
 - `TimelapseVideoGenerator`（`AVFoundation`）が観測画像から端末内で MP4 を生成する
 - 最小 5 枚、最大 60 フレーム。Seed は 720p、Archive 以上は 4K
 - クラウドへ動画は保存しない。Export は共有シートまたは写真ライブラリ
-- **Seed プラン**: 生成完了後に Rewarded Ad 視聴で Export 解放（読み込み失敗時はリトライ、3 回失敗でフォールバック解放）
-- **Archive / Conservatory**: 広告なしで即 Export
+- v1.0 では全プラン広告なしで即 Export
 - 詳細は [specification.md](../specification.md) §10.7 / §10.13
 
 ## 認証
