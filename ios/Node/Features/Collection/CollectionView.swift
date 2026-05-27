@@ -208,6 +208,7 @@ struct CollectionView: View {
                             imageStore: imageStore,
                             observationImageService: observationImageService
                         )
+                            .contentShape(Rectangle())
                             .onTapGesture { onPlantTap(plant) }
                     }
                 }
