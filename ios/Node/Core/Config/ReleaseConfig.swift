@@ -12,6 +12,9 @@ enum ReleaseConfig {
     /// タイムラプス機能を露出するか。v1.0 では false（v1.0.1 の Pack で開放）
     static let timelapseEnabled = false
 
+    /// コレクション検索を露出するか。v1.0 では false（v1.0.1 の Pack で開放）
+    static let searchEnabled = false
+
     /// 有料プランのみクラウド同期する（Seed は端末内のみ）
     static var requiresPaidPlanForCloudSync: Bool { cloudSyncEnabled }
 }

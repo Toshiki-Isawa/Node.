@@ -17,7 +17,7 @@ struct CollectionView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 header
-                if isSearchActive {
+                if ReleaseConfig.searchEnabled, isSearchActive {
                     searchBar
                         .padding(.horizontal, NodeSpacing.sp5)
                         .padding(.bottom, NodeSpacing.sp4)
@@ -70,9 +70,11 @@ struct CollectionView: View {
                 )
                 Spacer()
                 HStack(spacing: NodeSpacing.sp4) {
-                    Button(action: isSearchActive ? deactivateSearch : activateSearch) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(isSearchActive ? NodeColor.mossSoft : NodeColor.fog)
+                    if ReleaseConfig.searchEnabled {
+                        Button(action: isSearchActive ? deactivateSearch : activateSearch) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(isSearchActive ? NodeColor.mossSoft : NodeColor.fog)
+                        }
                     }
                     Button(action: { onBulkQuickLog(.general) }) {
                         Image(systemName: "drop.fill")
