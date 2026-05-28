@@ -14,35 +14,62 @@ struct CollectionView: View {
     @FocusState private var isSearchFieldFocused: Bool
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                header
-                if ReleaseConfig.searchEnabled, isSearchActive {
-                    searchBar
-                        .padding(.horizontal, NodeSpacing.sp5)
-                        .padding(.bottom, NodeSpacing.sp4)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+        GeometryReader { proxy in
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            header
+                            if ReleaseConfig.searchEnabled, isSearchActive {
+                                searchBar
+                                    .padding(.horizontal, NodeSpacing.sp5)
+                                    .padding(.bottom, NodeSpacing.sp4)
+                                    .transition(.move(edge: .top).combined(with: .opacity))
+                            }
+                            topBanner
+                        }
+                        .id(Self.topAnchorID)
+
+                        Section {
+                            plantGrid
+                                .padding(.bottom, NodeTabBarMetrics.scrollBottomInset)
+                        } header: {
+                            categoryChips
+                        }
+                    }
                 }
-                if planService.isCloudSyncPausedByStorage, let usage = planService.storageUsage {
-                    StorageLimitBanner(usage: usage, onUpgrade: onSettings)
-                        .padding(.horizontal, NodeSpacing.sp5)
-                        .padding(.bottom, NodeSpacing.sp4)
+                .background(NodeColor.graphite.ignoresSafeArea())
+                .overlay(alignment: .top) {
+                    NodeColor.graphite
+                        .frame(maxWidth: .infinity)
+                        .frame(height: proxy.safeAreaInsets.top)
+                        .ignoresSafeArea(edges: .top)
+                        .allowsHitTesting(false)
                 }
-                if viewModel.plantsNeedingWaterCount > 0 {
-                    todayWateringBanner
-                        .padding(.horizontal, NodeSpacing.sp5)
-                        .padding(.bottom, NodeSpacing.sp4)
+                .toolbar(.hidden, for: .navigationBar)
+                .animation(.easeOut(duration: NodeMotion.durFast), value: isSearchActive)
+                .onAppear {
+                    viewModel.reload()
+                    Task { await planService.refresh() }
                 }
-                categoryChips
-                plantGrid
+                .onChange(of: viewModel.selectedCategory) { _, _ in
+                    scrollToTop(scrollProxy)
+                }
+                .onChange(of: viewModel.searchText) { oldValue, newValue in
+                    // 検索開始 / 終了 / 文字追加のたびに該当範囲が変わるので Top に戻す。
+                    // 連続入力時はアニメが自然に上書きされる。
+                    guard oldValue != newValue else { return }
+                    scrollToTop(scrollProxy)
+                }
             }
-            .padding(.bottom, NodeTabBarMetrics.scrollBottomInset)
         }
-        .background(NodeColor.graphite)
-        .animation(.easeOut(duration: NodeMotion.durFast), value: isSearchActive)
-        .onAppear {
-            viewModel.reload()
-            Task { await planService.refresh() }
+    }
+
+    private static let topAnchorID = "collection-top"
+
+    private func scrollToTop(_ proxy: ScrollViewProxy) {
+        withAnimation(NodeMotion.enterAnimation) {
+            proxy.scrollTo(Self.topAnchorID, anchor: .top)
         }
     }
 
@@ -63,11 +90,13 @@ struct CollectionView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
-            HStack {
-                MetaLabel(
-                    text: Date.now.nodeYearMonthDayWeekday() + " · " + Date.now.nodeTime(),
-                    color: NodeColor.mist
-                )
+            HStack(alignment: .center) {
+                SwiftUI.TimelineView(.periodic(from: .now, by: 60)) { context in
+                    MetaLabel(
+                        text: metaLine(now: context.date),
+                        color: NodeColor.mist
+                    )
+                }
                 Spacer()
                 HStack(spacing: NodeSpacing.sp4) {
                     if ReleaseConfig.searchEnabled {
@@ -75,6 +104,7 @@ struct CollectionView: View {
                             Image(systemName: "magnifyingglass")
                                 .foregroundStyle(isSearchActive ? NodeColor.mossSoft : NodeColor.fog)
                         }
+                        .accessibilityLabel(isSearchActive ? "検索を閉じる" : "検索")
                     }
                     Button(action: { onBulkQuickLog(.general) }) {
                         Image(systemName: "drop.fill")
@@ -91,10 +121,12 @@ struct CollectionView: View {
                                 }
                             }
                     }
+                    .accessibilityLabel("一括クイックログ")
                     Button(action: onSettings) {
                         Image(systemName: "gearshape")
                             .foregroundStyle(NodeColor.fog)
                     }
+                    .accessibilityLabel("設定")
                 }
                 .font(.system(size: 20, weight: .regular))
             }
@@ -125,16 +157,24 @@ struct CollectionView: View {
                     .background(Capsule().fill(NodeColor.moss))
                 }
                 .buttonStyle(NodePressStyle())
-            }
-
-            HStack(spacing: NodeSpacing.sp2) {
-                MetaLabel(text: "コレクション")
-                MetaLabel(text: "· 植物 \(viewModel.plants.count) · 観測 \(viewModel.totalObservations)", color: NodeColor.fog)
+                .accessibilityLabel("コレクションに追加")
             }
         }
         .padding(.horizontal, NodeSpacing.sp5)
         .nodeScreenTopPadding()
         .padding(.bottom, NodeSpacing.sp4)
+    }
+
+    private func metaLine(now: Date) -> String {
+        var parts: [String] = [
+            now.nodeYearMonthDayWeekday(),
+            now.nodeTime(),
+        ]
+        if !viewModel.plants.isEmpty {
+            parts.append("植物 \(viewModel.plants.count)")
+            parts.append("観測 \(viewModel.totalObservations)")
+        }
+        return parts.joined(separator: " · ")
     }
 
     private var searchBar: some View {
@@ -178,6 +218,19 @@ struct CollectionView: View {
         )
     }
 
+    @ViewBuilder
+    private var topBanner: some View {
+        if planService.isCloudSyncPausedByStorage, let usage = planService.storageUsage {
+            StorageLimitBanner(usage: usage, onUpgrade: onSettings)
+                .padding(.horizontal, NodeSpacing.sp5)
+                .padding(.bottom, NodeSpacing.sp4)
+        } else if viewModel.plantsNeedingWaterCount > 0 {
+            todayWateringBanner
+                .padding(.horizontal, NodeSpacing.sp5)
+                .padding(.bottom, NodeSpacing.sp4)
+        }
+    }
+
     private var todayWateringBanner: some View {
         Button(action: { onBulkQuickLog(.wateringReminder) }) {
             HStack(spacing: NodeSpacing.sp3) {
@@ -207,24 +260,41 @@ struct CollectionView: View {
                     )
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NodePressStyle())
     }
 
     private var categoryChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: NodeSpacing.sp2) {
-                ForEach(viewModel.categories, id: \.self) { category in
-                    NodeChip(
-                        title: category,
-                        isSelected: viewModel.selectedCategory == category
-                    ) {
-                        viewModel.selectedCategory = category
+        ZStack(alignment: .trailing) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: NodeSpacing.sp2) {
+                    ForEach(viewModel.categories, id: \.self) { category in
+                        NodeChip(
+                            title: category,
+                            isSelected: viewModel.selectedCategory == category,
+                            count: viewModel.count(for: category)
+                        ) {
+                            viewModel.selectedCategory = category
+                        }
                     }
                 }
+                .padding(.horizontal, NodeSpacing.sp5)
+                .padding(.vertical, NodeSpacing.sp2)
             }
-            .padding(.horizontal, NodeSpacing.sp5)
+
+            LinearGradient(
+                colors: [NodeColor.graphite.opacity(0), NodeColor.graphite],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(width: 24)
+            .allowsHitTesting(false)
         }
-        .padding(.bottom, NodeSpacing.sp4)
+        .background(NodeColor.graphite)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(NodeColor.hairline)
+                .frame(height: 1)
+        }
     }
 
     private var plantGrid: some View {
@@ -238,44 +308,60 @@ struct CollectionView: View {
                 }
             } else {
                 LazyVGrid(
-                    columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
-                    spacing: 10
+                    columns: [
+                        GridItem(.flexible(), spacing: NodeSpacing.sp3),
+                        GridItem(.flexible(), spacing: NodeSpacing.sp3),
+                    ],
+                    spacing: NodeSpacing.sp3
                 ) {
                     ForEach(viewModel.filteredPlants, id: \.id) { plant in
-                        PlantGridCell(
-                            plant: plant,
-                            imageStore: imageStore,
-                            observationImageService: observationImageService
-                        )
-                            .contentShape(Rectangle())
-                            .onTapGesture { onPlantTap(plant) }
+                        Button {
+                            onPlantTap(plant)
+                        } label: {
+                            PlantGridCell(
+                                plant: plant,
+                                imageStore: imageStore,
+                                observationImageService: observationImageService
+                            )
+                        }
+                        .buttonStyle(NodePressStyle())
                     }
                 }
                 .padding(.horizontal, NodeSpacing.sp4)
+                .padding(.top, NodeSpacing.sp3)
             }
         }
     }
 
     private var emptyCollectionState: some View {
-        VStack(spacing: NodeSpacing.sp4) {
-            MetaLabel(text: "まだ植物がありません。", color: NodeColor.fog)
+        VStack(spacing: NodeSpacing.sp5) {
+            Image(systemName: "leaf")
+                .font(.system(size: 40, weight: .light))
+                .foregroundStyle(NodeColor.fossil)
+                .frame(width: 88, height: 88)
+                .background(
+                    Circle()
+                        .fill(NodeColor.bark)
+                        .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
+                )
 
-            Button(action: onAddPlant) {
-                HStack(spacing: 5) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 11, weight: .semibold))
-                    Text("コレクションに追加して観測を始める")
-                        .font(NodeFont.text(12, weight: .medium))
-                }
-                .foregroundStyle(NodeColor.graphite)
-                .padding(.horizontal, NodeSpacing.sp3)
-                .padding(.vertical, 7)
-                .background(Capsule().fill(NodeColor.moss))
+            VStack(spacing: NodeSpacing.sp2) {
+                Text("コレクションは空です")
+                    .font(NodeFont.text(NodeFont.title3, weight: .light))
+                    .foregroundStyle(NodeColor.bone)
+                Text("最初の植物を追加して観測を始めましょう。\n写真と日記で成長を時系列で残せます。")
+                    .font(NodeFont.text(NodeFont.callout))
+                    .foregroundStyle(NodeColor.fog)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .buttonStyle(NodePressStyle())
+
+            NodePrimaryButton("植物を追加", systemImage: "plus", action: onAddPlant)
+                .padding(.horizontal, NodeSpacing.sp8)
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, NodeSpacing.sp8)
+        .padding(.horizontal, NodeSpacing.sp5)
+        .padding(.top, NodeSpacing.sp10)
     }
 }
 
@@ -310,6 +396,10 @@ private struct PlantGridCell: View {
                         BottomGradientOverlay()
                     }
                 )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: NodeRadius.sm)
+                    .stroke(NodeColor.hairline, lineWidth: 1)
             )
 
             VStack(alignment: .leading, spacing: 2) {

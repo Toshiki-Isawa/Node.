@@ -33,6 +33,10 @@ final class CollectionViewModel: ObservableObject {
         return ["すべて"] + set.filter { $0 != "すべて" }.sorted()
     }
 
+    func count(for category: String) -> Int {
+        category == "すべて" ? plants.count : plants.filter { $0.category == category }.count
+    }
+
     var filteredPlants: [Plant] {
         let base: [Plant]
         if selectedCategory == "すべて" {

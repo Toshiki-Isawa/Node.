@@ -44,26 +44,34 @@ struct MetaLabel: View {
 struct NodeChip: View {
     let title: String
     let isSelected: Bool
+    var count: Int? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .font(NodeFont.mono(NodeFont.micro))
-                .tracking(0.6)
-                .padding(.horizontal, NodeSpacing.sp3)
-                .padding(.vertical, 7)
-                .foregroundStyle(isSelected ? NodeColor.mossSoft : NodeColor.fog)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? NodeColor.moss.opacity(0.14) : .clear)
-                )
-                .overlay(
-                    Capsule()
-                        .stroke(isSelected ? NodeColor.moss.opacity(0.4) : NodeColor.hairline, lineWidth: 1)
-                )
+            HStack(spacing: 6) {
+                Text(title)
+                    .font(NodeFont.mono(NodeFont.micro))
+                    .tracking(0.6)
+                if let count {
+                    Text("\(count)")
+                        .font(NodeFont.mono(NodeFont.micro))
+                        .foregroundStyle(isSelected ? NodeColor.mossSoft.opacity(0.75) : NodeColor.mist)
+                }
+            }
+            .padding(.horizontal, NodeSpacing.sp3)
+            .padding(.vertical, 7)
+            .foregroundStyle(isSelected ? NodeColor.mossSoft : NodeColor.fog)
+            .background(
+                Capsule()
+                    .fill(isSelected ? NodeColor.moss.opacity(0.14) : .clear)
+            )
+            .overlay(
+                Capsule()
+                    .stroke(isSelected ? NodeColor.moss.opacity(0.4) : NodeColor.hairline, lineWidth: 1)
+            )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NodePressStyle())
     }
 }
 
