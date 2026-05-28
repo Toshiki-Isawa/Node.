@@ -85,12 +85,10 @@ struct CollectionView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
             HStack(alignment: .center) {
-                SwiftUI.TimelineView(.periodic(from: .now, by: 60)) { context in
-                    MetaLabel(
-                        text: "\(metaLine(now: context.date))",
-                        color: NodeColor.mist
-                    )
-                }
+                MetaLabel(
+                    text: "\(metaLine(now: Date()))",
+                    color: NodeColor.mist
+                )
                 Spacer()
                 HStack(spacing: NodeSpacing.sp4) {
                     if ReleaseConfig.searchEnabled {
@@ -162,7 +160,6 @@ struct CollectionView: View {
     private func metaLine(now: Date) -> String {
         var parts: [String] = [
             now.nodeYearMonthDayWeekday(),
-            now.nodeTime(),
         ]
         if !viewModel.plants.isEmpty {
             parts.append("植物 \(viewModel.plants.count)")
