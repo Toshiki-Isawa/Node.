@@ -124,8 +124,8 @@ Collection → Camera → ローカル保存 → SyncEngine → Supabase + R2
 - `TimelapseVideoGenerator`（`AVFoundation`）が観測画像から端末内で MP4 を生成する
 - 最小 5 枚、最大 60 フレーム。Seed は 720p、Archive 以上は 4K
 - クラウドへ動画は保存しない。Export は共有シートまたは写真ライブラリ
-- v1.0 では全プラン広告なしで即 Export
-- 詳細は [specification.md](../specification.md) §10.7 / §10.13
+- v1.0 では全プランで即 Export
+- 詳細は [specification.md](../specification.md) §10.7
 
 ## 認証
 

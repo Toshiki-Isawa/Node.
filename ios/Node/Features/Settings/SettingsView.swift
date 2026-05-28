@@ -413,7 +413,7 @@ struct SettingsView: View {
                     features: [
                         "Original クラウド同期",
                         "50GB Archive",
-                        "広告なし Export · 4K",
+                        "Export · 4K",
                         "完全復元"
                     ],
                     actionTitle: archiveButtonTitle,

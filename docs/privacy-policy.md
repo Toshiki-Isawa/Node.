@@ -72,7 +72,7 @@ Node.（以下「本アプリ」）は、植物の観測・成長記録を蓄積
 - 観測写真・タイムラプス動画
 - 位置情報・連絡先・電話番号・メールアドレス
 
-PostHog は first-party 分析として利用し、第三者広告ネットワークと突合しません。iOS の App Tracking Transparency 許可は求めません。
+PostHog は first-party 分析として利用します。iOS の App Tracking Transparency 許可は求めません。
 
 #### オプトアウト
 
@@ -233,7 +233,7 @@ To improve and maintain the quality of the App, we collect anonymous event data 
 
 **Not collected:** Plant names, species, notes, or any user record content; observation photos and timelapse videos; location, contacts, phone number, or email address.
 
-PostHog is used as first-party analytics and is not cross-referenced with third-party ad networks. We do not request iOS App Tracking Transparency permission.
+PostHog is used as first-party analytics. We do not request iOS App Tracking Transparency permission.
 
 **Opt-out:** Turn off the "Send usage data" toggle under the "App Improvement" section of the App's Settings screen to stop further event transmission.
 

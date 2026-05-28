@@ -74,9 +74,9 @@ v1.1: Collection → Camera → ローカル保存 → SyncEngine → Supabase +
 
 | プラン | 月額 | クラウド容量 | 同期 | Timelapse Export |
 |--------|------|-------------|------|------------------|
-| Seed | 無料 | —（端末内のみ） | × | 720p（v1.0: 広告なし） |
-| Archive | ¥480 | 50 GB | Original | 4K・広告なし |
-| Conservatory | ¥980 | 500 GB | Original | 4K・広告なし |
+| Seed | 無料 | —（端末内のみ） | × | 720p |
+| Archive | ¥480 | 50 GB | Original | 4K |
+| Conservatory | ¥980 | 500 GB | Original | 4K |
 
 StoreKit プロダクト ID: `app.node.archive.monthly` / `app.node.conservatory.monthly`
 
