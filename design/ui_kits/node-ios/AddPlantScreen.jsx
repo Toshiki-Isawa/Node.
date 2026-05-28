@@ -1,7 +1,7 @@
 // AddPlantScreen.jsx — New plant registration. First observation = Day 0.
 
 function AddPlantScreen({ onBack, onSave }) {
-  const cats = ['アガベ', '塊根', 'ビカクシダ', 'アロイド', 'その他'];
+  const cats = ['アガベ', '塊根', 'ビカクシダ', 'アロイド', 'ユーフォルビア', 'その他'];
   return (
     <div style={{ background: N.graphite, minHeight: '100%', color: N.bone, fontFamily: N.fontText, position: 'relative' }}>
       {/* Top bar */}

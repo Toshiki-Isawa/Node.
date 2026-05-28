@@ -27,7 +27,7 @@ function CollectionScreen({ onPlantTap, onAddPlant }) {
 
       {/* Filter chips */}
       <div style={{ padding: '0 20px 16px', display: 'flex', gap: 8, overflowX: 'auto' }}>
-        {['すべて', 'アガベ', '塙根', 'ビカクシダ', 'アロイド'].map((t, i) => (
+        {['すべて', 'アガベ', '塊根', 'ビカクシダ', 'アロイド', 'ユーフォルビア'].map((t, i) => (
           <div key={t} style={{
             padding: '7px 12px', borderRadius: 999,
             background: i === 0 ? 'color-mix(in oklab, oklch(0.58 0.05 135) 14%, transparent)' : 'transparent',

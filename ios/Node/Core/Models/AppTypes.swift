@@ -69,6 +69,7 @@ enum PlantCategory: String, Codable, CaseIterable, Identifiable {
     case caudex = "塊根"
     case platycerium = "ビカクシダ"
     case aroid = "アロイド"
+    case euphorbia = "ユーフォルビア"
     case other = "その他"
 
     var id: String { rawValue }
