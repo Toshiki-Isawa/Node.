@@ -57,7 +57,7 @@ final class AnalyticsService: ObservableObject {
         }
 
         let host = AnalyticsConfig.host
-        let config = PostHogConfig(apiKey: apiKey, host: host)
+        let config = PostHogConfig(projectToken: apiKey, host: host)
         config.optOut = isOptedOut
         PostHogSDK.shared.setup(config)
         isConfigured = true
