@@ -385,7 +385,7 @@ struct ObservationTimelineRow: View {
 }
 
 private struct TimelineRowActionsMenu: View {
-    let editLabel: String
+    let editLabel: LocalizedStringKey
     let onEdit: () -> Void
     let onDelete: () -> Void
 

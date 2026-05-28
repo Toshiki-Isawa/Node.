@@ -29,7 +29,7 @@ final class CompareViewModel: ObservableObject {
 
     private var calendar: Calendar {
         var cal = Calendar(identifier: .gregorian)
-        cal.locale = Locale(identifier: "ja_JP")
+        cal.locale = .current
         return cal
     }
 

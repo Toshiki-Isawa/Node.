@@ -151,7 +151,7 @@ struct CompareView: View {
     private func modeButton(
         mode: CompareDisplayMode,
         systemImage: String,
-        accessibilityLabel: String,
+        accessibilityLabel: LocalizedStringKey,
         width: CGFloat,
         height: CGFloat
     ) -> some View {

@@ -163,9 +163,10 @@ final class SubscriptionService: ObservableObject {
     }
 
     func priceLabel(for product: Product?, fallbackPlan: UserPlan) -> String? {
+        // StoreKit が storefront に合わせて自動でローカライズした価格表記を使う。
         let price: String?
         if let product {
-            price = Self.formattedYenPrice(product)
+            price = product.displayPrice
         } else {
             price = fallbackPlan.marketingMonthlyPrice
         }
@@ -174,23 +175,14 @@ final class SubscriptionService: ObservableObject {
         guard let product,
               let period = product.subscription?.subscriptionPeriod
         else {
-            return product == nil ? "\(price)/月" : price
+            return product == nil ? String(localized: "\(price)/月") : price
         }
 
         switch period.unit {
-        case .month: return "\(price)/月"
-        case .year: return "\(price)/年"
+        case .month: return String(localized: "\(price)/月")
+        case .year: return String(localized: "\(price)/年")
         default: return price
         }
-    }
-
-    /// 日本向けアプリのため、storefront が US でも UI は円表記に統一する。
-    private static func formattedYenPrice(_ product: Product) -> String {
-        product.price.formatted(
-            .currency(code: "JPY")
-                .locale(Locale(identifier: "ja_JP"))
-                .precision(.fractionLength(0...0))
-        )
     }
 
     private func listenForTransactions() async {
