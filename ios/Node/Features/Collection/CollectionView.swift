@@ -250,6 +250,7 @@ struct CollectionView: View {
                             .stroke(NodeColor.moss.opacity(0.35), lineWidth: 1)
                     )
             )
+            .contentShape(Rectangle())
         }
         .buttonStyle(NodePressStyle())
     }
@@ -272,16 +273,13 @@ struct CollectionView: View {
                     spacing: NodeSpacing.sp3
                 ) {
                     ForEach(viewModel.filteredPlants, id: \.id) { plant in
-                        Button {
-                            onPlantTap(plant)
-                        } label: {
-                            PlantGridCell(
-                                plant: plant,
-                                imageStore: imageStore,
-                                observationImageService: observationImageService
-                            )
-                        }
-                        .buttonStyle(NodePressStyle())
+                        PlantGridCell(
+                            plant: plant,
+                            imageStore: imageStore,
+                            observationImageService: observationImageService
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture { onPlantTap(plant) }
                     }
                 }
                 .padding(.horizontal, NodeSpacing.sp4)
