@@ -137,7 +137,7 @@
         }
       }
     },
-    "%lld 株が水やり時期です: %@" : {
+    "%lld 株が水やり待ちです: %@" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -160,7 +160,7 @@
         }
       }
     },
-    "%lld 株が水やり時期です: %@ 他 %lld 株" : {
+    "%lld 株が水やり待ちです: %@ 他 %lld 株" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {

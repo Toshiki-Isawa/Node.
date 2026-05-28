@@ -178,10 +178,10 @@ final class CareNotificationService: NSObject, ObservableObject {
         let names = plants.prefix(3).map(\.name)
         let leadingNames = names.joined(separator: listSeparator)
         if plants.count <= 3 {
-            return String(localized: "\(plants.count) 株が水やり時期です: \(leadingNames)")
+            return String(localized: "\(plants.count) 株が水やり待ちです: \(leadingNames)")
         }
         let remaining = plants.count - 3
-        return String(localized: "\(plants.count) 株が水やり時期です: \(leadingNames) 他 \(remaining) 株")
+        return String(localized: "\(plants.count) 株が水やり待ちです: \(leadingNames) 他 \(remaining) 株")
     }
 
     private func identifier(for dayOffset: Int) -> String {

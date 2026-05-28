@@ -68,7 +68,7 @@ enum SyncStatus {
 
 // CareNotificationService
 content.title = String(localized: "今日の水やり")
-content.body  = String(localized: "\(count) 株が水やり時期です: \(names)")
+content.body  = String(localized: "\(count) 株が水やり待ちです: \(names)")
 
 // Error
 errorMessage = String(localized: "保存に失敗しました。")
@@ -109,7 +109,7 @@ String(localized: "\(plantCount) 株")
 英語では単数・複数で語尾が変わる箇所は **必ず** xcstrings の `variations.plural` で記述する。
 代表ケース: 「N 株」「N 日」「N 日前」「N 日遅れ」「N 回」「N 件」など。
 
-例: [ios/Node/Localizable.xcstrings](ios/Node/Localizable.xcstrings) の `"%lld 株が水やり時期です: %@"`, `"%lld日前"` などを参照。
+例: [ios/Node/Localizable.xcstrings](ios/Node/Localizable.xcstrings) の `"%lld 株が水やり待ちです: %@"`, `"%lld日前"` などを参照。
 
 ### 日時・数値フォーマット
 
