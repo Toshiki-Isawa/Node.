@@ -127,11 +127,12 @@ final class CameraService: NSObject, ObservableObject {
             }
         }
 
+        nonisolated(unsafe) let session = session
         await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                self?.session.startRunning()
+            DispatchQueue.global(qos: .userInitiated).async {
+                session.startRunning()
                 Task { @MainActor in
-                    self?.isRunning = true
+                    self.isRunning = true
                     continuation.resume()
                 }
             }
@@ -144,8 +145,9 @@ final class CameraService: NSObject, ObservableObject {
         guard !Self.usesPhotoLibraryFallback else { return }
         guard session.isRunning else { return }
         motionManager.stopUpdates()
+        nonisolated(unsafe) let session = session
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.session.stopRunning()
+            session.stopRunning()
             Task { @MainActor in
                 self?.isRunning = false
                 self?.isCaptureReady = false
@@ -285,8 +287,6 @@ private enum CameraOrientation {
         guard let connection else { return }
         if connection.isVideoRotationAngleSupported(90) {
             connection.videoRotationAngle = 90
-        } else if connection.isVideoOrientationSupported {
-            connection.videoOrientation = .portrait
         }
     }
 }

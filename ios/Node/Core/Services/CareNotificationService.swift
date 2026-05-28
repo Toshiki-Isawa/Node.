@@ -91,7 +91,7 @@ final class CareNotificationService: NSObject, ObservableObject {
 
     /// 観測・QuickLog・植物編集など、対象株が変わり得るイベント後に呼ぶ。
     func rescheduleIfNeeded() async {
-        await center.removePendingNotificationRequests(
+        center.removePendingNotificationRequests(
             withIdentifiers: pendingIdentifiers()
         )
 
