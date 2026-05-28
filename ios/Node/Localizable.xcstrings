@@ -2265,16 +2265,6 @@
         }
       }
     },
-    "新規登録" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign Up"
-          }
-        }
-      }
-    },
     "施肥" : {
       "localizations" : {
         "en" : {

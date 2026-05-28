@@ -15,7 +15,7 @@ function AddPlantScreen({ onBack, onSave }) {
         }}>
           <Icon.Close width={18} height={18}/>
         </div>
-        <div style={{ fontFamily: N.fontText, fontSize: 15, fontWeight: 500 }}>新規登録</div>
+        <div style={{ fontFamily: N.fontText, fontSize: 15, fontWeight: 500 }}>コレクションに追加</div>
         <div onClick={onSave} style={{
           padding: '8px 4px', color: N.fossil, fontFamily: N.fontText, fontSize: 15, fontWeight: 500, cursor: 'pointer',
         }}>保存</div>

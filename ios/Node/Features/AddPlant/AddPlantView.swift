@@ -49,7 +49,7 @@ struct AddPlantView: View {
                     .foregroundStyle(NodeColor.fog)
             }
             Spacer()
-            Text("新規登録")
+            Text("コレクションに追加")
                 .font(NodeFont.text(NodeFont.title3, weight: .medium))
                 .foregroundStyle(NodeColor.bone)
             Spacer()
