@@ -14,17 +14,17 @@ enum DeleteRecordTarget: Identifiable {
 
     var title: String {
         switch self {
-        case .observation: return "観測を削除"
-        case .growthLog: return "ログを削除"
+        case .observation: return String(localized: "観測を削除")
+        case .growthLog: return String(localized: "ログを削除")
         }
     }
 
     var message: String {
         switch self {
         case .observation:
-            return "この観測記録を削除します。写真も端末から削除され、元に戻せません。"
+            return String(localized: "この観測記録を削除します。写真も端末から削除され、元に戻せません。")
         case .growthLog:
-            return "このログを削除します。元に戻せません。"
+            return String(localized: "このログを削除します。元に戻せません。")
         }
     }
 }

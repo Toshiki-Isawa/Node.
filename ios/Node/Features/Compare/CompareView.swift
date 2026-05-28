@@ -16,7 +16,7 @@ struct CompareView: View {
                     EmptyStateView(message: "比較には2回以上の観測が必要です。")
                 } else {
                     if let error = viewModel.imageLoadError {
-                        MetaLabel(text: error, color: NodeColor.syncFail)
+                        MetaLabel(text: "\(error)", color: NodeColor.syncFail)
                     }
                     comparisonBlock
                     intervalCard
@@ -51,7 +51,7 @@ struct CompareView: View {
             Spacer()
             VStack(spacing: 2) {
                 if let plant = viewModel.plant {
-                    MetaLabel(text: plant.name, size: 9)
+                    MetaLabel(text: "\(plant.name)", size: 9)
                 }
                 Text("比較")
                     .font(NodeFont.text(NodeFont.callout, weight: .medium))
@@ -236,7 +236,7 @@ struct CompareView: View {
         .overlay(RoundedRectangle(cornerRadius: NodeRadius.lg).stroke(NodeColor.hairline, lineWidth: 1))
     }
 
-    private func statItem(title: String, value: String, unit: String) -> some View {
+    private func statItem(title: LocalizedStringKey, value: String, unit: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             MetaLabel(text: title, size: 9)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -288,7 +288,7 @@ struct CompareView: View {
         }
     }
 
-    private func timelapseStatusItem(label: String, value: String) -> some View {
+    private func timelapseStatusItem(label: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             MetaLabel(text: label, size: 9)
             Text(value)

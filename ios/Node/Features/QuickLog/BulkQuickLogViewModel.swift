@@ -57,13 +57,14 @@ final class BulkQuickLogViewModel: ObservableObject {
 
     var selectedPlantSummaryText: String {
         let selected = selectedPlants
-        guard !selected.isEmpty else { return "植物を選択してください" }
+        guard !selected.isEmpty else { return String(localized: "植物を選択してください") }
 
-        let names = selected.prefix(2).map(\.name).joined(separator: "、")
+        let separator = String(localized: "、")
+        let names = selected.prefix(2).map(\.name).joined(separator: separator)
         if selected.count <= 2 {
             return names
         }
-        return "\(names) 他 \(selected.count - 2) 株"
+        return String(localized: "\(names) 他 \(selected.count - 2) 株")
     }
 
     var trimmedMemo: String {

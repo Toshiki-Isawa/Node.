@@ -10,7 +10,7 @@ enum AppInfo {
     }
 
     static var versionLabel: String {
-        "バージョン \(marketingVersion) (\(buildNumber))"
+        String(localized: "バージョン \(marketingVersion) (\(buildNumber))")
     }
 
     /// App Store Connect で確定後に差し替える。nil の間は Settings の「評価する」ボタンを非表示。

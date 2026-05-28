@@ -249,7 +249,7 @@ struct PlantDetailView: View {
         .padding(.horizontal, NodeSpacing.sp4)
     }
 
-    private var timelineHeaderLabel: String {
+    private var timelineHeaderLabel: LocalizedStringKey {
         let logCount = plant.growthLogs.count
         if logCount > 0 {
             return "履歴 · 観測 \(plant.observationCount) · ログ \(logCount)"
@@ -299,7 +299,7 @@ struct GrowthLogTimelineRow: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     MetaLabel(
-                        text: log.type.label.uppercased() + " · " + log.createdAt.nodeMonthDayTime(),
+                        text: "\(log.type.label) · \(log.createdAt.nodeMonthDayTime())",
                         color: NodeColor.olive,
                         size: 9
                     )
@@ -358,7 +358,7 @@ struct ObservationTimelineRow: View {
 
                     VStack(alignment: .leading, spacing: 4) {
                         MetaLabel(
-                            text: observation.createdAt.nodeMonthDayTime(),
+                            text: "\(observation.createdAt.nodeMonthDayTime())",
                             color: NodeColor.fog,
                             size: 9
                         )

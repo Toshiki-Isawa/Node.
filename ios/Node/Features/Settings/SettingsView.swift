@@ -130,14 +130,14 @@ struct SettingsView: View {
         }
     }
 
-    private var deleteAccountMessage: String {
+    private var deleteAccountMessage: LocalizedStringKey {
         if viewModel.plan.isPaid {
             return "クラウド上のデータは完全に削除されます。有料プランは App Store で別途解約してください。端末内のデータは残ります。"
         }
         return "クラウド上のデータは完全に削除されます。端末内のデータは残ります。"
     }
 
-    private var storageLimitLabel: String {
+    private var storageLimitLabel: LocalizedStringKey {
         "クラウド容量 \(StorageFormat.bytes(viewModel.plan.storageLimitBytes))"
     }
 
@@ -311,7 +311,7 @@ struct SettingsView: View {
 
                     SettingsMetricRow(
                         label: "残り容量",
-                        value: StorageFormat.bytes(usage.remainingBytes),
+                        value: "\(StorageFormat.bytes(usage.remainingBytes))",
                         valueColor: usage.isAtLimit ? NodeColor.syncPaused : NodeColor.bone
                     )
 
@@ -338,24 +338,24 @@ struct SettingsView: View {
             VStack(spacing: NodeSpacing.sp2) {
                 SettingsMetricRow(
                     label: "原画",
-                    value: StorageFormat.bytes(viewModel.localBreakdown.originalsBytes)
+                    value: "\(StorageFormat.bytes(viewModel.localBreakdown.originalsBytes))"
                 )
                 SettingsMetricRow(
                     label: "サムネイル",
-                    value: StorageFormat.bytes(viewModel.localBreakdown.thumbnailsBytes)
+                    value: "\(StorageFormat.bytes(viewModel.localBreakdown.thumbnailsBytes))"
                 )
                 SettingsMetricRow(
                     label: "キャッシュ",
-                    value: StorageFormat.bytes(viewModel.localBreakdown.cacheBytes)
+                    value: "\(StorageFormat.bytes(viewModel.localBreakdown.cacheBytes))"
                 )
                 SettingsMetricRow(
                     label: "データベース",
-                    value: StorageFormat.bytes(viewModel.localBreakdown.databaseBytes)
+                    value: "\(StorageFormat.bytes(viewModel.localBreakdown.databaseBytes))"
                 )
                 Divider().overlay(NodeColor.hairline)
                 SettingsMetricRow(
                     label: "合計",
-                    value: StorageFormat.bytes(viewModel.localBreakdown.totalBytes),
+                    value: "\(StorageFormat.bytes(viewModel.localBreakdown.totalBytes))",
                     valueColor: NodeColor.bone,
                     isEmphasized: true
                 )
@@ -445,7 +445,7 @@ struct SettingsView: View {
         }
     }
 
-    private var archiveButtonTitle: String {
+    private var archiveButtonTitle: LocalizedStringKey {
         if viewModel.isPurchasing { return "処理中…" }
         if let price = viewModel.archivePriceLabel {
             return "Archive にアップグレード · \(price)"
@@ -453,7 +453,7 @@ struct SettingsView: View {
         return "Archive にアップグレード"
     }
 
-    private var conservatoryButtonTitle: String {
+    private var conservatoryButtonTitle: LocalizedStringKey {
         if viewModel.isPurchasing { return "処理中…" }
         if let price = viewModel.conservatoryPriceLabel {
             return "Conservatory にアップグレード · \(price)"
@@ -552,7 +552,7 @@ struct SettingsView: View {
         .buttonStyle(.plain)
     }
 
-    private func appRow(systemImage: String, title: String, subtitle: String) -> some View {
+    private func appRow(systemImage: String, title: LocalizedStringKey, subtitle: LocalizedStringKey) -> some View {
         HStack(spacing: NodeSpacing.sp3) {
             Image(systemName: systemImage)
                 .font(.system(size: 16, weight: .regular))
@@ -702,8 +702,8 @@ struct SettingsView: View {
     }
 
     private func accountActionRow(
-        title: String,
-        subtitle: String,
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey,
         systemImage: String,
         titleColor: Color = NodeColor.bone,
         action: @escaping () -> Void
@@ -738,23 +738,23 @@ struct SettingsView: View {
     private func upgradePlanCard(
         plan: UserPlan,
         price: String?,
-        features: [String],
-        actionTitle: String,
+        features: [LocalizedStringKey],
+        actionTitle: LocalizedStringKey,
         action: @escaping () -> Void
     ) -> some View {
-        SettingsCard(title: plan.displayName) {
+        SettingsCard(title: "\(plan.displayName)") {
             VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
                 Text(plan.tagline)
                     .font(NodeFont.text(NodeFont.callout))
                     .foregroundStyle(NodeColor.paper)
 
                 if let price {
-                    MetaLabel(text: price, color: NodeColor.mossSoft, size: 9)
+                    MetaLabel(text: "\(price)", color: NodeColor.mossSoft, size: 9)
                 }
 
                 VStack(alignment: .leading, spacing: NodeSpacing.sp1) {
-                    ForEach(features, id: \.self) { feature in
-                        planFeature(feature)
+                    ForEach(0..<features.count, id: \.self) { idx in
+                        planFeature(features[idx])
                     }
                 }
 
@@ -787,7 +787,7 @@ struct SettingsView: View {
             )
     }
 
-    private func planFeature(_ text: String) -> some View {
+    private func planFeature(_ text: LocalizedStringKey) -> some View {
         HStack(spacing: NodeSpacing.sp2) {
             Image(systemName: "checkmark")
                 .font(.system(size: 10, weight: .semibold))
@@ -800,7 +800,7 @@ struct SettingsView: View {
 }
 
 private struct SettingsCard<Content: View>: View {
-    let title: String
+    let title: LocalizedStringKey
     @ViewBuilder let content: Content
 
     var body: some View {
@@ -822,15 +822,15 @@ private struct SettingsCard<Content: View>: View {
 }
 
 private struct SettingsMetricRow: View {
-    let label: String
-    let value: String
+    let label: LocalizedStringKey
+    let value: LocalizedStringKey
     var valueColor: Color = NodeColor.fog
     var isEmphasized: Bool = false
     var accessory: AnyView?
 
     init(
-        label: String,
-        value: String,
+        label: LocalizedStringKey,
+        value: LocalizedStringKey,
         valueColor: Color = NodeColor.fog,
         isEmphasized: Bool = false
     ) {
@@ -842,8 +842,8 @@ private struct SettingsMetricRow: View {
     }
 
     init<Accessory: View>(
-        label: String,
-        value: String,
+        label: LocalizedStringKey,
+        value: LocalizedStringKey,
         valueColor: Color = NodeColor.fog,
         isEmphasized: Bool = false,
         accessory: Accessory

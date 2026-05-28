@@ -32,7 +32,7 @@ final class PlantDetailViewModel: ObservableObject {
 
     private var calendar: Calendar {
         var cal = Calendar(identifier: .gregorian)
-        cal.locale = NodeDateFormat.locale
+        cal.locale = .current
         return cal
     }
 
@@ -161,16 +161,16 @@ final class PlantDetailViewModel: ObservableObject {
     }
 
     var lastWaterPrimaryText: String {
-        guard let lastWateredDate else { return "記録なし" }
+        guard let lastWateredDate else { return String(localized: "記録なし") }
         let days = calendar.dateComponents(
             [.day],
             from: calendar.startOfDay(for: lastWateredDate),
             to: calendar.startOfDay(for: .now)
         ).day ?? 0
         switch days {
-        case 0: return "今日"
-        case 1: return "昨日"
-        default: return "\(days)日前"
+        case 0: return String(localized: "今日")
+        case 1: return String(localized: "昨日")
+        default: return String(localized: "\(days)日前")
         }
     }
 
@@ -180,16 +180,16 @@ final class PlantDetailViewModel: ObservableObject {
 
     var nextWaterPrimaryText: String {
         guard let interval = plant.wateringIntervalDays, interval > 0 else {
-            return "頻度未設定"
+            return String(localized: "頻度未設定")
         }
         if let overdue = wateringOverdueDays {
-            return "\(overdue)日遅れ"
+            return String(localized: "\(overdue)日遅れ")
         }
         let daysUntil = interval - plant.daysSinceLastWater
         switch daysUntil {
-        case 0: return "今日"
-        case 1: return "明日"
-        default: return "あと\(daysUntil)日"
+        case 0: return String(localized: "今日")
+        case 1: return String(localized: "明日")
+        default: return String(localized: "あと\(daysUntil)日")
         }
     }
 

@@ -140,7 +140,7 @@ struct BulkQuickLogSheet: View {
         }
     }
 
-    private func filterChip(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+    private func filterChip(_ title: LocalizedStringKey, isSelected: Bool, action: @escaping () -> Void) -> some View {
         NodeChip(title: title, isSelected: isSelected, action: action)
     }
 
@@ -301,7 +301,7 @@ struct BulkQuickLogSheet: View {
         )
     }
 
-    private var recordButtonTitle: String {
+    private var recordButtonTitle: LocalizedStringKey {
         let count = viewModel.selectedCount
         let time = viewModel.recordedAt.nodeTime()
         if viewModel.isRecordingInPast {

@@ -29,12 +29,13 @@ struct SyncDot: View {
 }
 
 struct MetaLabel: View {
-    let text: String
+    let text: LocalizedStringKey
     var color: Color = NodeColor.mist
     var size: CGFloat = NodeFont.micro
 
     var body: some View {
-        Text(text.uppercased())
+        Text(text)
+            .textCase(.uppercase)
             .font(NodeFont.mono(size))
             .tracking(0.4)
             .foregroundStyle(color)
@@ -42,7 +43,7 @@ struct MetaLabel: View {
 }
 
 struct NodeChip: View {
-    let title: String
+    let title: LocalizedStringKey
     let isSelected: Bool
     var count: Int? = nil
     let action: () -> Void
@@ -76,11 +77,11 @@ struct NodeChip: View {
 }
 
 struct NodePrimaryButton: View {
-    let title: String
+    let title: LocalizedStringKey
     let systemImage: String?
     let action: () -> Void
 
-    init(_ title: String, systemImage: String? = nil, action: @escaping () -> Void) {
+    init(_ title: LocalizedStringKey, systemImage: String? = nil, action: @escaping () -> Void) {
         self.title = title
         self.systemImage = systemImage
         self.action = action
@@ -106,11 +107,11 @@ struct NodePrimaryButton: View {
 }
 
 struct NodeSecondaryButton: View {
-    let title: String
+    let title: LocalizedStringKey
     let systemImage: String?
     let action: () -> Void
 
-    init(_ title: String, systemImage: String? = nil, action: @escaping () -> Void) {
+    init(_ title: LocalizedStringKey, systemImage: String? = nil, action: @escaping () -> Void) {
         self.title = title
         self.systemImage = systemImage
         self.action = action
@@ -148,11 +149,11 @@ struct NodePressStyle: ButtonStyle {
 }
 
 struct NodeTextField: View {
-    let label: String
-    var hint: String? = nil
+    let label: LocalizedStringKey
+    var hint: LocalizedStringKey? = nil
     var isRequired: Bool = false
     @Binding var text: String
-    var placeholder: String = ""
+    var placeholder: LocalizedStringKey = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
@@ -240,7 +241,7 @@ struct BottomGradientOverlay: View {
 }
 
 struct EmptyStateView: View {
-    let message: String
+    let message: LocalizedStringKey
 
     var body: some View {
         VStack(spacing: NodeSpacing.sp3) {
@@ -298,7 +299,7 @@ struct StorageLimitBanner: View {
 struct NodeRecordDateSection: View {
     @Binding var date: Date
     let range: ClosedRange<Date>
-    var label: String = "日時"
+    var label: LocalizedStringKey = "日時"
 
     private var isRecordingInPast: Bool {
         date.timeIntervalSinceNow < -60

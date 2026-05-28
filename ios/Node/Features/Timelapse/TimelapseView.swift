@@ -37,7 +37,7 @@ struct TimelapseView: View {
 
                 ScrollView {
                     VStack(spacing: NodeSpacing.sp6) {
-                        MetaLabel(text: viewModel.plant.name.uppercased(), size: 9)
+                        MetaLabel(text: "\(viewModel.plant.name)", size: 9)
                         Text("タイムラプス")
                             .font(NodeFont.display(NodeFont.title1, weight: .light))
                             .foregroundStyle(NodeColor.bone)
@@ -47,11 +47,11 @@ struct TimelapseView: View {
                         content
 
                         if let error = timelapseService.errorMessage {
-                            MetaLabel(text: error, color: NodeColor.syncFail)
+                            MetaLabel(text: "\(error)", color: NodeColor.syncFail)
                         }
 
                         if let saveMessage {
-                            MetaLabel(text: saveMessage, color: NodeColor.mossSoft)
+                            MetaLabel(text: "\(saveMessage)", color: NodeColor.mossSoft)
                         }
 
                         MetaLabel(
@@ -154,7 +154,7 @@ struct TimelapseView: View {
         )
     }
 
-    private func rangeEndpointButton(side: CompareSide, label: String) -> some View {
+    private func rangeEndpointButton(side: CompareSide, label: LocalizedStringKey) -> some View {
         Button {
             rangePicker.openCalendar(for: side)
         } label: {
@@ -232,7 +232,7 @@ struct TimelapseView: View {
         )
     }
 
-    private var durationSummaryText: String {
+    private var durationSummaryText: LocalizedStringKey {
         let frameCount = max(rangePicker.estimatedFrameCount, 1)
         let secondsPerFrame = durationSeconds / Double(frameCount)
         let formatted = secondsPerFrame >= 0.1
@@ -240,7 +240,7 @@ struct TimelapseView: View {
             : String(format: "%.2f", secondsPerFrame)
 
         if rangePicker.selectedObservationCount > TimelapseVideoGenerator.maxFrames {
-            return "\(frameCount)フレーム（\(rangePicker.selectedObservationCount)枚から間引き） · 1枚あたり\(formatted)秒"
+            return "\(frameCount)フレーム(\(rangePicker.selectedObservationCount)枚から間引き) · 1枚あたり\(formatted)秒"
         }
         return "\(frameCount)フレーム · 1枚あたり\(formatted)秒"
     }
@@ -297,7 +297,7 @@ struct TimelapseView: View {
         .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
     }
 
-    private var generatingStatusText: String {
+    private var generatingStatusText: LocalizedStringKey {
         if timelapseService.generationProgress < 0.2 {
             return "画像を取得中… \(Int(timelapseService.generationProgress / 0.2 * 100))%"
         }

@@ -110,7 +110,7 @@ struct ObservationDetailView: View {
             HStack {
                 MetaLabel(text: "観測", size: 9)
                 MetaLabel(
-                    text: observation.createdAt.nodeYearMonthDayTime(),
+                    text: "\(observation.createdAt.nodeYearMonthDayTime())",
                     color: NodeColor.fog,
                     size: 9
                 )

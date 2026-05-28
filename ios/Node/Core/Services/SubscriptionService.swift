@@ -12,17 +12,17 @@ enum SubscriptionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .productUnavailable:
-            return "プラン情報を取得できませんでした。"
+            return String(localized: "プラン情報を取得できませんでした。")
         case .userCancelled:
             return nil
         case .pending:
-            return "購入が保留中です。承認後にプランが有効になります。"
+            return String(localized: "購入が保留中です。承認後にプランが有効になります。")
         case .unverified:
-            return "購入の確認に失敗しました。"
+            return String(localized: "購入の確認に失敗しました。")
         case .notAuthenticated:
-            return "プランを有効にするにはサインインが必要です。"
+            return String(localized: "プランを有効にするにはサインインが必要です。")
         case .purchasesUnavailable:
-            return "有料プランは近日公開予定です。"
+            return String(localized: "有料プランは近日公開予定です。")
         }
     }
 }
@@ -125,7 +125,7 @@ final class SubscriptionService: ObservableObject {
         await refreshEntitlements()
 
         guard activePlan.isPaid else {
-            errorMessage = "復元できる有料プランが見つかりませんでした。"
+            errorMessage = String(localized: "復元できる有料プランが見つかりませんでした。")
             return
         }
 

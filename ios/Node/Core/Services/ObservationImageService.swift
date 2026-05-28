@@ -9,13 +9,13 @@ enum ObservationImageError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .remoteImageUnavailable:
-            return "クラウド上の画像が見つかりません。"
+            return String(localized: "クラウド上の画像が見つかりません。")
         case .downloadFailed:
-            return "画像の取得に失敗しました。"
+            return String(localized: "画像の取得に失敗しました。")
         case .notAuthenticated:
-            return "サインインが必要です。"
+            return String(localized: "サインインが必要です。")
         case .networkRequired:
-            return "ネットワーク接続が必要です。"
+            return String(localized: "ネットワーク接続が必要です。")
         }
     }
 }

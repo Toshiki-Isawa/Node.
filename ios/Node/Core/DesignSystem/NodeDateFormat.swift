@@ -1,30 +1,28 @@
 import Foundation
 
 enum NodeDateFormat {
-    static let locale = Locale(identifier: "ja_JP")
-
     static func monthDay(_ date: Date) -> String {
-        date.formatted(.dateTime.month(.wide).day().locale(locale))
+        date.formatted(.dateTime.month(.wide).day())
     }
 
     static func yearMonthDay(_ date: Date) -> String {
-        date.formatted(.dateTime.year().month(.wide).day().locale(locale))
+        date.formatted(.dateTime.year().month(.wide).day())
     }
 
     static func yearMonth(_ date: Date) -> String {
-        date.formatted(.dateTime.year().month(.wide).locale(locale))
+        date.formatted(.dateTime.year().month(.wide))
     }
 
     static func yearMonthDayWeekday(_ date: Date) -> String {
-        date.formatted(.dateTime.year().month(.wide).day().weekday(.abbreviated).locale(locale))
+        date.formatted(.dateTime.year().month(.wide).day().weekday(.abbreviated))
     }
 
     static func monthDayWeekday(_ date: Date) -> String {
-        date.formatted(.dateTime.month(.wide).day().weekday(.abbreviated).locale(locale))
+        date.formatted(.dateTime.month(.wide).day().weekday(.abbreviated))
     }
 
     static func time(_ date: Date) -> String {
-        date.formatted(Date.FormatStyle(date: .omitted, time: .shortened, locale: locale))
+        date.formatted(Date.FormatStyle(date: .omitted, time: .shortened))
     }
 
     static func monthDayTime(_ date: Date) -> String {

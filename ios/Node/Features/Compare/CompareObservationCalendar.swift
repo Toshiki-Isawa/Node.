@@ -42,7 +42,7 @@ struct CompareObservationCalendar: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-            MetaLabel(text: title, size: 9)
+            MetaLabel(text: "\(title)", size: 9)
 
             if let observation = selectedObservation {
                 HStack(spacing: NodeSpacing.sp3) {
@@ -57,7 +57,7 @@ struct CompareObservationCalendar: View {
                             .font(NodeFont.display(18, weight: .light))
                             .foregroundStyle(NodeColor.bone)
                         MetaLabel(
-                            text: observation.createdAt.nodeYearMonthDayTime(),
+                            text: "\(observation.createdAt.nodeYearMonthDayTime())",
                             color: NodeColor.fog,
                             size: 9
                         )
@@ -158,7 +158,7 @@ struct CompareObservationCalendar: View {
         let observations = viewModel.observations(on: day)
         if observations.count > 1 {
             VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                MetaLabel(text: day.nodeMonthDayWeekday(), color: NodeColor.fog, size: 9)
+                MetaLabel(text: "\(day.nodeMonthDayWeekday())", color: NodeColor.fog, size: 9)
 
                 ForEach(observations, id: \.id) { observation in
                     Button {

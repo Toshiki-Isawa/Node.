@@ -7,7 +7,6 @@ final class Plant {
     var userId: UUID?
     var name: String
     var species: String
-    var category: String
     var acquiredAt: Date
     /// 水やり間隔（日数）。nil の場合は頻度未設定。
     var wateringIntervalDays: Int?
@@ -26,7 +25,6 @@ final class Plant {
         userId: UUID? = nil,
         name: String,
         species: String = "",
-        category: String = PlantCategory.other.rawValue,
         acquiredAt: Date = .now,
         wateringIntervalDays: Int? = nil,
         note: String = "",
@@ -39,7 +37,6 @@ final class Plant {
         self.userId = userId
         self.name = name
         self.species = species
-        self.category = category
         self.acquiredAt = acquiredAt
         self.wateringIntervalDays = wateringIntervalDays
         self.note = note
@@ -93,7 +90,9 @@ final class Plant {
     var wateringStatusLabel: String? {
         guard needsWatering else { return nil }
         let overdue = daysSinceLastWater - (wateringIntervalDays ?? 0)
-        return overdue > 0 ? "\(overdue)日遅れ" : "水やり"
+        return overdue > 0
+            ? String(localized: "\(overdue)日遅れ")
+            : String(localized: "水やり")
     }
 }
 

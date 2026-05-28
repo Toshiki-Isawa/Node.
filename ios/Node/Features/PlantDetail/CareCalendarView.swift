@@ -70,7 +70,7 @@ struct CareCalendarView: View {
     }
 
     private func summaryItem(
-        label: String,
+        label: LocalizedStringKey,
         primaryText: String,
         secondaryDateText: String?,
         icon: String,
@@ -217,7 +217,7 @@ struct CareCalendarView: View {
         let dateLabel = day.nodeMonthDayWeekday()
 
         return VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-            MetaLabel(text: dateLabel, color: NodeColor.fog, size: 9)
+            MetaLabel(text: "\(dateLabel)", color: NodeColor.fog, size: 9)
 
             ForEach(logs, id: \.id) { log in
                 HStack(spacing: NodeSpacing.sp3) {

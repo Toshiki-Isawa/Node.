@@ -102,7 +102,7 @@ struct CameraView: View {
                     .tint(NodeColor.moss)
                     .scaleEffect(1.1)
 
-                MetaLabel(text: viewModel.capturePhase.statusText, color: NodeColor.fog, size: 9)
+                MetaLabel(text: "\(viewModel.capturePhase.statusText)", color: NodeColor.fog, size: 9)
 
                 Button(action: cancelActiveCapture) {
                     Text("キャンセル")
@@ -447,7 +447,7 @@ struct CameraView: View {
                 }
             }
 
-            MetaLabel(text: viewModel.captureModeHint, color: NodeColor.fog, size: 9)
+            MetaLabel(text: "\(viewModel.captureModeHint)", color: NodeColor.fog, size: 9)
         }
         .padding(.horizontal, NodeSpacing.sp4)
         .disabled(viewModel.isBusy)
@@ -515,7 +515,7 @@ private struct LibraryObservationImportSheet: View {
                 .frame(maxWidth: .infinity)
 
             VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                MetaLabel(text: viewModel.selectedPlant?.name.uppercased() ?? "PLANT", size: 9)
+                MetaLabel(text: "\(viewModel.selectedPlant?.name ?? String(localized: "PLANT"))", size: 9)
                 Text("ライブラリから観測")
                     .font(NodeFont.display(NodeFont.title3, weight: .light))
                     .foregroundStyle(NodeColor.bone)
@@ -537,7 +537,7 @@ private struct LibraryObservationImportSheet: View {
             )
 
             if let error = viewModel.errorMessage {
-                MetaLabel(text: error, color: NodeColor.syncFail)
+                MetaLabel(text: "\(error)", color: NodeColor.syncFail)
             }
 
             Spacer(minLength: 0)
@@ -569,7 +569,7 @@ private struct LibraryObservationImportSheet: View {
         .padding(.bottom, NodeSpacing.sp4)
     }
 
-    private var saveButtonTitle: String {
+    private var saveButtonTitle: LocalizedStringKey {
         let time = viewModel.observedAt.nodeTime()
         if viewModel.isObservingInPast {
             return "記録する · \(viewModel.observedAt.nodeMonthDay()) \(time)"

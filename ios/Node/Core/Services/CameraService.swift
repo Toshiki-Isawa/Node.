@@ -251,10 +251,10 @@ enum CameraError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .deviceUnavailable: return "カメラを利用できません。"
-        case .captureFailed: return "撮影に失敗しました。"
-        case .notReady: return "カメラの準備ができていません。少し待ってから再試行してください。"
-        case .usePhotoLibrary: return "写真ライブラリから選択してください。"
+        case .deviceUnavailable: return String(localized: "カメラを利用できません。")
+        case .captureFailed: return String(localized: "撮影に失敗しました。")
+        case .notReady: return String(localized: "カメラの準備ができていません。少し待ってから再試行してください。")
+        case .usePhotoLibrary: return String(localized: "写真ライブラリから選択してください。")
         case .cancelled: return nil
         }
     }

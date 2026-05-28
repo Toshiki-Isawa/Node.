@@ -6,7 +6,6 @@ import UIKit
 final class AddPlantViewModel: ObservableObject {
     @Published var name = ""
     @Published var species = ""
-    @Published var category = PlantCategory.other.rawValue
     @Published var acquiredAt = Date.now
     @Published var initialObservationAt = Date.now
     @Published var wateringIntervalDays: Int? = nil
@@ -69,7 +68,6 @@ final class AddPlantViewModel: ObservableObject {
             userId: supabaseService.userId,
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             species: species.trimmingCharacters(in: .whitespacesAndNewlines),
-            category: category,
             acquiredAt: plantAcquiredAt,
             wateringIntervalDays: wateringIntervalDays,
             note: note.trimmingCharacters(in: .whitespacesAndNewlines)

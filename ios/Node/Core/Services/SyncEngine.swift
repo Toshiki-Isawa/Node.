@@ -10,9 +10,9 @@ enum SyncError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notAuthenticated:
-            return "サインインセッションがありません。"
+            return String(localized: "サインインセッションがありません。")
         case .storageLimitExceeded:
-            return "クラウド容量の上限に達しました。"
+            return String(localized: "クラウド容量の上限に達しました。")
         }
     }
 }

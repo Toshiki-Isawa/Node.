@@ -13,7 +13,7 @@ struct CompareRequirementSheet: View {
     var body: some View {
         VStack(spacing: NodeSpacing.sp4) {
             VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                MetaLabel(text: plantName, size: 9)
+                MetaLabel(text: "\(plantName)", size: 9)
                 Text("比較")
                     .font(NodeFont.display(NodeFont.title3, weight: .light))
                     .foregroundStyle(NodeColor.bone)
@@ -77,7 +77,7 @@ struct CompareRequirementSheet: View {
         .padding(.top, NodeSpacing.sp5)
     }
 
-    private func statusItem(label: String, value: String) -> some View {
+    private func statusItem(label: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             MetaLabel(text: label, size: 9)
             Text(value)

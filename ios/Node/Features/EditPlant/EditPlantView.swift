@@ -67,19 +67,6 @@ struct EditPlantView: View {
                 placeholder: "例: Agave titanota 'FO-076'"
             )
 
-            VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                MetaLabel(text: "カテゴリ", size: 9)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: NodeSpacing.sp2) {
-                        ForEach(PlantCategory.allCases) { cat in
-                            NodeChip(title: cat.rawValue, isSelected: viewModel.category == cat.rawValue) {
-                                viewModel.category = cat.rawValue
-                            }
-                        }
-                    }
-                }
-            }
-
             WateringIntervalSection(intervalDays: $viewModel.wateringIntervalDays)
 
             acquiredAtSection
@@ -133,9 +120,9 @@ struct EditPlantView: View {
     }
 
     private var deleteConfirmationMessage: String {
-        var message = "「\(viewModel.plant.name)」と、すべての観測記録・ログを削除します。端末内の写真も削除され、元に戻せません。"
+        var message = String(localized: "「\(viewModel.plant.name)」と、すべての観測記録・ログを削除します。端末内の写真も削除され、元に戻せません。")
         if ReleaseConfig.cloudSyncEnabled {
-            message += "クラウドに同期済みのデータも削除されます。"
+            message += String(localized: "クラウドに同期済みのデータも削除されます。")
         }
         return message
     }

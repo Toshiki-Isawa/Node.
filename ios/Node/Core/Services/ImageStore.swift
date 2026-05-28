@@ -9,11 +9,11 @@ enum ImageStoreError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .directoryCreationFailed:
-            return "画像フォルダの作成に失敗しました。"
+            return String(localized: "画像フォルダの作成に失敗しました。")
         case .writeFailed:
-            return "画像の保存に失敗しました。"
+            return String(localized: "画像の保存に失敗しました。")
         case .imageNotFound:
-            return "端末上の画像ファイルが見つかりません。"
+            return String(localized: "端末上の画像ファイルが見つかりません。")
         }
     }
 }

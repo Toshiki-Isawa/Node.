@@ -9,11 +9,11 @@ enum TimelapseVideoError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noFrames:
-            return "タイムラプス用の画像がありません。"
+            return String(localized: "タイムラプス用の画像がありません。")
         case .imageLoadFailed:
-            return "観測画像の読み込みに失敗しました。"
+            return String(localized: "観測画像の読み込みに失敗しました。")
         case .writerFailed(let detail):
-            return "動画の生成に失敗しました。（\(detail)）"
+            return String(localized: "動画の生成に失敗しました。(\(detail))")
         }
     }
 }
@@ -127,11 +127,11 @@ enum TimelapseVideoGenerator {
         )
 
         guard writer.canAdd(input) else {
-            throw TimelapseVideoError.writerFailed("入力を追加できません")
+            throw TimelapseVideoError.writerFailed(String(localized: "入力を追加できません"))
         }
         writer.add(input)
         guard writer.startWriting() else {
-            throw TimelapseVideoError.writerFailed(writer.error?.localizedDescription ?? "開始失敗")
+            throw TimelapseVideoError.writerFailed(writer.error?.localizedDescription ?? String(localized: "開始失敗"))
         }
         writer.startSession(atSourceTime: .zero)
 
@@ -143,11 +143,11 @@ enum TimelapseVideoGenerator {
                 Thread.sleep(forTimeInterval: 0.005)
             }
             guard let buffer = pixelBuffer(from: image, size: size) else {
-                throw TimelapseVideoError.writerFailed("フレーム変換失敗")
+                throw TimelapseVideoError.writerFailed(String(localized: "フレーム変換失敗"))
             }
             let presentationTime = CMTimeMultiply(frameDuration, multiplier: Int32(index))
             guard adaptor.append(buffer, withPresentationTime: presentationTime) else {
-                throw TimelapseVideoError.writerFailed("フレーム書き込み失敗")
+                throw TimelapseVideoError.writerFailed(String(localized: "フレーム書き込み失敗"))
             }
             progress?(Double(index + 1) / Double(total))
         }
@@ -168,7 +168,7 @@ enum TimelapseVideoGenerator {
             throw finishError
         }
         guard writer.status == .completed else {
-            throw TimelapseVideoError.writerFailed(writer.error?.localizedDescription ?? "不明")
+            throw TimelapseVideoError.writerFailed(writer.error?.localizedDescription ?? String(localized: "不明"))
         }
     }
 

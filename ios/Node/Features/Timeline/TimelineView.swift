@@ -21,7 +21,7 @@ struct TimelineView: View {
                 header
                 filterChips
                 if viewModel.items.isEmpty {
-                    EmptyStateView(message: viewModel.emptyMessage)
+                    EmptyStateView(message: "\(viewModel.emptyMessage)")
                         .padding(.top, NodeSpacing.sp16)
                 } else {
                     ForEach(viewModel.items) { item in
@@ -123,7 +123,7 @@ struct TimelineView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: NodeSpacing.sp2) {
                 ForEach(TimelineContentFilter.allCases) { filter in
-                    NodeChip(title: filter.label, isSelected: viewModel.filter == filter) {
+                    NodeChip(title: "\(filter.label)", isSelected: viewModel.filter == filter) {
                         viewModel.filter = filter
                     }
                 }
@@ -155,7 +155,7 @@ struct TimelineView: View {
                         Spacer()
                         HStack {
                             MetaLabel(
-                                text: formattedDateTime(observation.createdAt),
+                                text: "\(formattedDateTime(observation.createdAt))",
                                 color: NodeColor.bone,
                                 size: 9
                             )
@@ -186,7 +186,7 @@ struct TimelineView: View {
 
     private func growthLogCard(plant: Plant, log: GrowthLog) -> some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
-            cardHeader(plantName: plant.name, syncStatus: log.syncStatus, badge: log.type.label)
+            cardHeader(plantName: plant.name, syncStatus: log.syncStatus, badge: "\(log.type.label)")
 
             HStack(spacing: NodeSpacing.sp3) {
                 ZStack {
@@ -204,7 +204,7 @@ struct TimelineView: View {
 
                 VStack(alignment: .leading, spacing: 6) {
                     MetaLabel(
-                        text: formattedDateTime(log.createdAt),
+                        text: "\(formattedDateTime(log.createdAt))",
                         color: NodeColor.olive,
                         size: 9
                     )
@@ -231,9 +231,9 @@ struct TimelineView: View {
         .padding(.bottom, NodeSpacing.sp4)
     }
 
-    private func cardHeader(plantName: String, syncStatus: SyncStatus, badge: String) -> some View {
+    private func cardHeader(plantName: String, syncStatus: SyncStatus, badge: LocalizedStringKey) -> some View {
         HStack {
-            MetaLabel(text: plantName.uppercased(), size: 9)
+            MetaLabel(text: "\(plantName)", size: 9)
             MetaLabel(text: badge, color: NodeColor.fog, size: 9)
             Spacer()
             if ReleaseConfig.cloudSyncEnabled {

@@ -9,11 +9,11 @@ enum SyncStatus: String, Codable, CaseIterable {
 
     var label: String {
         switch self {
-        case .localOnly: return "ローカル"
-        case .syncing: return "同期中"
-        case .synced: return "同期済み"
-        case .failed: return "失敗"
-        case .syncPausedStorageLimit: return "容量上限"
+        case .localOnly: return String(localized: "ローカル")
+        case .syncing: return String(localized: "同期中")
+        case .synced: return String(localized: "同期済み")
+        case .failed: return String(localized: "失敗")
+        case .syncPausedStorageLimit: return String(localized: "容量上限")
         }
     }
 }
@@ -30,12 +30,12 @@ enum GrowthLogType: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .water: return "水やり"
-        case .fertilize: return "施肥"
-        case .tonic: return "活力剤"
-        case .repot: return "植え替え"
-        case .note: return "メモ"
-        case .light: return "ライト変更"
+        case .water: return String(localized: "水やり")
+        case .fertilize: return String(localized: "施肥")
+        case .tonic: return String(localized: "活力剤")
+        case .repot: return String(localized: "植え替え")
+        case .note: return String(localized: "メモ")
+        case .light: return String(localized: "ライト変更")
         }
     }
 
@@ -64,17 +64,6 @@ enum BulkQuickLogContext {
     case wateringReminder
 }
 
-enum PlantCategory: String, Codable, CaseIterable, Identifiable {
-    case agave = "アガベ"
-    case caudex = "塊根"
-    case platycerium = "ビカクシダ"
-    case aroid = "アロイド"
-    case euphorbia = "ユーフォルビア"
-    case other = "その他"
-
-    var id: String { rawValue }
-}
-
 enum WateringInterval: Int, CaseIterable, Identifiable {
     case threeDays = 3
     case weekly = 7
@@ -84,7 +73,7 @@ enum WateringInterval: Int, CaseIterable, Identifiable {
 
     var id: Int { rawValue }
 
-    var label: String { "\(rawValue)日" }
+    var label: String { String(localized: "\(rawValue)日") }
 
     static func isPreset(_ days: Int) -> Bool {
         allCases.contains { $0.rawValue == days }
@@ -105,9 +94,9 @@ enum AppTab: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .collection: return "コレクション"
-        case .timeline: return "タイムライン"
-        case .shoot: return "観測"
+        case .collection: return String(localized: "コレクション")
+        case .timeline: return String(localized: "タイムライン")
+        case .shoot: return String(localized: "観測")
         }
     }
 
@@ -154,7 +143,6 @@ struct RemotePlant: Codable, Identifiable {
     let userId: UUID
     let name: String
     let species: String?
-    let category: String?
     let acquiredAt: Date
     let createdAt: Date
 
@@ -163,7 +151,6 @@ struct RemotePlant: Codable, Identifiable {
         case userId = "user_id"
         case name
         case species
-        case category
         case acquiredAt = "acquired_at"
         case createdAt = "created_at"
     }

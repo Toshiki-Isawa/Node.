@@ -20,9 +20,9 @@ enum UserPlan: String, Codable, Sendable, CaseIterable {
 
     var tagline: String {
         switch self {
-        case .seed: return "観測を始める"
-        case .archive: return "植物の時間を残す"
-        case .conservatory: return "コレクションを保存する"
+        case .seed: return String(localized: "観測を始める")
+        case .archive: return String(localized: "植物の時間を残す")
+        case .conservatory: return String(localized: "コレクションを保存する")
         }
     }
 

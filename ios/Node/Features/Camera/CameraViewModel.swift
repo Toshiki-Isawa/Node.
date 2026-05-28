@@ -10,8 +10,8 @@ enum CameraCaptureMode: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .single: return "シングル"
-        case .continuous: return "連続"
+        case .single: return String(localized: "シングル")
+        case .continuous: return String(localized: "連続")
         }
     }
 
@@ -45,8 +45,8 @@ final class CameraViewModel: ObservableObject {
         var statusText: String {
             switch self {
             case .idle: return ""
-            case .capturing: return "撮影中..."
-            case .saving: return "保存中..."
+            case .capturing: return String(localized: "撮影中...")
+            case .saving: return String(localized: "保存中...")
             }
         }
     }
@@ -111,9 +111,11 @@ final class CameraViewModel: ObservableObject {
     var captureModeHint: String {
         switch captureMode {
         case .single:
-            return "1枚で終了"
+            return String(localized: "1枚で終了")
         case .continuous:
-            return sessionSaveCount > 0 ? "連続 · \(sessionSaveCount)枚" : "連続撮影"
+            return sessionSaveCount > 0
+                ? String(localized: "連続 · \(sessionSaveCount)枚")
+                : String(localized: "連続撮影")
         }
     }
 
@@ -183,12 +185,12 @@ final class CameraViewModel: ObservableObject {
     ) async -> Bool {
         guard !Task.isCancelled else { return false }
         guard let plant = selectedPlant else {
-            errorMessage = "植物を選択してください。"
+            errorMessage = String(localized: "植物を選択してください。")
             return false
         }
 
         guard observedAtRange.contains(observedAt) else {
-            errorMessage = "観測日時が不正です。"
+            errorMessage = String(localized: "観測日時が不正です。")
             return false
         }
 
@@ -245,7 +247,7 @@ final class CameraViewModel: ObservableObject {
             reviewPromptService.signalEligibleEvent(.observationCaptured)
             return true
         } catch {
-            errorMessage = "保存に失敗しました。"
+            errorMessage = String(localized: "保存に失敗しました。")
             return false
         }
     }

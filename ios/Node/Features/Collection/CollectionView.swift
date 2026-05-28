@@ -17,7 +17,7 @@ struct CollectionView: View {
         GeometryReader { proxy in
             ScrollViewReader { scrollProxy in
                 ScrollView {
-                    LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
+                    LazyVStack(spacing: 0) {
                         VStack(alignment: .leading, spacing: 0) {
                             header
                             if ReleaseConfig.searchEnabled, isSearchActive {
@@ -30,12 +30,9 @@ struct CollectionView: View {
                         }
                         .id(Self.topAnchorID)
 
-                        Section {
-                            plantGrid
-                                .padding(.bottom, NodeTabBarMetrics.scrollBottomInset)
-                        } header: {
-                            categoryChips
-                        }
+                        plantGrid
+                            .padding(.top, NodeSpacing.sp4)
+                            .padding(.bottom, NodeTabBarMetrics.scrollBottomInset)
                     }
                 }
                 .background(NodeColor.graphite.ignoresSafeArea())
@@ -51,9 +48,6 @@ struct CollectionView: View {
                 .onAppear {
                     viewModel.reload()
                     Task { await planService.refresh() }
-                }
-                .onChange(of: viewModel.selectedCategory) { _, _ in
-                    scrollToTop(scrollProxy)
                 }
                 .onChange(of: viewModel.searchText) { oldValue, newValue in
                     // 検索開始 / 終了 / 文字追加のたびに該当範囲が変わるので Top に戻す。
@@ -93,7 +87,7 @@ struct CollectionView: View {
             HStack(alignment: .center) {
                 SwiftUI.TimelineView(.periodic(from: .now, by: 60)) { context in
                     MetaLabel(
-                        text: metaLine(now: context.date),
+                        text: "\(metaLine(now: context.date))",
                         color: NodeColor.mist
                     )
                 }
@@ -263,40 +257,6 @@ struct CollectionView: View {
         .buttonStyle(NodePressStyle())
     }
 
-    private var categoryChips: some View {
-        ZStack(alignment: .trailing) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: NodeSpacing.sp2) {
-                    ForEach(viewModel.categories, id: \.self) { category in
-                        NodeChip(
-                            title: category,
-                            isSelected: viewModel.selectedCategory == category,
-                            count: viewModel.count(for: category)
-                        ) {
-                            viewModel.selectedCategory = category
-                        }
-                    }
-                }
-                .padding(.horizontal, NodeSpacing.sp5)
-                .padding(.vertical, NodeSpacing.sp2)
-            }
-
-            LinearGradient(
-                colors: [NodeColor.graphite.opacity(0), NodeColor.graphite],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .frame(width: 24)
-            .allowsHitTesting(false)
-        }
-        .background(NodeColor.graphite)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(NodeColor.hairline)
-                .frame(height: 1)
-        }
-    }
-
     private var plantGrid: some View {
         Group {
             if viewModel.filteredPlants.isEmpty {
@@ -349,7 +309,7 @@ struct CollectionView: View {
                 Text("コレクションは空です")
                     .font(NodeFont.text(NodeFont.title3, weight: .light))
                     .foregroundStyle(NodeColor.bone)
-                Text("最初の植物を追加して観測を始めましょう。\n写真と日記で成長を時系列で残せます。")
+                Text("最初の植物を追加して観測を始めましょう。\n写真とケアログで成長を時系列で残せます。")
                     .font(NodeFont.text(NodeFont.callout))
                     .foregroundStyle(NodeColor.fog)
                     .multilineTextAlignment(.center)
@@ -440,7 +400,7 @@ private struct PlantGridCell: View {
         HStack(spacing: 5) {
             SyncDot(state: plant.aggregateSyncStatus, size: 5)
             MetaLabel(
-                text: syncLabel,
+                text: "\(syncLabel)",
                 color: NodeColor.bone,
                 size: 9
             )

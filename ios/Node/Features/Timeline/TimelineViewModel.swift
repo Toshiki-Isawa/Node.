@@ -10,9 +10,9 @@ enum TimelineContentFilter: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .all: return "すべて"
-        case .observations: return "観測"
-        case .logs: return "ログ"
+        case .all: return String(localized: "すべて")
+        case .observations: return String(localized: "観測")
+        case .logs: return String(localized: "ログ")
         }
     }
 }
@@ -70,11 +70,11 @@ final class TimelineViewModel: ObservableObject {
     var emptyMessage: String {
         switch filter {
         case .all:
-            return "まだ記録がありません。"
+            return String(localized: "まだ記録がありません。")
         case .observations:
-            return "観測がまだありません。"
+            return String(localized: "観測がまだありません。")
         case .logs:
-            return "ログがまだありません。"
+            return String(localized: "ログがまだありません。")
         }
     }
 

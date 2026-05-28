@@ -108,12 +108,12 @@ final class CareNotificationService: NSObject, ObservableObject {
     private func registerCategory() {
         let done = UNNotificationAction(
             identifier: Self.actionDoneIdentifier,
-            title: "水やり完了",
+            title: String(localized: "水やり完了"),
             options: []
         )
         let open = UNNotificationAction(
             identifier: Self.actionOpenIdentifier,
-            title: "アプリで確認",
+            title: String(localized: "アプリで確認"),
             options: [.foreground]
         )
         let category = UNNotificationCategory(
@@ -137,7 +137,7 @@ final class CareNotificationService: NSObject, ObservableObject {
         guard !targets.isEmpty else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "今日の水やり"
+        content.title = String(localized: "今日の水やり")
         content.body = makeBody(for: targets)
         content.categoryIdentifier = Self.categoryIdentifier
         content.sound = .default
@@ -174,13 +174,14 @@ final class CareNotificationService: NSObject, ObservableObject {
     }
 
     private func makeBody(for plants: [Plant]) -> String {
+        let listSeparator = String(localized: "、")
         let names = plants.prefix(3).map(\.name)
-        let leadingNames = names.joined(separator: "、")
+        let leadingNames = names.joined(separator: listSeparator)
         if plants.count <= 3 {
-            return "\(plants.count) 株が水やり時期です: \(leadingNames)"
+            return String(localized: "\(plants.count) 株が水やり時期です: \(leadingNames)")
         }
         let remaining = plants.count - 3
-        return "\(plants.count) 株が水やり時期です: \(leadingNames) 他 \(remaining) 株"
+        return String(localized: "\(plants.count) 株が水やり時期です: \(leadingNames) 他 \(remaining) 株")
     }
 
     private func identifier(for dayOffset: Int) -> String {

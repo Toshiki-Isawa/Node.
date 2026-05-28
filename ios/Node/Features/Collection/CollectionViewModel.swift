@@ -3,7 +3,6 @@ import SwiftData
 
 @MainActor
 final class CollectionViewModel: ObservableObject {
-    @Published var selectedCategory: String = "すべて"
     @Published var searchText: String = ""
     @Published var plants: [Plant] = []
 
@@ -27,34 +26,16 @@ final class CollectionViewModel: ObservableObject {
         plants = (try? modelContext.fetch(descriptor)) ?? []
     }
 
-    var categories: [String] {
-        var set = Set(plants.map(\.category))
-        set.insert("すべて")
-        return ["すべて"] + set.filter { $0 != "すべて" }.sorted()
-    }
-
-    func count(for category: String) -> Int {
-        category == "すべて" ? plants.count : plants.filter { $0.category == category }.count
-    }
-
     var filteredPlants: [Plant] {
-        let base: [Plant]
-        if selectedCategory == "すべて" {
-            base = plants
-        } else {
-            base = plants.filter { $0.category == selectedCategory }
-        }
-
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         let searched: [Plant]
         if query.isEmpty {
-            searched = base
+            searched = plants
         } else {
             let normalized = query.lowercased()
-            searched = base.filter { plant in
+            searched = plants.filter { plant in
                 plant.name.lowercased().contains(normalized)
                     || plant.species.lowercased().contains(normalized)
-                    || plant.category.lowercased().contains(normalized)
             }
         }
 

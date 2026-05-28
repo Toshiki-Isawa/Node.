@@ -5,7 +5,6 @@ import SwiftData
 final class EditPlantViewModel: ObservableObject {
     @Published var name: String
     @Published var species: String
-    @Published var category: String
     @Published var acquiredAt: Date
     @Published var wateringIntervalDays: Int?
     @Published var note: String
@@ -31,7 +30,6 @@ final class EditPlantViewModel: ObservableObject {
         self.analyticsService = analyticsService
         self.name = plant.name
         self.species = plant.species
-        self.category = plant.category
         self.acquiredAt = plant.acquiredAt
         self.wateringIntervalDays = plant.wateringIntervalDays
         self.note = plant.note
@@ -51,7 +49,6 @@ final class EditPlantViewModel: ObservableObject {
 
         plant.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         plant.species = species.trimmingCharacters(in: .whitespacesAndNewlines)
-        plant.category = category
         plant.acquiredAt = acquiredAt
         plant.wateringIntervalDays = wateringIntervalDays
         plant.note = note.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -24,7 +24,7 @@ final class TimelapseService: ObservableObject {
     ) async {
         let chronological = observations.sorted { $0.createdAt < $1.createdAt }
         guard firstIndex >= 0, lastIndex < chronological.count, firstIndex <= lastIndex else {
-            errorMessage = "観測範囲が不正です。"
+            errorMessage = String(localized: "観測範囲が不正です。")
             return
         }
 
@@ -32,7 +32,7 @@ final class TimelapseService: ObservableObject {
         let sampled = Self.sampleObservations(ranged, maxFrames: TimelapseVideoGenerator.maxFrames)
 
         guard sampled.count >= TimelapseRequirements.minimumObservations else {
-            errorMessage = "選択範囲には\(TimelapseRequirements.minimumObservations)回以上の観測が必要です。"
+            errorMessage = String(localized: "選択範囲には\(TimelapseRequirements.minimumObservations)回以上の観測が必要です。")
             return
         }
 
@@ -63,7 +63,7 @@ final class TimelapseService: ObservableObject {
         }
 
         guard imagePaths.count >= TimelapseRequirements.minimumObservations else {
-            errorMessage = "観測画像が端末上に見つかりません。"
+            errorMessage = String(localized: "観測画像が端末上に見つかりません。")
             return
         }
 

@@ -110,19 +110,6 @@ struct AddPlantView: View {
 
             NodeTextField(label: "学名 · クローン", hint: "任意", text: $viewModel.species, placeholder: "例: Agave titanota 'FO-076'")
 
-            VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                MetaLabel(text: "カテゴリ", size: 9)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: NodeSpacing.sp2) {
-                        ForEach(PlantCategory.allCases) { cat in
-                            NodeChip(title: cat.rawValue, isSelected: viewModel.category == cat.rawValue) {
-                                viewModel.category = cat.rawValue
-                            }
-                        }
-                    }
-                }
-            }
-
             WateringIntervalSection(
                 intervalDays: $viewModel.wateringIntervalDays,
                 footerHint: "コレクションで水やり優先順に並びます"

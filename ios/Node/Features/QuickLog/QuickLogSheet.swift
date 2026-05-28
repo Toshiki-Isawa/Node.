@@ -41,7 +41,7 @@ struct QuickLogSheet: View {
     private var header: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 2) {
-                MetaLabel(text: viewModel.plant.name, size: 9)
+                MetaLabel(text: "\(viewModel.plant.name)", size: 9)
                 Text("クイックログ")
                     .font(NodeFont.display(NodeFont.title3, weight: .light))
                     .foregroundStyle(NodeColor.bone)
@@ -123,7 +123,7 @@ struct QuickLogSheet: View {
         }
     }
 
-    private var selectionHint: String {
+    private var selectionHint: LocalizedStringKey {
         if !viewModel.selectedTypes.isEmpty {
             return "選択中 · \(viewModel.selectedTypes.count)"
         }
@@ -133,15 +133,15 @@ struct QuickLogSheet: View {
         return "ケアを選ぶか、メモだけでも可"
     }
 
-    private var memoFieldLabel: String {
+    private var memoFieldLabel: LocalizedStringKey {
         viewModel.selectedTypes.isEmpty ? "メモ" : "補足 · 任意"
     }
 
-    private var memoPlaceholder: String {
+    private var memoPlaceholder: LocalizedStringKey {
         viewModel.selectedTypes.isEmpty ? "状態や観察を記録…" : "—"
     }
 
-    private var recordButtonTitle: String {
+    private var recordButtonTitle: LocalizedStringKey {
         let time = viewModel.recordedAt.nodeTime()
         if viewModel.isRecordingInPast {
             let date = viewModel.recordedAt.nodeMonthDay()

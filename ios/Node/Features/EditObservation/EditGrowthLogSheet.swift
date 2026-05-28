@@ -12,12 +12,12 @@ struct EditGrowthLogSheet: View {
                 .frame(maxWidth: .infinity)
 
             VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                MetaLabel(text: viewModel.plant.name, size: 9)
+                MetaLabel(text: "\(viewModel.plant.name)", size: 9)
                 Text("ログを編集")
                     .font(NodeFont.display(NodeFont.title3, weight: .light))
                     .foregroundStyle(NodeColor.bone)
                 MetaLabel(
-                    text: viewModel.log.type.label.uppercased() + " · " + viewModel.log.createdAt.nodeYearMonthDayTime(),
+                    text: "\(viewModel.log.type.label) · \(viewModel.log.createdAt.nodeYearMonthDayTime())",
                     color: NodeColor.fog,
                     size: 9
                 )
@@ -100,7 +100,7 @@ struct EditGrowthLogSheet: View {
         )
     }
 
-    private var saveButtonTitle: String {
+    private var saveButtonTitle: LocalizedStringKey {
         let time = viewModel.recordedAt.nodeTime()
         if viewModel.isRecordingInPast {
             return "変更する · \(viewModel.recordedAt.nodeMonthDay()) \(time)"

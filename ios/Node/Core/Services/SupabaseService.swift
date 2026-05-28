@@ -106,7 +106,6 @@ final class SupabaseService: ObservableObject {
             let user_id: UUID
             let name: String
             let species: String?
-            let category: String?
             let acquired_at: Date
             let watering_interval_days: Int?
             let note: String?
@@ -118,7 +117,6 @@ final class SupabaseService: ObservableObject {
             user_id: userId,
             name: plant.name,
             species: plant.species.isEmpty ? nil : plant.species,
-            category: plant.category,
             acquired_at: plant.acquiredAt,
             watering_interval_days: plant.wateringIntervalDays,
             note: plant.note.isEmpty ? nil : plant.note,

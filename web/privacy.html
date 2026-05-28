@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Node. プライバシーポリシー — 植物観測アーカイブアプリの個人情報の取り扱いについて。">
+  <meta name="description" content="Node. プライバシーポリシー / Privacy Policy — 植物観測アーカイブアプリの個人情報の取り扱いについて。">
   <meta name="theme-color" content="#14161a">
-  <title>プライバシーポリシー — Node.</title>
+  <title>プライバシーポリシー · Privacy Policy — Node.</title>
   <link rel="stylesheet" href="../design/colors_and_type.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -34,6 +34,17 @@
       text-decoration: none;
     }
     .back:hover { color: var(--c-bone); }
+    .lang-switch {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .lang-switch a { color: var(--c-fog); text-decoration: none; padding-bottom: 2px; border-bottom: 1px solid transparent; }
+    .lang-switch a:hover { color: var(--c-bone); border-bottom-color: var(--c-bone); }
     h1 {
       font-family: var(--font-display);
       font-weight: 300;
@@ -100,105 +111,212 @@
       font-size: 11px;
       color: var(--c-fossil);
     }
+    .lang-divider {
+      margin: 96px 0 48px;
+      border: none;
+      border-top: 1px solid var(--hairline);
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <a class="back" href="index.html">← Node.</a>
+    <nav class="lang-switch">
+      <a href="#ja">日本語</a>
+      <a href="#en">English</a>
+    </nav>
 
-    <h1>Node<span class="dot">.</span> プライバシーポリシー</h1>
-    <p class="meta">最終更新日: 2026年5月26日 · 施行日: 2026年5月26日 · v1.0</p>
+    <section id="ja" lang="ja">
+      <h1>Node<span class="dot">.</span> プライバシーポリシー</h1>
+      <p class="meta">最終更新日: 2026年5月28日 · 施行日: 2026年5月28日 · v1.0</p>
 
-    <h2>1. はじめに</h2>
-    <p>Node.（以下「本アプリ」）は、植物の観測・成長記録を蓄積するための iOS アプリケーションです。本プライバシーポリシー（以下「本ポリシー」）は、本アプリの利用にあたり、当方がどのような情報を取得し、どのように利用・保管・共有するかを説明するものです。</p>
-    <p><strong>v1.0 では、観測・記録データはお使いの iOS 端末内のみに保存され、当方または第三者パートナーのサーバーへ送信されません。</strong></p>
-    <p>本アプリを利用することにより、本ポリシーに同意したものとみなします。同意いただけない場合は、本アプリの利用を中止してください。</p>
+      <h2>1. はじめに</h2>
+      <p>Node.（以下「本アプリ」）は、植物の観測・成長記録を蓄積するための iOS アプリケーションです。本プライバシーポリシー（以下「本ポリシー」）は、本アプリの利用にあたり、当方がどのような情報を取得し、どのように利用・保管・共有するかを説明するものです。</p>
+      <p><strong>v1.0 では、観測・記録データはお使いの iOS 端末内のみに保存され、当方または第三者パートナーのサーバーへ送信されません。</strong></p>
+      <p>本アプリを利用することにより、本ポリシーに同意したものとみなします。同意いただけない場合は、本アプリの利用を中止してください。</p>
 
-    <h2>2. 運営者</h2>
-    <table>
-      <tr><th>項目</th><th>内容</th></tr>
-      <tr><td>運営者</td><td>井澤俊樹</td></tr>
-      <tr><td>お問い合わせ</td><td><a href="mailto:node.botanical@gmail.com">node.botanical@gmail.com</a></td></tr>
-    </table>
-    <p>個人情報の取り扱いに関するお問い合わせは、上記連絡先までご連絡ください。</p>
+      <h2>2. 運営者</h2>
+      <table>
+        <tr><th>項目</th><th>内容</th></tr>
+        <tr><td>運営者</td><td>井澤俊樹</td></tr>
+        <tr><td>お問い合わせ</td><td><a href="mailto:node.botanical@gmail.com">node.botanical@gmail.com</a></td></tr>
+      </table>
+      <p>個人情報の取り扱いに関するお問い合わせは、上記連絡先までご連絡ください。</p>
 
-    <h2>3. 取得する情報</h2>
-    <p>本アプリでは、機能の提供に必要な範囲で、以下の情報を <strong>端末内で</strong> 取得・生成します。当方がサーバー経由で収集するデータはありません。</p>
+      <h2>3. 取得する情報</h2>
+      <p>本アプリでは、機能の提供に必要な範囲で、以下の情報を <strong>端末内で</strong> 取得・生成します。当方がサーバー経由で収集するデータはありません。</p>
 
-    <h3>3.1 ユーザーが記録するコンテンツ</h3>
-    <table>
-      <tr><th>情報</th><th>内容</th><th>保存先</th></tr>
-      <tr><td>植物情報</td><td>植物名、種・品種、カテゴリ、取得日、水やり間隔</td><td>端末内（SwiftData）</td></tr>
-      <tr><td>観測記録</td><td>撮影写真、メモ、観測日時</td><td>端末内</td></tr>
-      <tr><td>育成ログ</td><td>水やり・施肥・植え替え等</td><td>端末内</td></tr>
-      <tr><td>タイムラプス動画</td><td>観測写真から端末内で生成する MP4</td><td>端末内</td></tr>
-    </table>
-    <p>観測写真には、植物そのもののほか、背景や撮影環境が写り込む場合があります。ユーザー自身の判断で記録内容を管理してください。</p>
-    <p><strong>注意:</strong> アプリ削除・機種変更によりデータが失われる場合があります。Settings 画面にその旨を表示しています。</p>
+      <h3>3.1 ユーザーが記録するコンテンツ</h3>
+      <table>
+        <tr><th>情報</th><th>内容</th><th>保存先</th></tr>
+        <tr><td>植物情報</td><td>植物名、種・品種、取得日、水やり間隔</td><td>端末内（SwiftData）</td></tr>
+        <tr><td>観測記録</td><td>撮影写真、メモ、観測日時</td><td>端末内</td></tr>
+        <tr><td>育成ログ</td><td>水やり・施肥・植え替え等</td><td>端末内</td></tr>
+        <tr><td>タイムラプス動画</td><td>観測写真から端末内で生成する MP4</td><td>端末内</td></tr>
+      </table>
+      <p>観測写真には、植物そのもののほか、背景や撮影環境が写り込む場合があります。ユーザー自身の判断で記録内容を管理してください。</p>
+      <p><strong>注意:</strong> アプリ削除・機種変更によりデータが失われる場合があります。Settings 画面にその旨を表示しています。</p>
 
-    <h3>3.2 端末の権限・アクセス</h3>
-    <table>
-      <tr><th>権限</th><th>目的</th></tr>
-      <tr><td>カメラ</td><td>観測写真の撮影</td></tr>
-      <tr><td>写真ライブラリ（読み取り）</td><td>観測写真の保存・共有</td></tr>
-      <tr><td>写真ライブラリ（追加）</td><td>タイムラプス動画の保存</td></tr>
-      <tr><td>通知</td><td>水やりリマインダー（Settings で ON にした場合のみ）</td></tr>
-    </table>
+      <h3>3.2 端末の権限・アクセス</h3>
+      <table>
+        <tr><th>権限</th><th>目的</th></tr>
+        <tr><td>カメラ</td><td>観測写真の撮影</td></tr>
+        <tr><td>写真ライブラリ（読み取り）</td><td>観測写真の保存・共有</td></tr>
+        <tr><td>写真ライブラリ（追加）</td><td>タイムラプス動画の保存</td></tr>
+        <tr><td>通知</td><td>水やりリマインダー（Settings で ON にした場合のみ）</td></tr>
+      </table>
 
-    <h3>3.3 匿名の使用状況データ（PostHog）</h3>
-    <p>アプリの改善・品質維持のため、第三者サービス <strong>PostHog</strong>（PostHog, Inc.）を通じて、本アプリ内での操作に関する匿名のイベントデータを取得します。</p>
-    <table>
-      <tr><th>取得する情報</th><th>例</th></tr>
-      <tr><td>イベント</td><td>画面遷移、ボタンタップ、通知許可結果、保存件数などの操作カウント</td></tr>
-      <tr><td>端末メタ情報</td><td>アプリバージョン、iOS バージョン、デバイスモデル識別子</td></tr>
-      <tr><td>匿名識別子</td><td>端末ローカルで生成される UUID（他社サービスや個人プロファイルに紐づけない）</td></tr>
-    </table>
-    <p><strong>送信しない情報:</strong> 植物名・学名・カテゴリ・メモ等のユーザー記録、観測写真・タイムラプス動画、位置情報・連絡先・電話番号・メールアドレス。</p>
-    <p>PostHog は first-party 分析として利用し、第三者広告ネットワークと突合しません。iOS の App Tracking Transparency 許可は求めません。</p>
-    <p><strong>オプトアウト:</strong> 本アプリ Settings 画面の「アプリ改善」セクションの「使用状況の送信」トグルを OFF にすると、以降のイベント送信を停止できます。</p>
+      <h3>3.3 匿名の使用状況データ（PostHog）</h3>
+      <p>アプリの改善・品質維持のため、第三者サービス <strong>PostHog</strong>（PostHog, Inc.）を通じて、本アプリ内での操作に関する匿名のイベントデータを取得します。</p>
+      <table>
+        <tr><th>取得する情報</th><th>例</th></tr>
+        <tr><td>イベント</td><td>画面遷移、ボタンタップ、通知許可結果、保存件数などの操作カウント</td></tr>
+        <tr><td>端末メタ情報</td><td>アプリバージョン、iOS バージョン、デバイスモデル識別子</td></tr>
+        <tr><td>匿名識別子</td><td>端末ローカルで生成される UUID（他社サービスや個人プロファイルに紐づけない）</td></tr>
+      </table>
+      <p><strong>送信しない情報:</strong> 植物名・学名・メモ等のユーザー記録、観測写真・タイムラプス動画、位置情報・連絡先・電話番号・メールアドレス。</p>
+      <p>PostHog は first-party 分析として利用し、第三者広告ネットワークと突合しません。iOS の App Tracking Transparency 許可は求めません。</p>
+      <p><strong>オプトアウト:</strong> 本アプリ Settings 画面の「アプリ改善」セクションの「使用状況の送信」トグルを OFF にすると、以降のイベント送信を停止できます。</p>
 
-    <h2>4. 情報の利用目的</h2>
-    <ol>
-      <li>本アプリの提供（観測記録、タイムライン、Compare、Timelapse、Quick Log 等）</li>
-      <li>お問い合わせへの対応</li>
-      <li>法令遵守、利用規約違反への対応</li>
-    </ol>
+      <h2>4. 情報の利用目的</h2>
+      <ol>
+        <li>本アプリの提供（観測記録、タイムライン、Compare、Timelapse、Quick Log 等）</li>
+        <li>お問い合わせへの対応</li>
+        <li>法令遵守、利用規約違反への対応</li>
+      </ol>
 
-    <h2>5. 第三者への提供</h2>
-    <p>v1.0 では、当方がユーザーの観測記録（植物名・写真・メモ等）を第三者のサーバーへ送信することはありません。第 3.3 条に記載の匿名使用状況データのみ PostHog（PostHog, Inc.）に送信されます。</p>
-    <p>当方は、以下の場合を除き、ユーザーの個人情報を第三者に販売または提供しません。</p>
-    <ol>
-      <li>法令に基づく開示請求への対応</li>
-      <li>人の生命・身体・財産の保護に必要な場合</li>
-      <li>合併・事業譲渡等により事業が承継される場合</li>
-    </ol>
+      <h2>5. 第三者への提供</h2>
+      <p>v1.0 では、当方がユーザーの観測記録（植物名・写真・メモ等）を第三者のサーバーへ送信することはありません。第 3.3 条に記載の匿名使用状況データのみ PostHog（PostHog, Inc.）に送信されます。</p>
+      <p>当方は、以下の場合を除き、ユーザーの個人情報を第三者に販売または提供しません。</p>
+      <ol>
+        <li>法令に基づく開示請求への対応</li>
+        <li>人の生命・身体・財産の保護に必要な場合</li>
+        <li>合併・事業譲渡等により事業が承継される場合</li>
+      </ol>
 
-    <h2>6. 情報の保存場所と保管期間</h2>
-    <table>
-      <tr><th>データ種別</th><th>保存場所</th></tr>
-      <tr><td>植物・観測・育成ログ・タイムラプス</td><td>お使いの iOS 端末のみ</td></tr>
-    </table>
-    <p>データは、アプリ削除または端末内データの消去まで端末に残ります。当方はクラウド上にバックアップを保持しません。</p>
+      <h2>6. 情報の保存場所と保管期間</h2>
+      <table>
+        <tr><th>データ種別</th><th>保存場所</th></tr>
+        <tr><td>植物・観測・育成ログ・タイムラプス</td><td>お使いの iOS 端末のみ</td></tr>
+      </table>
+      <p>データは、アプリ削除または端末内データの消去まで端末に残ります。当方はクラウド上にバックアップを保持しません。</p>
 
-    <h2>7. セキュリティ</h2>
-    <p>当方は、端末内データの保護のため、iOS の標準的なセキュリティ機能（アプリサンドボックス、端末の暗号化等）に依存します。</p>
-    <p>ただし、端末の紛失・盗難・アプリ削除等によりデータが失われる可能性があること、および電子保存の性質上、完全な安全性を保証するものではないことをご理解ください。</p>
+      <h2>7. セキュリティ</h2>
+      <p>当方は、端末内データの保護のため、iOS の標準的なセキュリティ機能（アプリサンドボックス、端末の暗号化等）に依存します。</p>
+      <p>ただし、端末の紛失・盗難・アプリ削除等によりデータが失われる可能性があること、および電子保存の性質上、完全な安全性を保証するものではないことをご理解ください。</p>
 
-    <h2>8. ユーザーの権利と選択肢</h2>
-    <h3>8.1 端末内での利用</h3>
-    <p>v1.0 では、サインイン機能を提供しません。観測・記録データは <strong>端末内のみ</strong> に保存されます。アプリを削除したり機種変更をすると、データを引き継げません。</p>
-    <h3>8.2 端末内データの削除</h3>
-    <p>本アプリ内の記録削除機能、iOS の設定からのアプリデータ削除、またはアプリのアンインストールで消去できます。</p>
-    <h3>8.3 開示・訂正・削除等の請求</h3>
-    <p>第 2 条のお問い合わせ先までご連絡ください。本人確認のうえ、法令に従い対応します。</p>
+      <h2>8. ユーザーの権利と選択肢</h2>
+      <h3>8.1 端末内での利用</h3>
+      <p>v1.0 では、サインイン機能を提供しません。観測・記録データは <strong>端末内のみ</strong> に保存されます。アプリを削除したり機種変更をすると、データを引き継げません。</p>
+      <h3>8.2 端末内データの削除</h3>
+      <p>本アプリ内の記録削除機能、iOS の設定からのアプリデータ削除、またはアプリのアンインストールで消去できます。</p>
+      <h3>8.3 開示・訂正・削除等の請求</h3>
+      <p>第 2 条のお問い合わせ先までご連絡ください。本人確認のうえ、法令に従い対応します。</p>
 
-    <h2>9. 未成年者</h2>
-    <p>本アプリは、13 歳未満（またはお住まいの地域で定められた最低年齢未満）の方を対象としていません。</p>
+      <h2>9. 未成年者</h2>
+      <p>本アプリは、13 歳未満（またはお住まいの地域で定められた最低年齢未満）の方を対象としていません。</p>
 
-    <h2>10. 本ポリシーの変更</h2>
-    <p>法令の改正、サービス内容の変更等に応じて、本ポリシーを改定することがあります。重要な変更がある場合は、本アプリ内で告知し、改定後の施行日を明示します。</p>
+      <h2>10. 本ポリシーの変更</h2>
+      <p>法令の改正、サービス内容の変更等に応じて、本ポリシーを改定することがあります。重要な変更がある場合は、本アプリ内で告知し、改定後の施行日を明示します。</p>
+    </section>
 
-    <footer>© 2026 · Node. · 植物観測アーカイブ</footer>
+    <hr class="lang-divider">
+
+    <section id="en" lang="en">
+      <h1>Node<span class="dot">.</span> Privacy Policy</h1>
+      <p class="meta">Last updated: 2026-05-28 · Effective: 2026-05-28 · v1.0</p>
+
+      <h2>1. Introduction</h2>
+      <p>Node. (the "App") is an iOS application for archiving plant observations and growth records. This Privacy Policy describes what information we collect, and how it is used, stored, and shared when you use the App.</p>
+      <p><strong>In v1.0, all observation and record data is stored only on your iOS device and is not transmitted to our servers or to any third-party partners' servers.</strong></p>
+      <p>By using the App, you agree to this Policy. If you do not agree, please discontinue use of the App.</p>
+
+      <h2>2. Operator</h2>
+      <table>
+        <tr><th>Item</th><th>Detail</th></tr>
+        <tr><td>Operator</td><td>Toshiki Isawa</td></tr>
+        <tr><td>Contact</td><td><a href="mailto:node.botanical@gmail.com">node.botanical@gmail.com</a></td></tr>
+      </table>
+      <p>For inquiries regarding the handling of personal data, please contact us at the address above.</p>
+
+      <h2>3. Information We Collect</h2>
+      <p>We collect or generate the following information <strong>only on your device</strong>, to the extent necessary to provide the App's features. No data is collected via our servers.</p>
+
+      <h3>3.1 User Content</h3>
+      <table>
+        <tr><th>Information</th><th>Detail</th><th>Stored at</th></tr>
+        <tr><td>Plant info</td><td>Plant name, species/cultivar, acquisition date, watering interval</td><td>On device (SwiftData)</td></tr>
+        <tr><td>Observation records</td><td>Captured photos, notes, observation date</td><td>On device</td></tr>
+        <tr><td>Care logs</td><td>Watering, fertilizing, repotting, etc.</td><td>On device</td></tr>
+        <tr><td>Timelapse videos</td><td>MP4 generated on device from observation photos</td><td>On device</td></tr>
+      </table>
+      <p>Observation photos may include not just the plant itself but also the background and surrounding environment. Please manage your records at your own discretion.</p>
+      <p><strong>Note:</strong> Data may be lost if you delete the App or switch devices. This is shown on the Settings screen of the App.</p>
+
+      <h3>3.2 Device Permissions</h3>
+      <table>
+        <tr><th>Permission</th><th>Purpose</th></tr>
+        <tr><td>Camera</td><td>Capturing observation photos</td></tr>
+        <tr><td>Photo Library (read)</td><td>Saving and sharing observation photos</td></tr>
+        <tr><td>Photo Library (add)</td><td>Saving timelapse videos</td></tr>
+        <tr><td>Notifications</td><td>Watering reminders (only if enabled in Settings)</td></tr>
+      </table>
+
+      <h3>3.3 Anonymous Usage Data (PostHog)</h3>
+      <p>To improve and maintain the quality of the App, we collect anonymous event data about in-app actions via the third-party service <strong>PostHog</strong> (PostHog, Inc.).</p>
+      <table>
+        <tr><th>Collected</th><th>Examples</th></tr>
+        <tr><td>Events</td><td>Screen transitions, button taps, notification permission results, action counts</td></tr>
+        <tr><td>Device metadata</td><td>App version, iOS version, device model identifier</td></tr>
+        <tr><td>Anonymous identifier</td><td>A UUID generated locally on device; not linked to any other service or personal profile</td></tr>
+      </table>
+      <p><strong>Not collected:</strong> Plant names, species, notes, or any user record content; observation photos and timelapse videos; location, contacts, phone number, or email address.</p>
+      <p>PostHog is used as first-party analytics and is not cross-referenced with third-party ad networks. We do not request iOS App Tracking Transparency permission.</p>
+      <p><strong>Opt-out:</strong> Turn off the "Send usage data" toggle under the "App Improvement" section of the App's Settings screen to stop further event transmission.</p>
+
+      <h2>4. Purpose of Use</h2>
+      <ol>
+        <li>Providing the App (observation records, Timeline, Compare, Timelapse, Quick Log, etc.)</li>
+        <li>Responding to inquiries</li>
+        <li>Compliance with laws, and response to violations of the Terms of Service</li>
+      </ol>
+
+      <h2>5. Disclosure to Third Parties</h2>
+      <p>In v1.0, we do not send user observation records (plant names, photos, notes, etc.) to any third-party servers. Only the anonymous usage data described in Section 3.3 is sent to PostHog (PostHog, Inc.).</p>
+      <p>We will not sell or provide your personal data to third parties except in the following cases:</p>
+      <ol>
+        <li>In response to legally mandated disclosure requests</li>
+        <li>When necessary to protect a person's life, body, or property</li>
+        <li>When the business is succeeded due to merger, business transfer, etc.</li>
+      </ol>
+
+      <h2>6. Storage Location and Retention</h2>
+      <table>
+        <tr><th>Data Type</th><th>Stored at</th></tr>
+        <tr><td>Plants, observations, care logs, timelapses</td><td>Your iOS device only</td></tr>
+      </table>
+      <p>Data remains on the device until the App is deleted or the in-device data is erased. We do not maintain cloud backups.</p>
+
+      <h2>7. Security</h2>
+      <p>We rely on the standard security mechanisms of iOS (app sandbox, device encryption, etc.) to protect on-device data.</p>
+      <p>Please understand that data may be lost due to device loss, theft, or App deletion, and that no electronic storage system can guarantee absolute security.</p>
+
+      <h2>8. User Rights and Choices</h2>
+      <h3>8.1 On-device Use</h3>
+      <p>In v1.0, no sign-in is provided. Observation and record data is stored <strong>only on the device</strong>. Data cannot be carried over if you delete the App or switch devices.</p>
+      <h3>8.2 Deleting On-device Data</h3>
+      <p>You can erase data via the in-app record deletion features, the iOS Settings app's "Delete App Data" function, or by uninstalling the App.</p>
+      <h3>8.3 Disclosure, Correction, or Deletion Requests</h3>
+      <p>Please contact us at the address in Section 2. We will respond in accordance with applicable law after verifying your identity.</p>
+
+      <h2>9. Minors</h2>
+      <p>The App is not intended for individuals under the age of 13 (or the minimum age set by the law of your jurisdiction).</p>
+
+      <h2>10. Changes to This Policy</h2>
+      <p>We may revise this Policy in response to legal changes or changes to the service. For material changes, we will announce them within the App and state the new effective date.</p>
+    </section>
+
+    <footer>© 2026 · Node. · Botanical Archive</footer>
   </div>
 </body>
 </html>

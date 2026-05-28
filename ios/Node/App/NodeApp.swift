@@ -23,7 +23,6 @@ struct NodeApp: App {
         WindowGroup {
             RootView(modelContext: modelContainer.mainContext, environment: environment)
                 .environmentObject(environment)
-                .environment(\.locale, NodeDateFormat.locale)
                 .preferredColorScheme(ColorScheme.dark)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)

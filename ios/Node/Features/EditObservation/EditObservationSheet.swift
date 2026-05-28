@@ -14,7 +14,7 @@ struct EditObservationSheet: View {
                 .frame(maxWidth: .infinity)
 
             VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                MetaLabel(text: viewModel.plant.name, size: 9)
+                MetaLabel(text: "\(viewModel.plant.name)", size: 9)
                 Text("観測日時を変更")
                     .font(NodeFont.display(NodeFont.title3, weight: .light))
                     .foregroundStyle(NodeColor.bone)
@@ -69,7 +69,7 @@ struct EditObservationSheet: View {
         )
     }
 
-    private var saveButtonTitle: String {
+    private var saveButtonTitle: LocalizedStringKey {
         let time = viewModel.observedAt.nodeTime()
         if viewModel.isObservingInPast {
             return "変更する · \(viewModel.observedAt.nodeMonthDay()) \(time)"

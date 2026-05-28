@@ -2,7 +2,7 @@ import SwiftUI
 
 struct WateringIntervalSection: View {
     @Binding var intervalDays: Int?
-    var footerHint: String? = nil
+    var footerHint: LocalizedStringKey? = nil
 
     @State private var usesCustomInput = false
     @State private var customDaysText = ""
@@ -34,7 +34,7 @@ struct WateringIntervalSection: View {
                     }
                     ForEach(WateringInterval.allCases) { interval in
                         NodeChip(
-                            title: interval.label,
+                            title: "\(interval.label)",
                             isSelected: intervalDays == interval.rawValue && !isCustomSelected
                         ) {
                             selectPreset(interval.rawValue)
