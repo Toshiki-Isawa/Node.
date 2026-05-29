@@ -21,7 +21,7 @@ Node.（以下「本アプリ」）は、植物の観測・成長記録を蓄積
 
 | 項目 | 内容 |
 |------|------|
-| 運営者 | 井澤俊樹 |
+| 運営者 | Node. Project |
 | お問い合わせ | node.botanical@gmail.com |
 
 個人情報の取り扱いに関するお問い合わせは、上記連絡先までご連絡ください。
@@ -190,7 +190,7 @@ By using the App, you agree to this Policy. If you do not agree, please disconti
 
 | Item | Detail |
 |------|------|
-| Operator | Toshiki Isawa |
+| Operator | Node. Project |
 | Contact | node.botanical@gmail.com |
 
 For inquiries regarding the handling of personal data, please contact us at the address above.
