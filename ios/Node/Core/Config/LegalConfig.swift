@@ -25,5 +25,5 @@ enum LegalConfig {
     }
 
     /// フィードバック / お問い合わせ受信用メールアドレス。privacy-policy.md と一致。
-    static let feedbackEmail = "node.botanical@gmail.com"
+    static let feedbackEmail = "support@node-app.jp"
 }
