@@ -1,28 +1,16 @@
 import SwiftUI
 
-/// 中央誘導ガイド：被写体ゾーン（破線枠）と中央クロスヘア。
-/// 「植物を中央に・同じサイズで」撮るための位置／サイズの両ガイド。
+/// 中央誘導ガイド：中央クロスヘア。
+/// 「植物を中央に」撮るための位置ガイド。
 struct SubjectZoneOverlay: View {
     let frame: CGRect
-    var zoneWidthRatio: CGFloat = 0.50
-    var zoneHeightRatio: CGFloat = 0.55
     var crossLength: CGFloat = 18
 
     var body: some View {
-        let zoneW = frame.width * zoneWidthRatio
-        let zoneH = frame.height * zoneHeightRatio
         let cx = frame.midX
         let cy = frame.midY
 
         ZStack {
-            RoundedRectangle(cornerRadius: 2)
-                .strokeBorder(
-                    Color.white.opacity(0.55),
-                    style: StrokeStyle(lineWidth: 1, dash: [5, 4])
-                )
-                .frame(width: zoneW, height: zoneH)
-                .position(x: cx, y: cy)
-
             Path { path in
                 path.move(to: CGPoint(x: cx - crossLength, y: cy))
                 path.addLine(to: CGPoint(x: cx + crossLength, y: cy))
