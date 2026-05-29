@@ -2,21 +2,28 @@ import CoreGraphics
 import UIKit
 
 /// カメラ画面の観測枠（レティクル）レイアウト。プレビュー・保存・オーバーレイで共通利用する。
-/// 全画面化に伴いインセットは 0。観測枠＝プレビュー全面 = 端末画面のアスペクト比。
+/// 縦向き（iPhone 既定）は観測枠＝プレビュー全面で従来どおり。
+/// 横向き（iPad マルチタスク等）はプレビューを上向きに保ったまま、中央へ縦構図の
+/// 観測枠を置き、保存画像が常に縦構図に揃うようにする。
 enum CameraFrameLayout {
-    static let insetXRatio: CGFloat = 0
-    static let insetTopRatio: CGFloat = 0
-    static let insetBottomRatio: CGFloat = 0
-
     static func frame(in size: CGSize) -> CGRect {
-        let insetX = size.width * insetXRatio
-        let insetTop = size.height * insetTopRatio
-        let insetBottom = size.height * insetBottomRatio
+        guard size.width > 0, size.height > 0 else {
+            return CGRect(origin: .zero, size: size)
+        }
+        // 縦向き・正方はプレビュー全面（従来挙動を維持）
+        guard size.width > size.height else {
+            return CGRect(origin: .zero, size: size)
+        }
+        // 横向きは中央に縦構図の観測枠を配置する。
+        // アスペクトは同じ画面/ペインを縦にしたときの縦横比に揃えるため、
+        // 縦向き全面で撮ったコマと横向きで撮ったコマが同じ縦構図で揃う。
+        let portraitAspect = size.height / size.width   // < 1（幅 / 高さ）
+        let width = size.height * portraitAspect
         return CGRect(
-            x: insetX,
-            y: insetTop,
-            width: size.width - insetX * 2,
-            height: size.height - insetTop - insetBottom
+            x: (size.width - width) / 2,
+            y: 0,
+            width: width,
+            height: size.height
         )
     }
 

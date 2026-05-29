@@ -267,8 +267,8 @@ struct CollectionView: View {
             } else {
                 LazyVGrid(
                     columns: [
-                        GridItem(.flexible(), spacing: NodeSpacing.sp3),
-                        GridItem(.flexible(), spacing: NodeSpacing.sp3),
+                        // iPhone は 2 列、iPad / 横向きでは幅に応じて自動増列。
+                        GridItem(.adaptive(minimum: 165, maximum: 220), spacing: NodeSpacing.sp3),
                     ],
                     spacing: NodeSpacing.sp3
                 ) {

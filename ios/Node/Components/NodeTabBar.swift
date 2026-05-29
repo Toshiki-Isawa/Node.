@@ -6,6 +6,8 @@ enum NodeTabBarMetrics {
     static let barHeight: CGFloat = 64
     /// Scroll content inset so the last row clears the tab bar.
     static let scrollBottomInset: CGFloat = barHeight + NodeSpacing.sp4
+    /// Cap the floating bar width so it stays centered on iPad / landscape.
+    static let maxWidth: CGFloat = 460
 }
 
 struct NodeTabBar: View {
@@ -30,6 +32,8 @@ struct NodeTabBar: View {
         .clipShape(Capsule())
         .overlay(Capsule().stroke(NodeColor.hairline, lineWidth: 1))
         .shadow(color: .black.opacity(0.7), radius: 25, y: 20)
+        .frame(maxWidth: NodeTabBarMetrics.maxWidth)
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, NodeSpacing.sp4)
     }
 

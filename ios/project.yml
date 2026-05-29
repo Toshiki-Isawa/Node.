@@ -33,7 +33,7 @@ configFiles:
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    TARGETED_DEVICE_FAMILY: "1"
+    TARGETED_DEVICE_FAMILY: "1,2"
     SUPPORTS_MACCATALYST: NO
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
@@ -58,7 +58,10 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.node.ios
         INFOPLIST_KEY_CFBundleDisplayName: Node.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        # iPad はマルチタスク (Split View) を有効にするため UIRequiresFullScreen は設定しない。
+        # その条件下では Apple のガイドライン上 iPad は全 4 方向の対応が必須。
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_NSCameraUsageDescription: "観測写真を撮影するためにカメラへのアクセスが必要です。"
         INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: "タイムラプスを写真ライブラリに保存するために必要です。"
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "観測写真を保存・共有するために必要です。"

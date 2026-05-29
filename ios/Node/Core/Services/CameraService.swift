@@ -31,6 +31,11 @@ final class CameraService: NSObject, ObservableObject {
     weak var previewLayer: AVCaptureVideoPreviewLayer?
     @Published private(set) var previewBounds: CGSize = UIScreen.main.bounds.size
 
+    /// 端末の向きに応じてプレビュー/撮影接続の回転角を供給する（iOS 17+）。
+    private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
+    private var previewRotationObservation: NSKeyValueObservation?
+    private var captureRotationObservation: NSKeyValueObservation?
+
     var observationFrameRect: CGRect {
         CameraFrameLayout.frame(in: previewBounds)
     }
@@ -106,8 +111,7 @@ final class CameraService: NSObject, ObservableObject {
             isPhotoOutputAttached = true
         }
 
-        applyPortraitOrientation(to: previewLayer?.connection)
-        applyPortraitOrientation(to: photoOutput.connection(with: .video))
+        setupRotationCoordinator(device: device)
 
         session.commitConfiguration()
         updateCaptureReadiness()
@@ -215,8 +219,55 @@ final class CameraService: NSObject, ObservableObject {
         isCaptureReady = connection.isEnabled && connection.isActive
     }
 
-    private func applyPortraitOrientation(to connection: AVCaptureConnection?) {
-        CameraOrientation.applyPortrait(to: connection)
+    /// プレビュー用 `AVCaptureVideoPreviewLayer` を受け取り、回転追従を構成する。
+    /// `updateUIView` から繰り返し呼ばれるため、レイヤーが変わったとき以外は再構成しない。
+    func setPreviewLayer(_ layer: AVCaptureVideoPreviewLayer) {
+        let isSameLayer = previewLayer === layer
+        previewLayer = layer
+        guard let device = currentInput?.device else { return }
+        if !isSameLayer || rotationCoordinator == nil {
+            setupRotationCoordinator(device: device)
+        }
+    }
+
+    /// 端末の向きに応じてプレビュー/撮影接続の回転角を自動更新する。
+    private func setupRotationCoordinator(device: AVCaptureDevice) {
+        previewRotationObservation?.invalidate()
+        captureRotationObservation?.invalidate()
+
+        let coordinator = AVCaptureDevice.RotationCoordinator(device: device, previewLayer: previewLayer)
+        rotationCoordinator = coordinator
+
+        applyPreviewRotation(coordinator.videoRotationAngleForHorizonLevelPreview)
+        applyCaptureRotation(coordinator.videoRotationAngleForHorizonLevelCapture)
+
+        previewRotationObservation = coordinator.observe(
+            \.videoRotationAngleForHorizonLevelPreview,
+            options: [.new]
+        ) { [weak self] _, change in
+            guard let angle = change.newValue else { return }
+            Task { @MainActor in self?.applyPreviewRotation(angle) }
+        }
+
+        captureRotationObservation = coordinator.observe(
+            \.videoRotationAngleForHorizonLevelCapture,
+            options: [.new]
+        ) { [weak self] _, change in
+            guard let angle = change.newValue else { return }
+            Task { @MainActor in self?.applyCaptureRotation(angle) }
+        }
+    }
+
+    private func applyPreviewRotation(_ angle: CGFloat) {
+        guard let connection = previewLayer?.connection,
+              connection.isVideoRotationAngleSupported(angle) else { return }
+        connection.videoRotationAngle = angle
+    }
+
+    private func applyCaptureRotation(_ angle: CGFloat) {
+        guard let connection = photoOutput.connection(with: .video),
+              connection.isVideoRotationAngleSupported(angle) else { return }
+        connection.videoRotationAngle = angle
     }
 }
 
@@ -282,15 +333,6 @@ private final class CMotionManager {
     }
 }
 
-private enum CameraOrientation {
-    static func applyPortrait(to connection: AVCaptureConnection?) {
-        guard let connection else { return }
-        if connection.isVideoRotationAngleSupported(90) {
-            connection.videoRotationAngle = 90
-        }
-    }
-}
-
 struct AVCameraPreviewView: UIViewRepresentable {
     let session: AVCaptureSession
     var cameraService: CameraService?
@@ -300,21 +342,19 @@ struct AVCameraPreviewView: UIViewRepresentable {
         view.isUserInteractionEnabled = false
         view.previewLayer.session = session
         view.previewLayer.videoGravity = .resizeAspectFill
-        CameraOrientation.applyPortrait(to: view.previewLayer.connection)
         view.onBoundsChange = { [weak cameraService] size in
             Task { @MainActor in
                 cameraService?.updatePreviewBounds(size)
             }
         }
-        cameraService?.previewLayer = view.previewLayer
+        cameraService?.setPreviewLayer(view.previewLayer)
         cameraService?.updatePreviewBounds(view.bounds.size)
         return view
     }
 
     func updateUIView(_ uiView: PreviewView, context: Context) {
         uiView.previewLayer.session = session
-        CameraOrientation.applyPortrait(to: uiView.previewLayer.connection)
-        cameraService?.previewLayer = uiView.previewLayer
+        cameraService?.setPreviewLayer(uiView.previewLayer)
         cameraService?.updatePreviewBounds(uiView.bounds.size)
     }
 }
