@@ -14,7 +14,7 @@ struct QuickLogSheet: View {
 
             VStack(spacing: NodeSpacing.sp2) {
                 logRow([.water, .fertilize, .tonic])
-                logRow([.repot, .light])
+                logRow([.pesticide, .repot, .light])
             }
 
             dateTimeSection

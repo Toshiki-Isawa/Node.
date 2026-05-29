@@ -2275,6 +2275,16 @@
         }
       }
     },
+    "薬剤" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pesticide"
+          }
+        }
+      }
+    },
     "日" : {
       "localizations" : {
         "en" : {

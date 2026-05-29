@@ -22,6 +22,7 @@ enum GrowthLogType: String, Codable, CaseIterable, Identifiable {
     case water
     case fertilize
     case tonic
+    case pesticide
     case repot
     case note
     case light
@@ -33,6 +34,7 @@ enum GrowthLogType: String, Codable, CaseIterable, Identifiable {
         case .water: return String(localized: "水やり")
         case .fertilize: return String(localized: "施肥")
         case .tonic: return String(localized: "活力剤")
+        case .pesticide: return String(localized: "薬剤")
         case .repot: return String(localized: "植え替え")
         case .note: return String(localized: "メモ")
         case .light: return String(localized: "ライト変更")
@@ -44,6 +46,7 @@ enum GrowthLogType: String, Codable, CaseIterable, Identifiable {
         case .water: return "drop"
         case .fertilize: return "sparkles"
         case .tonic: return "flask"
+        case .pesticide: return "syringe"
         case .repot: return "arrow.up.bin"
         case .note: return "doc.text"
         case .light: return "lightbulb"
@@ -52,7 +55,7 @@ enum GrowthLogType: String, Codable, CaseIterable, Identifiable {
 
     /// Quick Log シートのケア種別ボタン（メモのみは下の入力欄で記録）
     static let quickLogActionTypes: [GrowthLogType] = [
-        .water, .fertilize, .tonic, .repot, .light
+        .water, .fertilize, .tonic, .pesticide, .repot, .light
     ]
 }
 

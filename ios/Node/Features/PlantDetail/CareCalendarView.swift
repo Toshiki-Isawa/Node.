@@ -310,6 +310,7 @@ private enum CareLogColor {
         case .water: return NodeColor.syncActive
         case .fertilize: return NodeColor.moss
         case .tonic: return NodeColor.olive
+        case .pesticide: return NodeColor.mossDeep
         case .repot: return NodeColor.sage
         case .note: return NodeColor.fog
         case .light: return NodeColor.mossSoft
