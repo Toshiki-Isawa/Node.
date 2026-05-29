@@ -2658,12 +2658,12 @@
         }
       }
     },
-    "水やり間隔を設定した株が時期を迎えた朝に通知します。" : {
+    "水やり間隔を設定した株が時期を迎えた朝に通知し、待ち株数をアプリアイコンに表示します。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plants with a watering interval get a morning reminder when due."
+            "value" : "Plants with a watering interval get a morning reminder when due, and the number waiting shows on the app icon."
           }
         }
       }

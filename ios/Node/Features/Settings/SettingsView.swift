@@ -174,7 +174,7 @@ struct SettingsView: View {
                         Text("水やり通知")
                             .font(NodeFont.text(NodeFont.callout, weight: .medium))
                             .foregroundStyle(NodeColor.bone)
-                        Text("水やり間隔を設定した株が時期を迎えた朝に通知します。")
+                        Text("水やり間隔を設定した株が時期を迎えた朝に通知し、待ち株数をアプリアイコンに表示します。")
                             .font(NodeFont.text(12))
                             .foregroundStyle(NodeColor.fog)
                     }

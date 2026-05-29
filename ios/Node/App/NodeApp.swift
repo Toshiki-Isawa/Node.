@@ -28,11 +28,23 @@ struct NodeApp: App {
                     GIDSignIn.sharedInstance.handle(url)
                 }
                 .onChange(of: scenePhase) { _, phase in
-                    guard phase == .active else { return }
-                    environment.analyticsService.capture(AnalyticsEvent.appForeground)
-                    Task {
-                        await environment.careNotificationService.refreshAuthorizationStatus()
-                        await environment.careNotificationService.rescheduleIfNeeded()
+                    switch phase {
+                    case .active:
+                        environment.analyticsService.capture(AnalyticsEvent.appForeground)
+                        Task {
+                            await environment.careNotificationService.refreshAuthorizationStatus()
+                            await environment.careNotificationService.rescheduleIfNeeded()
+                            await environment.careNotificationService.updateBadge()
+                        }
+                    case .background:
+                        // アプリ内で水やり/編集した結果を離脱時に反映:
+                        // 通知本文と content.badge を貼り直し、アイコンバッジを即時更新する。
+                        Task {
+                            await environment.careNotificationService.rescheduleIfNeeded()
+                            await environment.careNotificationService.updateBadge()
+                        }
+                    default:
+                        break
                     }
                 }
         }

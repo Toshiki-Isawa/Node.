@@ -46,6 +46,7 @@ final class CareNotificationService: NSObject, ObservableObject {
         registerCategory()
         await refreshAuthorizationStatus()
         await rescheduleIfNeeded()
+        await updateBadge()
     }
 
     func refreshAuthorizationStatus() async {
@@ -87,6 +88,7 @@ final class CareNotificationService: NSObject, ObservableObject {
             }
         }
         await rescheduleIfNeeded()
+        await updateBadge()
     }
 
     /// 観測・QuickLog・植物編集など、対象株が変わり得るイベント後に呼ぶ。
@@ -95,14 +97,29 @@ final class CareNotificationService: NSObject, ObservableObject {
             withIdentifiers: pendingIdentifiers()
         )
 
-        guard preferences.isWateringRemindersEnabled,
-              authorizationStatus == .authorized || authorizationStatus == .provisional else {
-            return
-        }
+        guard isCareReminderActive else { return }
 
         for offset in 0..<Self.scheduleHorizonDays {
             await scheduleNotification(dayOffset: offset)
         }
+    }
+
+    /// アプリアイコンのバッジを「今日時点の水やり待ち株数」に合わせる。
+    /// ゲート (リマインダー ON + 認可済み) を通らない場合は 0 (クリア) にする。
+    /// アプリ生存中の更新経路。未起動時は scheduleNotification の content.badge が担う。
+    func updateBadge() async {
+        let count = isCareReminderActive ? overduePlants(on: Date()).count : 0
+        do {
+            try await center.setBadgeCount(count)
+        } catch {
+            Self.logger.error("Failed to set badge count: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// 通知・バッジを出す条件 (リマインダー ON かつ通知認可済み)。
+    private var isCareReminderActive: Bool {
+        preferences.isWateringRemindersEnabled
+            && (authorizationStatus == .authorized || authorizationStatus == .provisional)
     }
 
     private func registerCategory() {
@@ -141,6 +158,8 @@ final class CareNotificationService: NSObject, ObservableObject {
         content.body = makeBody(for: targets)
         content.categoryIdentifier = Self.categoryIdentifier
         content.sound = .default
+        // アプリ未起動でも発火時刻にバッジがその日の水やり待ち株数へ更新される。
+        content.badge = NSNumber(value: targets.count)
 
         let trigger = UNCalendarNotificationTrigger(
             dateMatching: calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate),
@@ -228,6 +247,7 @@ extension CareNotificationService: UNUserNotificationCenterDelegate {
             break
         }
         await rescheduleIfNeeded()
+        await updateBadge()
     }
 
     private func applyWateringDone() async {
