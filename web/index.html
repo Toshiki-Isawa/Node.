@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Node. — 植物の時間を残す。観測のためのアーカイブ、管理のためのアプリではない iOS アプリ。">
+  <meta name="description" content="Node. — 植物の時間を残す。端末の中だけで完結する、観測のためのアーカイブ。クラウドも課金もない iOS アプリ。">
   <meta name="theme-color" content="#14161a">
   <title>Node. — 植物の時間を残す</title>
 
@@ -214,7 +214,7 @@
       font-size: 15px;
       line-height: 1.7;
       color: var(--c-paper);
-      max-width: 36ch;
+      max-width: 38ch;
       margin: 36px 0 0;
       opacity: 0;
       animation: rise 900ms var(--ease-enter) 560ms forwards;
@@ -322,7 +322,7 @@
       text-transform: uppercase;
       margin-top: 8px;
     }
-    .hero-photo .sync {
+    .hero-photo .local {
       position: absolute; top: 16px; right: 16px;
       display: flex; align-items: center; gap: 8px;
       background: color-mix(in oklab, var(--c-void) 62%, transparent);
@@ -330,12 +330,12 @@
       padding: 7px 11px;
       border-radius: 999px;
     }
-    .hero-photo .sync .dot {
+    .hero-photo .local .dot {
       width: 5px; height: 5px; border-radius: 999px;
-      background: var(--c-moss);
-      box-shadow: 0 0 0 3px color-mix(in oklab, var(--c-moss) 18%, transparent);
+      background: var(--c-olive);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--c-olive) 18%, transparent);
     }
-    .hero-photo .sync .txt {
+    .hero-photo .local .txt {
       font-family: var(--font-mono);
       font-size: 9px;
       color: var(--c-bone);
@@ -571,85 +571,67 @@
       color: var(--c-bone);
     }
 
-    /* Plan table — three columns, restrained */
-    .plans {
+    /* Roadmap — three releases, restrained, current train highlighted */
+    .roadmap {
       border: 1px solid var(--hairline);
       border-radius: var(--r-md);
       overflow: hidden;
       background: var(--c-charcoal);
     }
-    .plan-row {
+    .road-row {
       display: grid;
-      grid-template-columns: 1.4fr 1fr 1fr 1.2fr 1.2fr;
-      align-items: center;
-      padding: 18px 24px;
+      grid-template-columns: 132px 1fr;
+      gap: 20px;
+      align-items: baseline;
+      padding: 20px 24px;
       border-bottom: 1px solid var(--hairline);
-      gap: 16px;
     }
-    .plan-row:last-child { border-bottom: none; }
-    .plan-row.head {
-      background: var(--c-bark);
-      font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: 0.10em;
-      text-transform: uppercase;
-      color: var(--c-mist);
-      padding-top: 14px; padding-bottom: 14px;
-    }
-    .plan-row .name {
-      font-family: var(--font-display);
-      font-weight: 400;
-      font-size: 17px;
-      letter-spacing: -0.005em;
-      color: var(--c-bone);
-    }
-    .plan-row .name .sub {
-      display: block;
-      font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: 0.10em;
-      text-transform: uppercase;
-      color: var(--c-fog);
-      margin-top: 4px;
-    }
-    .plan-row .price {
-      font-family: var(--font-display);
-      font-weight: 300;
-      font-size: 22px;
-      color: var(--c-bone);
-      letter-spacing: -0.01em;
-    }
-    .plan-row .price .unit {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: var(--c-mist);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-left: 4px;
-    }
-    .plan-row .cap, .plan-row .qual, .plan-row .tl {
-      font-family: var(--font-text);
-      font-size: 13px;
-      color: var(--c-paper);
-    }
-    .plan-row.featured {
+    .road-row:last-child { border-bottom: none; }
+    .road-row.now {
       background: color-mix(in oklab, var(--c-moss) 8%, var(--c-charcoal));
       position: relative;
     }
-    .plan-row.featured::before {
+    .road-row.now::before {
       content: '';
       position: absolute; left: 0; top: 0; bottom: 0;
       width: 2px; background: var(--c-moss);
     }
+    .road-ver {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-mist);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .road-row.now .road-ver .v { color: var(--c-moss-soft); }
+    .road-ver .tag {
+      font-size: 9px;
+      letter-spacing: 0.10em;
+      color: var(--c-fossil);
+    }
+    .road-row.now .road-ver .tag { color: var(--c-moss); }
+    .road-desc .t {
+      display: block;
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 16px;
+      letter-spacing: -0.005em;
+      color: var(--c-bone);
+      margin-bottom: 6px;
+    }
+    .road-desc p {
+      font-family: var(--font-text);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--c-fog);
+      margin: 0;
+    }
     @media (max-width: 760px) {
-      .plan-row { grid-template-columns: 1fr; gap: 8px; padding: 18px; }
-      .plan-row.head { display: none; }
-      .plan-row .cap::before { content: 'CAPACITY · '; color: var(--c-mist); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; }
-      .plan-row .qual::before { content: 'SYNC · '; color: var(--c-mist); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; }
-      .plan-row .tl::before { content: 'TIMELAPSE · '; color: var(--c-mist); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; }
+      .road-row { grid-template-columns: 1fr; gap: 10px; }
     }
 
-    /* Local-first flow diagram */
+    /* On-device flow diagram */
     .flow {
       margin-top: 40px;
       padding: 28px 24px;
@@ -965,8 +947,9 @@
           <div class="hero-tagline-en">preserve plant time · observe, not manage</div>
 
           <p class="hero-body">
-            水やり通知も AI 診断もない。撮影と観測の履歴だけを、
-            静かに積み上げていく iOS アプリ。あなたの植物の写真が、
+            AI 診断も、派手な演出もない。撮影と観測の履歴を、
+            端末の中だけに静かに積み上げていく iOS アプリ。
+            クラウドにも送らず、課金もない。あなたの植物の写真が、
             アプリの主役のまま残り続ける。
           </p>
 
@@ -984,9 +967,9 @@
           <div class="hero-meta">
             <span><strong>iOS 17+</strong></span>
             <span>·</span>
-            <span><strong>OFFLINE-FIRST</strong></span>
+            <span><strong>端末内で完結</strong></span>
             <span>·</span>
-            <span><strong>SEED</strong> 無料 · 3 GB</span>
+            <span><strong>完全無料</strong></span>
           </div>
         </div>
 
@@ -1000,9 +983,9 @@
             <div class="grain"></div>
             <div class="grad"></div>
             <div class="caption-tl">PLANT · 4032 × 3024</div>
-            <div class="sync">
+            <div class="local">
               <span class="dot"></span>
-              <span class="txt">同期済み</span>
+              <span class="txt">端末内</span>
             </div>
             <div class="meta">
               <div>
@@ -1024,7 +1007,7 @@
       <div class="section-marker reveal">
         <span class="idx">01</span>
         <span class="jp">思想</span>
-        <span class="en">THESIS · 01 / 06</span>
+        <span class="en">THESIS</span>
       </div>
 
       <div class="manifesto-grid">
@@ -1038,11 +1021,12 @@
 
         <div class="manifesto-body reveal">
           <p>
-            Node. は、水やりを通知するためでも、植物を診断するためでもありません。
+            Node. は、植物を診断するためでも、急かすためでもありません。
             撮影し、保存し、時間をまたいで見返す。
             その単純な動作の往復だけが、植物を観測するという体験を形にします。
           </p>
           <p>
+            記録はすべて端末の中に残ります。サインインも、クラウドも、課金もない。
             写真は加工されず、UI はそれを邪魔しません。
             画面は静かに沈み、観測の痕跡だけが浮かび上がります。
           </p>
@@ -1056,14 +1040,14 @@
           <p>UI は黒に沈み、装飾を捨て、写真が画面の全てになる。アイコンも色もそのために削られている。</p>
         </div>
         <div class="pillar reveal">
-          <div class="num">02 · LOCAL-FIRST</div>
-          <h4>端末がまず正本</h4>
-          <p>撮影・保存・記録は完全にオフラインで動作。同期は後から、静かに、必要なときだけ。</p>
+          <div class="num">02 · ON-DEVICE</div>
+          <h4>端末の中で完結</h4>
+          <p>撮影・記録・比較・通知のすべてが端末内（SwiftData）で動く。サインイン不要、ネットワーク不要。</p>
         </div>
         <div class="pillar reveal">
           <div class="num">03 · QUIET</div>
           <h4>沈黙する道具</h4>
-          <p>通知は最小、アニメーションは抑制。Leica のような道具として、口数を減らす。</p>
+          <p>通知は水やりの日次サマリだけ、アニメーションは抑制。Leica のような道具として、口数を減らす。</p>
         </div>
       </div>
     </section>
@@ -1073,11 +1057,11 @@
       <div class="section-marker reveal">
         <span class="idx">02</span>
         <span class="jp">機能</span>
-        <span class="en">FEATURES · 08</span>
+        <span class="en">FEATURES · v1.0</span>
       </div>
 
       <h2 id="features-h" class="arch-h2 reveal" style="margin-bottom: 48px;">
-        観測のための、八つの動作。
+        観測のための、最小限の動作。
       </h2>
 
       <div class="features-grid">
@@ -1088,8 +1072,8 @@
           </div>
           <h3>Collection</h3>
           <div class="name-jp">コレクション</div>
-          <p>登録した植物を、カテゴリ・検索・水やり優先で並び替える。リストではなく、観察対象の棚。</p>
-          <div class="verb"><span class="bar"></span>BROWSE · SEARCH · SORT</div>
+          <p>登録した植物を、カテゴリ・水やり優先で並び替える。リストではなく、観察対象の棚。</p>
+          <div class="verb"><span class="bar"></span>BROWSE · SORT</div>
         </article>
 
         <article class="feature reveal">
@@ -1098,9 +1082,9 @@
             <i data-lucide="camera" class="icon" aria-hidden="true"></i>
           </div>
           <h3>Camera</h3>
-          <div class="name-jp">カメラ</div>
-          <p>高速撮影、即保存、オフライン対応。シャッターには音もアニメーションもない。</p>
-          <div class="verb"><span class="bar"></span>CAPTURE · INSTANT · OFFLINE</div>
+          <div class="name-jp">観測撮影</div>
+          <p>前回の観測を半透明で重ね、同じ構図で撮り続ける。グリッドと水平器で位置を揃え、撮ったその場で端末内に保存する。</p>
+          <div class="verb"><span class="bar"></span>OVERLAY · ALIGN · CAPTURE</div>
         </article>
 
         <article class="feature reveal">
@@ -1128,17 +1112,6 @@
         <article class="feature reveal">
           <div class="head">
             <span class="num">05 / 08</span>
-            <i data-lucide="film" class="icon" aria-hidden="true"></i>
-          </div>
-          <h3>Timelapse</h3>
-          <div class="name-jp">タイムラプス</div>
-          <p>端末内で生成、端末から書き出し。クラウドには保存されない、私的なフィルム。</p>
-          <div class="verb"><span class="bar"></span>RENDER · EXPORT · LOCAL</div>
-        </article>
-
-        <article class="feature reveal">
-          <div class="head">
-            <span class="num">06 / 08</span>
             <i data-lucide="droplet" class="icon" aria-hidden="true"></i>
           </div>
           <h3>Quick Log</h3>
@@ -1149,7 +1122,7 @@
 
         <article class="feature reveal">
           <div class="head">
-            <span class="num">07 / 08</span>
+            <span class="num">06 / 08</span>
             <i data-lucide="calendar" class="icon" aria-hidden="true"></i>
           </div>
           <h3>Care Calendar</h3>
@@ -1160,13 +1133,24 @@
 
         <article class="feature reveal">
           <div class="head">
+            <span class="num">07 / 08</span>
+            <i data-lucide="bell" class="icon" aria-hidden="true"></i>
+          </div>
+          <h3>Care Reminder</h3>
+          <div class="name-jp">ケア通知</div>
+          <p>水やりの日次サマリをローカル通知で。オプトインで、煽らない。通知から直接記録できる。</p>
+          <div class="verb"><span class="bar"></span>WATERING · DAILY · OPT-IN</div>
+        </article>
+
+        <article class="feature reveal">
+          <div class="head">
             <span class="num">08 / 08</span>
             <i data-lucide="settings-2" class="icon" aria-hidden="true"></i>
           </div>
           <h3>Settings</h3>
           <div class="name-jp">設定</div>
-          <p>プラン、容量、同期状態、購入復元、アカウント削除。すべてここに集約される。</p>
-          <div class="verb"><span class="bar"></span>PLAN · STORAGE · ACCOUNT</div>
+          <p>ケア通知、プライバシー、フィードバック、使用状況送信のオプトアウト。すべてここに集約。</p>
+          <div class="verb"><span class="bar"></span>NOTIFY · PRIVACY · FEEDBACK</div>
         </article>
       </div>
     </section>
@@ -1176,20 +1160,19 @@
       <div class="section-marker reveal">
         <span class="idx">03</span>
         <span class="jp">構成</span>
-        <span class="en">ARCHITECTURE · STACK · PLANS</span>
+        <span class="en">ON-DEVICE · STACK · ROADMAP</span>
       </div>
 
       <div class="arch-grid">
         <div>
           <h2 id="arch-h" class="arch-h2 reveal">
-            Local-first。<br>
-            あなたの端末が、<br>正本になる。
+            端末の中で、<br>完結する。
           </h2>
           <p class="arch-lede reveal">
-            撮影・保存・Quick Log はサインインなしでも動く。
-            同期は完了後に静かに走り、Original は R2 を正本として
-            端末から退避する。サムネイルは常駐し、必要なときだけ
-            オンデマンドで取り戻す。
+            撮影・観測・比較・クイックログ・ケア通知は、すべて端末内で動きます。
+            サインインも、サーバーへの送信も、課金もありません。
+            記録は SwiftData として端末に保存され、写真もアプリの中だけに残ります。
+            ネットワークがなくても、すべての機能が使えます。
           </p>
 
           <div class="arch-stack reveal">
@@ -1198,75 +1181,76 @@
               <span class="val">SwiftUI · SwiftData</span>
             </div>
             <div class="arch-row">
-              <span class="label">BACKEND</span>
-              <span class="val">Supabase · Auth · Postgres · Edge Functions</span>
-            </div>
-            <div class="arch-row">
               <span class="label">STORAGE</span>
-              <span class="val">Cloudflare R2</span>
+              <span class="val">端末内のみ · クラウド送信なし</span>
             </div>
             <div class="arch-row">
-              <span class="label">AUTH</span>
-              <span class="val">Sign in with Apple · Google Sign-In</span>
+              <span class="label">NOTIFY</span>
+              <span class="val">ローカル通知（水やり日次サマリ）</span>
             </div>
             <div class="arch-row">
-              <span class="label">BILLING</span>
-              <span class="val">StoreKit 2</span>
+              <span class="label">ANALYTICS</span>
+              <span class="val">匿名の使用状況のみ · 設定でオプトアウト可</span>
             </div>
             <div class="arch-row">
-              <span class="label">TIMELAPSE</span>
-              <span class="val">AVFoundation · 端末内生成 · クラウド非保存</span>
+              <span class="label">ACCOUNT</span>
+              <span class="val">不要 · アカウント登録なし</span>
+            </div>
+            <div class="arch-row">
+              <span class="label">PRICE</span>
+              <span class="val">完全無料</span>
             </div>
           </div>
         </div>
 
         <div>
-          <div class="plans reveal">
-            <div class="plan-row head">
-              <span>プラン</span>
-              <span>月額</span>
-              <span>容量</span>
-              <span>同期品質</span>
-              <span>タイムラプス</span>
+          <div class="roadmap reveal">
+            <div class="road-row now">
+              <div class="road-ver">
+                <span class="v">v1.0</span>
+                <span class="tag">NOW · 配信</span>
+              </div>
+              <div class="road-desc">
+                <span class="t">観測アーカイブ（端末内・無料）</span>
+                <p>観測撮影・コレクション・タイムライン・比較・クイックログ・ケアカレンダー・水やり通知。すべて端末内で完結。</p>
+              </div>
             </div>
 
-            <div class="plan-row">
-              <div class="name">Seed<span class="sub">SEED · FREE</span></div>
-              <div class="price">¥0<span class="unit">/MO</span></div>
-              <div class="cap">3 GB</div>
-              <div class="qual">圧縮版</div>
-              <div class="tl">720p</div>
+            <div class="road-row">
+              <div class="road-ver">
+                <span class="v">v1.0.1</span>
+                <span class="tag">NEXT · Pack</span>
+              </div>
+              <div class="road-desc">
+                <span class="t">Node. Pack（買い切り）</span>
+                <p>iCloud バックアップ・タイムラプス 4K・全文検索・タグ。Family Sharing 対応の非消費型 IAP。</p>
+              </div>
             </div>
 
-            <div class="plan-row featured">
-              <div class="name">Archive<span class="sub">ARCHIVE · STANDARD</span></div>
-              <div class="price">¥480<span class="unit">/MO</span></div>
-              <div class="cap">50 GB</div>
-              <div class="qual">Original</div>
-              <div class="tl">4K</div>
-            </div>
-
-            <div class="plan-row">
-              <div class="name">Conservatory<span class="sub">CONSERVATORY · MAX</span></div>
-              <div class="price">¥980<span class="unit">/MO</span></div>
-              <div class="cap">500 GB</div>
-              <div class="qual">Original</div>
-              <div class="tl">4K</div>
+            <div class="road-row">
+              <div class="road-ver">
+                <span class="v">v1.1</span>
+                <span class="tag">LATER · Sub</span>
+              </div>
+              <div class="road-desc">
+                <span class="t">クラウド同期サブスク</span>
+                <p>複数端末でのデータ同期と Original の退避。Pack と独立した月額プランとして提供予定。</p>
+              </div>
             </div>
           </div>
 
           <div class="flow reveal">
-            <div class="flow-label">SYNC FLOW · LOCAL-FIRST</div>
+            <div class="flow-label">DATA FLOW · ON-DEVICE</div>
             <div class="flow-chain">
               <span class="flow-node">Collection</span>
               <span class="flow-arrow">→</span>
-              <span class="flow-node">Camera</span>
+              <span class="flow-node">観測撮影</span>
               <span class="flow-arrow">→</span>
-              <span class="flow-node accent">ローカル保存</span>
+              <span class="flow-node accent">端末内保存</span>
               <span class="flow-arrow">→</span>
-              <span class="flow-node">SyncEngine</span>
+              <span class="flow-node">Timeline</span>
               <span class="flow-arrow">→</span>
-              <span class="flow-node">Supabase · R2</span>
+              <span class="flow-node">Compare</span>
             </div>
           </div>
         </div>
@@ -1301,8 +1285,8 @@
             <span class="ex">観測 · 142</span>
           </div>
           <div class="voice-pair">
-            <span class="lbl">課金訴求</span>
-            <span class="ex">長いアーカイブのために。</span>
+            <span class="lbl">ケア通知</span>
+            <span class="ex">今日の水やり · 3 株</span>
           </div>
           <div class="voice-pair">
             <span class="lbl">比較</span>
@@ -1325,8 +1309,8 @@
             <span class="ex">マイプラント (142)</span>
           </div>
           <div class="voice-pair">
-            <span class="lbl">課金訴求</span>
-            <span class="ex">いますぐアップグレード! 期間限定</span>
+            <span class="lbl">ケア通知</span>
+            <span class="ex">水やりサボってませんか?😢</span>
           </div>
           <div class="voice-pair">
             <span class="lbl">比較</span>
@@ -1364,16 +1348,16 @@
               観測を、<br>
               今日からはじめる。
             </h2>
-            <span class="sub">begin observing · iOS 17+ · seed plan free</span>
+            <span class="sub">begin observing · iOS 17+ · 完全無料</span>
           </div>
           <div class="cta-actions">
             <a href="#" class="btn primary" aria-label="App Store で入手">
               <i data-lucide="apple" class="glyph" aria-hidden="true"></i>
               App Store
             </a>
-            <a href="../specification.md" class="btn secondary">
-              <i data-lucide="file-text" class="glyph" aria-hidden="true"></i>
-              要件定義書
+            <a href="privacy.html" class="btn secondary">
+              <i data-lucide="shield" class="glyph" aria-hidden="true"></i>
+              プライバシー
             </a>
           </div>
         </div>
@@ -1385,19 +1369,14 @@
       <div class="foot-grid">
         <div class="foot-col foot-brand">
           <div class="word">Node<span class="dot">.</span></div>
-          <p>植物の時間を残す。観測のためのアーカイブ、管理のためのアプリではない。</p>
+          <p>植物の時間を残す。端末の中だけで完結する、観測のためのアーカイブ。</p>
         </div>
 
         <div class="foot-col">
           <h5>ドキュメント</h5>
           <ul>
-            <li><a href="../docs/privacy-policy.md">プライバシーポリシー</a></li>
-            <li><a href="privacy.html">プライバシーポリシー（Web）</a></li>
-            <li><a href="../specification.md">要件定義書</a></li>
-            <li><a href="../README.md">README</a></li>
-            <li><a href="../ios/README.md">iOS</a></li>
-            <li><a href="../supabase/README.md">Supabase</a></li>
-            <li><a href="../design/README.md">Design</a></li>
+            <li><a href="https://node-app.jp/privacy/" class="ext">プライバシーポリシー</a></li>
+            <li><a href="privacy.html">プライバシー（同梱版）</a></li>
           </ul>
         </div>
 
@@ -1413,19 +1392,17 @@
         </div>
 
         <div class="foot-col">
-          <h5>リポジトリ</h5>
+          <h5>お問い合わせ</h5>
           <ul>
-            <li><a href="#" class="ext">GitHub</a></li>
-            <li><a href="#" class="ext">Changelog</a></li>
-            <li><a href="#">問い合わせ</a></li>
+            <li><a href="mailto:support@node-app.jp">support@node-app.jp</a></li>
           </ul>
         </div>
       </div>
 
       <div class="foot-bottom">
-        <span>© 2026 · Node. · 植物観測アーカイブ</span>
-        <span>LICENSE · 未定 · TBD</span>
-        <span class="ver">spec v2.8 · 2026-05-25</span>
+        <span>© 2026 · Node. Project · 植物観測アーカイブ</span>
+        <span>端末内で完結 · 完全無料</span>
+        <span class="ver">v1.0 · 2026</span>
       </div>
     </footer>
 
