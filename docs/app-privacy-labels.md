@@ -73,7 +73,7 @@ App Privacy とは別に、Info.plist で以下を申告・説明します。
 - [x] v1.0 専用プライバシーポリシー（クラウド・課金の条項なし。PostHog 利用と Settings オプトアウトの節を追加）
 - [x] アプリ内プライバシーポリシー — 同梱 `ios/Node/Resources/privacy.html`（`PRIVACY_POLICY_URL` 未設定）
 - [ ] App Store Connect — プライバシーポリシー URL に以下を登録
-- [x] 公開 URL 取得 — [Notion プライバシーポリシー](https://gregarious-wallflower-44e.notion.site/1adea891819e44468b85010a33c4bf70)
+- [x] 公開 URL 取得 — [プライバシーポリシー](https://node-app.jp/privacy/)
 - [ ] App Store 説明文に「記録は端末内保存。機種変更時は引き継げません」を明記
 - [ ] PostHog プロジェクトのデータ保持期間と GDPR / CCPA 設定を確認
 
@@ -175,12 +175,12 @@ ATT 許可は求めない。
 
 | 用途 | URL / ファイル |
 |------|------------------|
-| **App Store Connect 申告** | https://gregarious-wallflower-44e.notion.site/1adea891819e44468b85010a33c4bf70 |
+| **App Store Connect 申告** | https://node-app.jp/privacy/ |
 | **v1.0 アプリ内表示** | [ios/Node/Resources/privacy.html](../ios/Node/Resources/privacy.html)（`PRIVACY_POLICY_URL` 未設定時） |
 | **リポジトリ正本** | [docs/privacy-policy.md](./privacy-policy.md) |
 | **リポジトリ内 Web 版** | [web/privacy.html](../web/privacy.html)（Notion と内容を揃える参考用） |
 
-v1.0 では Settings から同梱 HTML を表示する。App Store Connect には上記 Notion URL を登録する。Notion の本文は v1.0 専用ポリシー（端末内のみ・サーバー送信なし）と一致させること。
+v1.0 では Settings から同梱 HTML を表示する。App Store Connect には上記公開 URL を登録する。公開ページの本文は v1.0 専用ポリシー（端末内のみ・サーバー送信なし）と一致させること。
 
 ---
 

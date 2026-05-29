@@ -143,10 +143,10 @@ Collection → Camera → ローカル保存 → SyncEngine → Supabase + R2
 | `PRIVACY_POLICY_URL` — 未設定（同梱 HTML を使用） | 設定済み |
 | 運営者名・問い合わせ先 | 設定済み |
 | `project.yml` — `DEVELOPMENT_TEAM` | **要設定**（Apple Developer Program） |
-| App Store Connect — プライバシーポリシー URL | [Notion で公開済み](https://gregarious-wallflower-44e.notion.site/1adea891819e44468b85010a33c4bf70)（ASC 登録は申請時） |
+| App Store Connect — プライバシーポリシー URL | [公開済み](https://node-app.jp/privacy/)（ASC 登録は申請時） |
 | App Privacy — **データを収集しない** | 申告時 |
 | Release Archive + 実機 QA | 要実施 |
 
 **v1.0 の方針:** アプリ内（Settings → プライバシーポリシー）は **`ios/Node/Resources/privacy.html` の同梱 HTML** を使用する。`Secrets.xcconfig` に `PRIVACY_POLICY_URL` を書かないこと。
 
-App Store Connect の「プライバシーポリシー URL」には https://gregarious-wallflower-44e.notion.site/1adea891819e44468b85010a33c4bf70 を登録する。アプリ内は引き続き同梱 HTML。Notion 本文は `docs/privacy-policy.md`（v1.0 専用）と一致させること。
+App Store Connect の「プライバシーポリシー URL」には https://node-app.jp/privacy/ を登録する。アプリ内は引き続き同梱 HTML。公開ページ本文は `docs/privacy-policy.md`（v1.0 専用）と一致させること。
