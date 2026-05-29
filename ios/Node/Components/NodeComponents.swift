@@ -46,11 +46,17 @@ struct NodeChip: View {
     let title: LocalizedStringKey
     let isSelected: Bool
     var count: Int? = nil
+    var leadingSystemImage: String? = nil
+    var trailingSystemImage: String? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
+                if let leadingSystemImage {
+                    Image(systemName: leadingSystemImage)
+                        .font(.system(size: 10, weight: .medium))
+                }
                 Text(title)
                     .font(NodeFont.mono(NodeFont.micro))
                     .tracking(0.6)
@@ -59,9 +65,14 @@ struct NodeChip: View {
                         .font(NodeFont.mono(NodeFont.micro))
                         .foregroundStyle(isSelected ? NodeColor.mossSoft.opacity(0.75) : NodeColor.mist)
                 }
+                if let trailingSystemImage {
+                    Image(systemName: trailingSystemImage)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(isSelected ? NodeColor.mossSoft.opacity(0.75) : NodeColor.mist)
+                }
             }
             .padding(.horizontal, NodeSpacing.sp3)
-            .padding(.vertical, 7)
+            .padding(.vertical, 10)
             .foregroundStyle(isSelected ? NodeColor.mossSoft : NodeColor.fog)
             .background(
                 Capsule()
@@ -71,6 +82,8 @@ struct NodeChip: View {
                 Capsule()
                     .stroke(isSelected ? NodeColor.moss.opacity(0.4) : NodeColor.hairline, lineWidth: 1)
             )
+            .frame(minHeight: 44)
+            .contentShape(Capsule())
         }
         .buttonStyle(NodePressStyle())
     }
@@ -242,10 +255,26 @@ struct BottomGradientOverlay: View {
 
 struct EmptyStateView: View {
     let message: LocalizedStringKey
+    var actionTitle: LocalizedStringKey? = nil
+    var action: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: NodeSpacing.sp3) {
             MetaLabel(text: message, color: NodeColor.fog)
+            if let actionTitle, let action {
+                Button(action: action) {
+                    Text(actionTitle)
+                        .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                        .foregroundStyle(NodeColor.mossSoft)
+                        .padding(.horizontal, NodeSpacing.sp4)
+                        .padding(.vertical, 8)
+                        .overlay(
+                            Capsule()
+                                .stroke(NodeColor.moss.opacity(0.4), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(NodePressStyle())
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

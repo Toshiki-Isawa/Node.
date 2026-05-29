@@ -14,15 +14,28 @@ struct TimelineView: View {
     @State private var deleteTarget: DeleteRecordTarget?
     @State private var pendingDeleteEntry: TimelineViewModel.TimelineEntry?
     @State private var editObservationTarget: TimelineObservationEditTarget?
+    @State private var isPlantFilterSheetPresented = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: NodeSpacing.sp4) {
                 header
-                filterChips
+                VStack(alignment: .leading, spacing: 0) {
+                    plantFilterPillRow
+                    filterChips
+                }
                 if viewModel.items.isEmpty {
-                    EmptyStateView(message: "\(viewModel.emptyMessage)")
+                    if viewModel.isAnyFilterActive {
+                        EmptyStateView(
+                            message: "\(viewModel.emptyMessage)",
+                            actionTitle: "すべて表示",
+                            action: { viewModel.resetFilters() }
+                        )
                         .padding(.top, NodeSpacing.sp16)
+                    } else {
+                        EmptyStateView(message: "\(viewModel.emptyMessage)")
+                            .padding(.top, NodeSpacing.sp16)
+                    }
                 } else {
                     ForEach(viewModel.items) { item in
                         timelineCard(item)
@@ -96,6 +109,20 @@ struct TimelineView: View {
                 viewModel.reload()
             }
         }
+        .sheet(isPresented: $isPlantFilterSheetPresented) {
+            TimelinePlantFilterSheet(
+                plants: viewModel.availablePlants,
+                selectedPlantId: viewModel.plantFilter?.id,
+                imageStore: imageStore,
+                observationImageService: observationImageService,
+                onSelect: { plant in
+                    viewModel.plantFilter = plant
+                }
+            )
+            .presentationDetents([.fraction(0.58), .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NodeColor.charcoal)
+        }
     }
 
     private var header: some View {
@@ -116,7 +143,28 @@ struct TimelineView: View {
                     .foregroundStyle(NodeColor.bone)
             }
         }
-        .padding(.bottom, NodeSpacing.sp2)
+    }
+
+    private var plantFilterPillRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: NodeSpacing.sp2) {
+                NodeChip(
+                    title: plantFilterPillTitle,
+                    isSelected: viewModel.plantFilter != nil,
+                    leadingSystemImage: "leaf",
+                    trailingSystemImage: "chevron.down"
+                ) {
+                    isPlantFilterSheetPresented = true
+                }
+            }
+        }
+    }
+
+    private var plantFilterPillTitle: LocalizedStringKey {
+        if let plant = viewModel.plantFilter {
+            return "\(plant.name)"
+        }
+        return "すべての植物"
     }
 
     private var filterChips: some View {
@@ -129,7 +177,6 @@ struct TimelineView: View {
                 }
             }
         }
-        .padding(.bottom, NodeSpacing.sp2)
     }
 
     @ViewBuilder

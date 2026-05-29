@@ -11,6 +11,7 @@
 		096C3CFD8730F2245EC0B394 /* ObservationRequirementSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D9D3A5F0A3D71E05DB7A1D /* ObservationRequirementSheet.swift */; };
 		0A464CB536C63C858E13E2A0 /* CameraViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B3BFE7E835AF680B7A35FC /* CameraViewModel.swift */; };
 		0F3F215D66FCE24F25130D34 /* TimelapseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB127F95E1335E07978ABAFA /* TimelapseService.swift */; };
+		12D0129C0DE4874AA3954074 /* TimelinePlantFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2C0B75B5E0C59729C33761E /* TimelinePlantFilterSheet.swift */; };
 		14C4B8B495E2710CD517CFC7 /* TimelapseVideoGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1002FF3E000A5264672835E /* TimelapseVideoGenerator.swift */; };
 		1637A610D0F1D037CECCE2F7 /* PhotoLibraryPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC7FBEB6BC979EC04C9E28A /* PhotoLibraryPicker.swift */; };
 		1E814D6132779360A764E221 /* LegalConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4804134E2D404667CBD3EE44 /* LegalConfig.swift */; };
@@ -163,6 +164,7 @@
 		C69F5090E2CC4C0C9E20CC94 /* QuickLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLogSheet.swift; sourceTree = "<group>"; };
 		CDAD6269AF7E77B2A1C82F13 /* NodeDesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeDesignTokens.swift; sourceTree = "<group>"; };
 		D123E997C054EA70A134B167 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		D2C0B75B5E0C59729C33761E /* TimelinePlantFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelinePlantFilterSheet.swift; sourceTree = "<group>"; };
 		D38DDCA33DA67C28E2017AE2 /* AddPlantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPlantViewModel.swift; sourceTree = "<group>"; };
 		D79DC9E2B71F66BCED7BB072 /* TimelapseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelapseView.swift; sourceTree = "<group>"; };
 		DD2A1C1F7EDFB8FBAD4441EA /* CompareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareView.swift; sourceTree = "<group>"; };
@@ -237,6 +239,7 @@
 		3CC74C0E068739494F512B17 /* Timeline */ = {
 			isa = PBXGroup;
 			children = (
+				D2C0B75B5E0C59729C33761E /* TimelinePlantFilterSheet.swift */,
 				2123B8ADBF8CFCFB4F6DDAED /* TimelineView.swift */,
 				6B8788112F392BEB123A4BEE /* TimelineViewModel.swift */,
 			);
@@ -517,7 +520,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2650;
+				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					CAE125A90594DE34FF5C5A6E = {
 						ProvisioningStyle = Automatic;
@@ -638,6 +641,7 @@
 				0F3F215D66FCE24F25130D34 /* TimelapseService.swift in Sources */,
 				14C4B8B495E2710CD517CFC7 /* TimelapseVideoGenerator.swift in Sources */,
 				A45E1FEB2F54601A3E2E749E /* TimelapseView.swift in Sources */,
+				12D0129C0DE4874AA3954074 /* TimelinePlantFilterSheet.swift in Sources */,
 				61CFEDBB0FBB5EC1DF33B120 /* TimelineView.swift in Sources */,
 				AFAF4B36BF31FAB40F5FE1BD /* TimelineViewModel.swift in Sources */,
 				5F84C1D337C715F08706BE21 /* UserPlan.swift in Sources */,
@@ -680,7 +684,6 @@
 			baseConfigurationReference = 01D4E7260F1B103C79D3ECEB /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -716,7 +719,6 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -738,7 +740,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -753,7 +754,6 @@
 			baseConfigurationReference = 01D4E7260F1B103C79D3ECEB /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -789,7 +789,6 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -804,7 +803,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;

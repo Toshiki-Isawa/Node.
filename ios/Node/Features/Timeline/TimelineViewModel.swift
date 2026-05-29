@@ -36,10 +36,19 @@ final class TimelineViewModel: ObservableObject {
             case .growthLog(_, let log): log.createdAt
             }
         }
+
+        var plantId: UUID {
+            switch self {
+            case .observation(let plant, _): plant.id
+            case .growthLog(let plant, _): plant.id
+            }
+        }
     }
 
     @Published var filter: TimelineContentFilter = .all
+    @Published var plantFilter: Plant? = nil
     @Published private(set) var allItems: [TimelineEntry] = []
+    @Published private(set) var availablePlants: [Plant] = []
 
     private let modelContext: ModelContext
     private let recordDeletionService: RecordDeletionService
@@ -51,31 +60,35 @@ final class TimelineViewModel: ObservableObject {
     }
 
     var items: [TimelineEntry] {
-        switch filter {
-        case .all:
-            return allItems
-        case .observations:
-            return allItems.filter {
-                if case .observation = $0 { return true }
+        allItems.filter { entry in
+            if let plantFilter, entry.plantId != plantFilter.id { return false }
+            switch filter {
+            case .all:
+                return true
+            case .observations:
+                if case .observation = entry { return true }
                 return false
-            }
-        case .logs:
-            return allItems.filter {
-                if case .growthLog = $0 { return true }
+            case .logs:
+                if case .growthLog = entry { return true }
                 return false
             }
         }
     }
 
+    var isAnyFilterActive: Bool {
+        filter != .all || plantFilter != nil
+    }
+
     var emptyMessage: String {
-        switch filter {
-        case .all:
-            return String(localized: "まだ記録がありません。")
-        case .observations:
-            return String(localized: "観測がまだありません。")
-        case .logs:
-            return String(localized: "ログがまだありません。")
+        if isAnyFilterActive {
+            return String(localized: "条件に合う記録がありません。")
         }
+        return String(localized: "まだ記録がありません。")
+    }
+
+    func resetFilters() {
+        filter = .all
+        plantFilter = nil
     }
 
     func reload() {
@@ -90,6 +103,23 @@ final class TimelineViewModel: ObservableObject {
         }
 
         allItems = (observations + logs).sorted { $0.createdAt > $1.createdAt }
+
+        // sheet 用: 最終記録日時の新しい順。記録ゼロの株は plant.createdAt にフォールバックして末尾寄りに置く。
+        availablePlants = plants.sorted { lhs, rhs in
+            let l = lastActivity(for: lhs)
+            let r = lastActivity(for: rhs)
+            return l > r
+        }
+
+        // 削除等で現在の plantFilter 対象が消えた場合は解除
+        if let current = plantFilter, !plants.contains(where: { $0.id == current.id }) {
+            plantFilter = nil
+        }
+    }
+
+    private func lastActivity(for plant: Plant) -> Date {
+        let dates = plant.observations.map(\.createdAt) + plant.growthLogs.map(\.createdAt)
+        return dates.max() ?? plant.createdAt
     }
 
     func delete(_ entry: TimelineEntry) throws {

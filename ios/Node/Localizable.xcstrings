@@ -531,6 +531,16 @@
         }
       }
     },
+    "Export · 4K" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export · 4K"
+          }
+        }
+      }
+    },
     "Google で続ける" : {
       "localizations" : {
         "en" : {
@@ -1229,6 +1239,26 @@
         }
       }
     },
+    "すべての植物" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All plants"
+          }
+        }
+      }
+    },
+    "すべて表示" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all"
+          }
+        }
+      }
+    },
     "スライダーで比較" : {
       "localizations" : {
         "en" : {
@@ -1355,6 +1385,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Send Feedback"
+          }
+        }
+      }
+    },
+    "フィルター" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter"
           }
         }
       }
@@ -1560,6 +1600,7 @@
       }
     },
     "ログがまだありません。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2205,16 +2246,6 @@
         }
       }
     },
-    "Export · 4K" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export · 4K"
-          }
-        }
-      }
-    },
     "復元できる有料プランが見つかりませんでした。" : {
       "localizations" : {
         "en" : {
@@ -2271,16 +2302,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fertilize"
-          }
-        }
-      }
-    },
-    "薬剤" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pesticide"
           }
         }
       }
@@ -2385,6 +2406,16 @@
         }
       }
     },
+    "条件に合う記録がありません。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No records match the current filters."
+          }
+        }
+      }
+    },
     "植え替え" : {
       "localizations" : {
         "en" : {
@@ -2438,22 +2469,22 @@
         }
       }
     },
+    "植物で絞り込む" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter by plant"
+          }
+        }
+      }
+    },
     "植物の時間を残す" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preserve the time of your plants"
-          }
-        }
-      }
-    },
-    "観測の記録をたどる" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trace your observations"
           }
         }
       }
@@ -2908,6 +2939,16 @@
         }
       }
     },
+    "薬剤" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pesticide"
+          }
+        }
+      }
+    },
     "補足 · 任意" : {
       "localizations" : {
         "en" : {
@@ -2975,6 +3016,7 @@
       }
     },
     "観測がまだありません。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2990,6 +3032,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Observe"
+          }
+        }
+      }
+    },
+    "観測の記録をたどる" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trace your observations"
           }
         }
       }
