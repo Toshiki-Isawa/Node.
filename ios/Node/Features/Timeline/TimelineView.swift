@@ -110,9 +110,9 @@ struct TimelineView: View {
             }
 
             VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                MetaLabel(text: "タイムライン")
-                Text("植物の時間を見る")
-                    .font(NodeFont.display(NodeFont.title1, weight: .light))
+                MetaLabel(text: "タイムライン", size: NodeFont.caption)
+                Text("観測の記録をたどる")
+                    .font(NodeFont.display(NodeFont.title2, weight: .light))
                     .foregroundStyle(NodeColor.bone)
             }
         }

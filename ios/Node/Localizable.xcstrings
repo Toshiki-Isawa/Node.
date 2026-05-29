@@ -2448,12 +2448,12 @@
         }
       }
     },
-    "植物の時間を見る" : {
+    "観測の記録をたどる" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "See the time of your plants"
+            "value" : "Trace your observations"
           }
         }
       }
