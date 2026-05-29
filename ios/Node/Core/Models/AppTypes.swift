@@ -42,7 +42,7 @@ enum GrowthLogType: String, Codable, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .water: return "drop"
-        case .fertilize: return "leaf"
+        case .fertilize: return "sparkles"
         case .tonic: return "flask"
         case .repot: return "arrow.up.bin"
         case .note: return "doc.text"
