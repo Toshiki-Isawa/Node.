@@ -165,9 +165,15 @@ final class BulkQuickLogViewModel: ObservableObject {
     }
 
     private func applyContextPreset() {
-        selectedTypes = [.water]
-        if !plantsNeedingWater.isEmpty {
-            selectedPlantIDs = Set(plantsNeedingWater.map(\.id))
+        switch context {
+        case .general:
+            // ヘッダーからの起動時は未選択状態で開始する
+            break
+        case .wateringReminder:
+            selectedTypes = [.water]
+            if !plantsNeedingWater.isEmpty {
+                selectedPlantIDs = Set(plantsNeedingWater.map(\.id))
+            }
         }
     }
 }
