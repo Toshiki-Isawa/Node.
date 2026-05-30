@@ -1409,6 +1409,26 @@
         }
       }
     },
+    "本アプリの利用条件について" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About the App's terms of use"
+          }
+        }
+      }
+    },
+    "利用規約" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of Service"
+          }
+        }
+      }
+    },
     "プランを有効にするにはサインインが必要です。" : {
       "localizations" : {
         "en" : {

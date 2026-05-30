@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
     @State private var showPrivacyPolicy = false
+    @State private var showTermsOfService = false
     @State private var showFeedbackFallback = false
 
     var body: some View {
@@ -72,7 +73,12 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showPrivacyPolicy) {
             if let url = LegalConfig.effectivePrivacyPolicyURL {
-                PrivacyPolicyWebView(url: url)
+                LegalDocumentWebView(url: url, title: "プライバシーポリシー")
+            }
+        }
+        .sheet(isPresented: $showTermsOfService) {
+            if let url = LegalConfig.effectiveTermsOfServiceURL {
+                LegalDocumentWebView(url: url, title: "利用規約")
             }
         }
     }
@@ -631,35 +637,59 @@ struct SettingsView: View {
 
     private var legalSection: some View {
         SettingsCard(title: "法的情報") {
-            Button {
-                showPrivacyPolicy = true
-            } label: {
-                HStack(spacing: NodeSpacing.sp3) {
-                    Image(systemName: "hand.raised")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundStyle(NodeColor.bone)
-                        .frame(width: 20)
+            VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
+                legalRow(
+                    title: "プライバシーポリシー",
+                    subtitle: "個人情報の取り扱いについて",
+                    systemImage: "hand.raised",
+                    action: { showPrivacyPolicy = true }
+                )
+                .disabled(LegalConfig.effectivePrivacyPolicyURL == nil)
 
-                    VStack(alignment: .leading, spacing: NodeSpacing.sp1) {
-                        Text("プライバシーポリシー")
-                            .font(NodeFont.text(NodeFont.callout, weight: .medium))
-                            .foregroundStyle(NodeColor.bone)
-                        Text("個人情報の取り扱いについて")
-                            .font(NodeFont.text(12))
-                            .foregroundStyle(NodeColor.fog)
-                    }
+                Divider().overlay(NodeColor.hairline)
 
-                    Spacer(minLength: 0)
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(NodeColor.mist)
-                }
-                .padding(.vertical, NodeSpacing.sp1)
+                legalRow(
+                    title: "利用規約",
+                    subtitle: "本アプリの利用条件について",
+                    systemImage: "doc.text",
+                    action: { showTermsOfService = true }
+                )
+                .disabled(LegalConfig.effectiveTermsOfServiceURL == nil)
             }
-            .buttonStyle(.plain)
-            .disabled(LegalConfig.effectivePrivacyPolicyURL == nil)
         }
+    }
+
+    private func legalRow(
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey,
+        systemImage: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: NodeSpacing.sp3) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(NodeColor.bone)
+                    .frame(width: 20)
+
+                VStack(alignment: .leading, spacing: NodeSpacing.sp1) {
+                    Text(title)
+                        .font(NodeFont.text(NodeFont.callout, weight: .medium))
+                        .foregroundStyle(NodeColor.bone)
+                    Text(subtitle)
+                        .font(NodeFont.text(12))
+                        .foregroundStyle(NodeColor.fog)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(NodeColor.mist)
+            }
+            .padding(.vertical, NodeSpacing.sp1)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder

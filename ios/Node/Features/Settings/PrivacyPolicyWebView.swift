@@ -1,15 +1,16 @@
 import SwiftUI
 import WebKit
 
-struct PrivacyPolicyWebView: View {
+struct LegalDocumentWebView: View {
     let url: URL
+    let title: LocalizedStringKey
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            PrivacyPolicyWebViewRepresentable(url: url)
+            LegalDocumentWebViewRepresentable(url: url)
                 .background(NodeColor.graphite)
-                .navigationTitle("プライバシーポリシー")
+                .navigationTitle(title)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(NodeColor.graphite, for: .navigationBar)
                 .toolbarBackground(.visible, for: .navigationBar)
@@ -24,7 +25,7 @@ struct PrivacyPolicyWebView: View {
     }
 }
 
-private struct PrivacyPolicyWebViewRepresentable: UIViewRepresentable {
+private struct LegalDocumentWebViewRepresentable: UIViewRepresentable {
     let url: URL
 
     func makeCoordinator() -> Coordinator {
