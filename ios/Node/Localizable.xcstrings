@@ -1995,12 +1995,12 @@
         }
       }
     },
-    "匿名のイベント（画面遷移・操作回数など）を PostHog に送信します。個人情報・写真・植物名は含まれません。" : {
+    "匿名のイベント（画面遷移・操作回数など）を送信します。個人情報・写真・植物名は含まれません。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sends anonymous events (screen transitions, action counts) to PostHog. No personal data, photos, or plant names are included."
+            "value" : "Sends anonymous events (screen transitions, action counts). No personal data, photos, or plant names are included."
           }
         }
       }

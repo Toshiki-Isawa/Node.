@@ -148,7 +148,7 @@ struct SettingsView: View {
                     Text("使用状況の送信")
                         .font(NodeFont.text(NodeFont.callout, weight: .medium))
                         .foregroundStyle(NodeColor.bone)
-                    Text("匿名のイベント（画面遷移・操作回数など）を PostHog に送信します。個人情報・写真・植物名は含まれません。")
+                    Text("匿名のイベント（画面遷移・操作回数など）を送信します。個人情報・写真・植物名は含まれません。")
                         .font(NodeFont.text(11))
                         .foregroundStyle(NodeColor.fog)
                 }
