@@ -567,7 +567,7 @@ private struct LibraryObservationImportSheet: View {
 
             NodeRecordDateSection(
                 date: $viewModel.observedAt,
-                range: viewModel.observedAtRange,
+                range: viewModel.libraryObservedAtRange,
                 label: "観測日時"
             )
 

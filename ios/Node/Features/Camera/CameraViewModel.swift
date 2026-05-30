@@ -173,6 +173,12 @@ final class CameraViewModel: ObservableObject {
         return plant.acquiredAt ... Date.now
     }
 
+    /// ライブラリ取り込み用。撮影日が取得日より前でも任意に選べるよう下限を緩める。
+    var libraryObservedAtRange: ClosedRange<Date> {
+        let floor = Calendar.current.date(from: DateComponents(year: 2000, month: 1, day: 1)) ?? Date.distantPast
+        return floor ... Date.now
+    }
+
     var isObservingInPast: Bool {
         observedAt.timeIntervalSinceNow < -60
     }
@@ -183,7 +189,8 @@ final class CameraViewModel: ObservableObject {
 
     func applyLibraryPhotoDate(_ date: Date?) {
         guard let date else { return }
-        clampObservedAt(to: date)
+        let range = libraryObservedAtRange
+        observedAt = min(max(date, range.lowerBound), range.upperBound)
     }
 
     func stageLibraryImport(image: UIImage, creationDate: Date?) {
@@ -200,6 +207,10 @@ final class CameraViewModel: ObservableObject {
     @discardableResult
     func savePendingLibraryImport() async -> Bool {
         guard let image = pendingLibraryImage else { return false }
+        // 撮影日が取得日より前なら取得日を遡らせて整合性を保つ
+        if let plant = selectedPlant, observedAt < plant.acquiredAt {
+            plant.acquiredAt = observedAt
+        }
         let saved = await saveObservation(image: image, observedAt: observedAt)
         if saved {
             pendingLibraryImage = nil

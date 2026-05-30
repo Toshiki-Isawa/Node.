@@ -7,6 +7,8 @@ struct CompareView: View {
     var onBack: () -> Void
     var onTimelapse: () -> Void
 
+    @State private var showShareSheet = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: NodeSpacing.sp5) {
@@ -20,6 +22,7 @@ struct CompareView: View {
                     }
                     comparisonBlock
                     intervalCard
+                    shareButton
                     if ReleaseConfig.timelapseEnabled {
                         timelapseSection
                     }
@@ -36,6 +39,46 @@ struct CompareView: View {
         .sheet(item: $viewModel.activeCalendarSide) { side in
             calendarSheet(for: side)
         }
+        .sheet(isPresented: $showShareSheet) {
+            shareSheet
+        }
+    }
+
+    private var shareButton: some View {
+        NodeSecondaryButton("シェア", systemImage: "square.and.arrow.up") {
+            showShareSheet = true
+        }
+        .disabled(viewModel.beforeImagePath == nil || viewModel.afterImagePath == nil)
+    }
+
+    private var shareSheet: some View {
+        ShareExportSheet(
+            fileName: "Node-comparison",
+            analyticsKind: "comparison",
+            analyticsService: analyticsService
+        ) {
+            ComparisonShareCard(
+                plantName: viewModel.plant?.name ?? "",
+                species: viewModel.plant?.species ?? "",
+                beforeImage: loadedImage(viewModel.beforeImagePath),
+                afterImage: loadedImage(viewModel.afterImagePath),
+                beforeDayNumber: viewModel.beforeObservation.map(viewModel.observationDayNumber) ?? 1,
+                afterDayNumber: viewModel.afterObservation.map(viewModel.observationDayNumber) ?? 1,
+                beforeDateText: viewModel.beforeObservation?.createdAt.nodeMonthDay() ?? "—",
+                afterDateText: viewModel.afterObservation?.createdAt.nodeMonthDay() ?? "—",
+                intervalDays: viewModel.intervalDays,
+                observationDiffCount: viewModel.observationIntervalCount,
+                waterCount: viewModel.waterLogCount
+            )
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        .presentationBackground(NodeColor.graphite)
+    }
+
+    private func loadedImage(_ path: String?) -> UIImage? {
+        guard let path else { return nil }
+        return imageStore.loadImage(path: path)
     }
 
     private var header: some View {

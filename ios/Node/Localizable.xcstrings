@@ -257,6 +257,29 @@
         }
       }
     },
+    "%lld回" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld time"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld times"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld日" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -384,6 +407,16 @@
     },
     "→" : {
       "shouldTranslate" : false
+    },
+    "1:1 · 1080px · 端末内生成" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1:1 · 1080px · Generated on device"
+          }
+        }
+      }
     },
     "1枚で終了" : {
       "localizations" : {
@@ -574,6 +607,9 @@
           }
         }
       }
+    },
+    "Node." : {
+
     },
     "Node. を評価する" : {
       "localizations" : {
@@ -1171,6 +1207,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thumbnails"
+          }
+        }
+      }
+    },
+    "シェア" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
           }
         }
       }
@@ -1900,7 +1946,6 @@
       }
     },
     "写真ライブラリに保存しました。" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1911,7 +1956,6 @@
       }
     },
     "写真ライブラリへのアクセスが許可されていません。" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1927,6 +1971,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Processing…"
+          }
+        }
+      }
+    },
+    "利用規約" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of Service"
           }
         }
       }
@@ -2007,16 +2061,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Danger Zone"
-          }
-        }
-      }
-    },
-    "撮影写真" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Photos"
           }
         }
       }
@@ -2282,6 +2326,16 @@
         }
       }
     },
+    "撮影写真" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos"
+          }
+        }
+      }
+    },
     "新しい順" : {
       "localizations" : {
         "en" : {
@@ -2398,6 +2452,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Range"
+          }
+        }
+      }
+    },
+    "本アプリの利用条件について" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About the App's terms of use"
           }
         }
       }
@@ -2785,12 +2849,32 @@
         }
       }
     },
+    "画像の生成に失敗しました。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to generate the image."
+          }
+        }
+      }
+    },
     "画像フォルダの作成に失敗しました。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not create image folder."
+          }
+        }
+      }
+    },
+    "画像をシェア" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share Image"
           }
         }
       }

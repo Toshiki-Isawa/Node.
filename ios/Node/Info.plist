@@ -14,6 +14,8 @@
 	<string>$(POSTHOG_HOST)</string>
 	<key>PRIVACY_POLICY_URL</key>
 	<string>$(PRIVACY_POLICY_URL)</string>
+	<key>TERMS_OF_SERVICE_URL</key>
+	<string>$(TERMS_OF_SERVICE_URL)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

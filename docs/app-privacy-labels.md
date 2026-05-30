@@ -9,8 +9,8 @@ Node. iOS（`app.node.ios`）を App Store Connect に登録する際の **App P
 
 | 段階 | `ReleaseConfig` | App Store 申告 |
 |------|-----------------|----------------|
-| **v1.0（現行・App Store 初版）** | `cloudSyncEnabled = false` / `timelapseEnabled = false` | **使用状況データ（匿名）のみ収集**（PostHog · オプトアウト可）。観測データは端末内のみ |
-| **v1.0.1（Node. Pack 予定）** | `timelapseEnabled = true` | 非消費型 IAP（StoreKit）・CloudKit プライベート DB を追加申告 |
+| **v1.0（現行・App Store 初版）** | `cloudSyncEnabled = false` / `timelapseEnabled = true` | **使用状況データ（匿名）のみ収集**（PostHog · オプトアウト可）。観測データ・タイムラプス動画は端末内のみ |
+| **v1.0.1（Node. Pack 予定）** | `packEnabled = true`（予定） | 非消費型 IAP（StoreKit）・CloudKit プライベート DB を追加申告 |
 | **v1.1（予定）** | 両方 `true` | 有料クラウド同期・StoreKit サブスクを追加申告 |
 
 v1.0 では Supabase / StoreKit の SDK は同梱されていても **呼び出されません**。PostHog は v1.0 から有効化し、匿名のアプリ内行動イベント（画面遷移・操作回数など）のみを収集する（個人情報・写真・植物名は送信しない、ATT 許可不要）。Settings からオプトアウト可能。申告は **v1.0 の実際の挙動** に合わせてください。
