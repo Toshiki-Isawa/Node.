@@ -82,6 +82,9 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         /// 0〜1。ライブ映像と保存写真は露出・色みが異なり相関が下がりやすいため低め。
         /// 上げると厳しく（枠外を弾きやすいが、同じ植物でも誤って弾く恐れ）。下げると寛容。
         static let minCorrelation: Float = 0.25
+        /// グリーン（整合）を許可する最小相関。内容が十分一致していないと緑にしない。
+        /// minCorrelation より高くする。誤グリーンが出るなら上げる。
+        static let minAlignedCorrelation: Float = 0.6
 
         /// ズレ方向の符号補正。実機で矢印・文言の向きが逆ならこの 2 値を反転する（+1 ↔ -1）。
         /// offsetX/Y は「カメラを動かすべき方向」を意味し、UI の矢印・キャプションがこれに従う。
@@ -168,21 +171,21 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         let oriented = CIImage(cvPixelBuffer: pixelBuffer).oriented(orientation)
         guard let scaled = scaledPixelBuffer(from: oriented, matching: referenceSize) else { return }
 
-        // 「参照シーンが見えているか」判定（NCC）。これを先に行い、見えていなければ
-        // （＝植物が枠外 or 別被写体）レジストレーションに進まず searching を表示する。
-        // 誤グリーンの防止も、枠外メッセージも、この 1 つの判定で扱う。
+        // 参照とフレームの正規化相互相関(NCC)。2 段階で使う:
+        //  - minCorrelation 未満 → 参照シーンが見えていない（枠外/別被写体）→ searching
+        //  - minAlignedCorrelation 未満 → 内容が十分一致していない → グリーンにはしない
+        var correlation: Float = 1
         if let refSig = referenceSignature {
-            let frameSig = grayscaleSignature(from: scaled.buffer)
-            let correlation = normalizedCorrelation(refSig, frameSig)
-            if correlation < Tuning.minCorrelation {
-                smoothed = nil
-                alignedStreak = 0
-                failureStreak = 0
-                publish(AlignmentGuidance(
-                    state: .searching, offsetX: 0, offsetY: 0, scaleDelta: 0, isActive: true
-                ))
-                return
-            }
+            correlation = normalizedCorrelation(refSig, grayscaleSignature(from: scaled.buffer))
+        }
+        if correlation < Tuning.minCorrelation {
+            smoothed = nil
+            alignedStreak = 0
+            failureStreak = 0
+            publish(AlignmentGuidance(
+                state: .searching, offsetX: 0, offsetY: 0, scaleDelta: 0, isActive: true
+            ))
+            return
         }
 
         guard let metrics = registrationMetrics(reference: reference, frame: scaled.buffer) else {
@@ -199,7 +202,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
             return
         }
         failureStreak = 0
-        let guidance = guidance(from: metrics)
+        let guidance = guidance(from: metrics, correlation: correlation)
         publish(guidance)
     }
 
@@ -265,7 +268,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
     // MARK: ズレ → ガイド
 
-    private func guidance(from metrics: RegistrationMetrics) -> AlignmentGuidance {
+    private func guidance(from metrics: RegistrationMetrics, correlation: Float) -> AlignmentGuidance {
         // 「フレームをどちらへ寄せるべきか」を符号補正して取り出す。
         let rawX = metrics.normalizedTranslationX * Tuning.horizontalSign
         let rawY = metrics.normalizedTranslationY * Tuning.verticalSign
@@ -281,6 +284,9 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
         let translationAligned = hypot(x, y) < Tuning.translationAligned
         let scaleAligned = abs(scale) < Tuning.scaleAligned
+        // グリーンには「位置・スケール一致」に加えて「内容が十分一致」も要求する。
+        // これにより、背景だけ一致して被写体が違うケースの誤グリーンを防ぐ。
+        let contentMatches = correlation >= Tuning.minAlignedCorrelation
 
         // 大きくズレ／極端なスケール差は searching（微調整ガイドを出さない）。
         // 「別の被写体／枠外」判定は process 側の NCC ゲートで済んでいる。
@@ -290,7 +296,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         if lost {
             alignedStreak = 0
             state = .searching
-        } else if translationAligned && scaleAligned {
+        } else if translationAligned && scaleAligned && contentMatches {
             alignedStreak += 1
             state = alignedStreak >= Tuning.alignedStreakRequired ? .aligned : .guiding
         } else {

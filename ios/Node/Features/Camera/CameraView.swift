@@ -266,6 +266,11 @@ struct CameraView: View {
             if !CameraService.usesPhotoLibraryFallback {
                 LevelIndicator(roll: cameraService.rollDegrees)
                     .frame(maxWidth: .infinity, alignment: .center)
+
+                if viewModel.alignmentGuidance.isActive {
+                    AlignmentGuideCaption(guidance: viewModel.alignmentGuidance)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
             }
 
             previousObservationPreview

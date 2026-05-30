@@ -165,9 +165,6 @@ struct AlignmentGuideOverlay: View {
                         .transition(.scale.combined(with: .opacity))
                 }
             }
-
-            caption
-                .position(x: frame.midX, y: frame.maxY + 28)
         }
         .animation(.easeOut(duration: 0.16), value: guidance)
         .allowsHitTesting(false)
@@ -181,13 +178,67 @@ struct AlignmentGuideOverlay: View {
             .position(x: frame.midX, y: frame.midY)
     }
 
-    private var caption: some View {
-        Text(captionText)
-            .font(NodeFont.text(13, weight: .semibold))
-            .foregroundStyle(accent)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background { Capsule().fill(.ultraThinMaterial) }
+    private var crosshair: Path {
+        Path { p in
+            let c = CGPoint(x: frame.midX, y: frame.midY)
+            p.move(to: CGPoint(x: c.x - 10, y: c.y))
+            p.addLine(to: CGPoint(x: c.x + 10, y: c.y))
+            p.move(to: CGPoint(x: c.x, y: c.y - 10))
+            p.addLine(to: CGPoint(x: c.x, y: c.y + 10))
+        }
+    }
+
+    /// 中央から、合わせるべき方向（offset の向き）へ伸びる矢印。
+    private var directionArrow: some View {
+        let angle = atan2(guidance.offsetY, guidance.offsetX)
+        let length = min(frame.width, frame.height) * 0.34
+        return Image(systemName: "arrow.right")
+            .font(.system(size: 34, weight: .bold))
+            .foregroundStyle(NodeColor.bone)
+            .shadow(color: .black.opacity(0.4), radius: 3)
+            .rotationEffect(.radians(angle))
+            .position(
+                x: frame.midX + cos(angle) * length,
+                y: frame.midY + sin(angle) * length
+            )
+    }
+}
+
+/// 位置合わせガイドの文言カプセル（上部 chrome に常時表示する独立ビュー）。
+/// 観測枠が全画面になる縦向きでも確実に見えるよう、中央オーバーレイから分離している。
+struct AlignmentGuideCaption: View {
+    let guidance: AlignmentGuidance
+
+    private var accent: Color {
+        guidance.isAligned ? NodeColor.moss : NodeColor.bone
+    }
+
+    private var symbol: String {
+        switch guidance.state {
+        case .searching: return "viewfinder"
+        case .aligned: return "checkmark.circle.fill"
+        case .guiding: return "move.3d"
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(accent)
+            Text(captionText)
+                .font(NodeFont.text(13, weight: .semibold))
+                .foregroundStyle(accent)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background { Capsule().fill(.ultraThinMaterial) }
+        .overlay {
+            if guidance.isAligned {
+                Capsule().stroke(NodeColor.moss.opacity(0.6), lineWidth: 1)
+            }
+        }
+        .animation(.easeOut(duration: 0.16), value: guidance)
     }
 
     /// 状態・連続値から表示文言を決める。
@@ -218,31 +269,6 @@ struct AlignmentGuideOverlay: View {
             return guidance.offsetX > 0 ? "もう少し右です" : "もう少し左です"
         }
         return guidance.offsetY > 0 ? "もう少し下です" : "もう少し上です"
-    }
-
-    private var crosshair: Path {
-        Path { p in
-            let c = CGPoint(x: frame.midX, y: frame.midY)
-            p.move(to: CGPoint(x: c.x - 10, y: c.y))
-            p.addLine(to: CGPoint(x: c.x + 10, y: c.y))
-            p.move(to: CGPoint(x: c.x, y: c.y - 10))
-            p.addLine(to: CGPoint(x: c.x, y: c.y + 10))
-        }
-    }
-
-    /// 中央から、合わせるべき方向（offset の向き）へ伸びる矢印。
-    private var directionArrow: some View {
-        let angle = atan2(guidance.offsetY, guidance.offsetX)
-        let length = min(frame.width, frame.height) * 0.34
-        return Image(systemName: "arrow.right")
-            .font(.system(size: 34, weight: .bold))
-            .foregroundStyle(NodeColor.bone)
-            .shadow(color: .black.opacity(0.4), radius: 3)
-            .rotationEffect(.radians(angle))
-            .position(
-                x: frame.midX + cos(angle) * length,
-                y: frame.midY + sin(angle) * length
-            )
     }
 }
 
