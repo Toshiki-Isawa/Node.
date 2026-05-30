@@ -15,6 +15,7 @@ struct ObservationDetailView: View {
 
     @State private var showEditSheet = false
     @State private var showDeleteConfirmation = false
+    @State private var showShareSheet = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -61,6 +62,41 @@ struct ObservationDetailView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(NodeColor.charcoal)
         }
+        .sheet(isPresented: $showShareSheet) {
+            shareSheet
+        }
+    }
+
+    private var shareSheet: some View {
+        ShareExportSheet(
+            fileName: "Node-observation",
+            analyticsKind: "observation",
+            analyticsService: nil
+        ) {
+            ObservationShareCard(
+                plantName: plant.name,
+                species: plant.species,
+                image: observationImage(),
+                dateText: observation.createdAt.nodeYearMonthDay(),
+                dayNumber: observationDayNumber,
+                note: observation.note
+            )
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        .presentationBackground(NodeColor.graphite)
+    }
+
+    private func observationImage() -> UIImage? {
+        imageStore.loadImage(path: observation.localImagePath)
+            ?? imageStore.loadImage(path: observationImageService.displayThumbnailPath(for: observation))
+    }
+
+    private var observationDayNumber: Int {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = .current
+        let days = calendar.dateComponents([.day], from: plant.acquiredAt, to: observation.createdAt).day ?? 0
+        return days + 1
     }
 
     private var topBar: some View {
@@ -73,15 +109,26 @@ struct ObservationDetailView: View {
                     .clipShape(Circle())
             }
             Spacer()
-            Menu {
-                Button("日時を変更") { showEditSheet = true }
-                Button("削除", role: .destructive) { showDeleteConfirmation = true }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .foregroundStyle(NodeColor.bone)
-                    .frame(width: 36, height: 36)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
+            HStack(spacing: NodeSpacing.sp2) {
+                Button { showShareSheet = true } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(NodeColor.bone)
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                }
+                .accessibilityLabel("画像をシェア")
+
+                Menu {
+                    Button("日時を変更") { showEditSheet = true }
+                    Button("削除", role: .destructive) { showDeleteConfirmation = true }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .foregroundStyle(NodeColor.bone)
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                }
             }
         }
         .padding(.horizontal, NodeSpacing.sp4)
