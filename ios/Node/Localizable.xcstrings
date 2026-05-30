@@ -412,12 +412,12 @@
     "→" : {
       "shouldTranslate" : false
     },
-    "1:1 · 1080px · 端末内生成" : {
+    "4:5 · 1080×1350px · 端末内生成" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1:1 · 1080px · Generated on device"
+            "value" : "4:5 · 1080×1350px · Generated on device"
           }
         }
       }

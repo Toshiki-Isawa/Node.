@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// Before / After の比較を 1:1 でまとめた SNS 共有用カード。
-/// `ShareCardRenderer.renderSquare` で画像化される前提で、ブラー（material）を使わず
+/// `ShareCardRenderer.renderCard` で画像化される前提で、ブラー（material）を使わず
 /// 不透明な色だけで構成している。
+/// 植物名などのテキストは画像の上にグラデーションで重ねて表示する。
 struct ComparisonShareCard: View {
     let plantName: String
     let species: String
@@ -12,32 +13,33 @@ struct ComparisonShareCard: View {
     let afterDayNumber: Int
     let beforeDateText: String
     let afterDateText: String
-    let intervalDays: Int
-    let observationDiffCount: Int
-    let waterCount: Int
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            HStack(spacing: 2) {
-                pane(
-                    image: beforeImage,
-                    label: "BEFORE",
-                    dayNumber: beforeDayNumber,
-                    dateText: beforeDateText
-                )
-                pane(
-                    image: afterImage,
-                    label: "AFTER",
-                    dayNumber: afterDayNumber,
-                    dateText: afterDateText
-                )
+        GeometryReader { geo in
+            ZStack(alignment: .top) {
+                HStack(spacing: 2) {
+                    pane(
+                        image: beforeImage,
+                        label: "BEFORE",
+                        dayNumber: beforeDayNumber,
+                        dateText: beforeDateText
+                    )
+                    pane(
+                        image: afterImage,
+                        label: "AFTER",
+                        dayNumber: afterDayNumber,
+                        dateText: afterDateText
+                    )
+                }
+                .frame(width: geo.size.width, height: geo.size.height)
+
+                header
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            footer
+            .frame(width: geo.size.width, height: geo.size.height)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(NodeColor.void)
+        .clipped()
     }
 
     private var header: some View {
@@ -51,7 +53,7 @@ struct ComparisonShareCard: View {
                     Text(species)
                         .font(NodeFont.display(11, weight: .light))
                         .italic()
-                        .foregroundStyle(NodeColor.fog)
+                        .foregroundStyle(NodeColor.paper)
                         .lineLimit(1)
                 }
             }
@@ -59,7 +61,16 @@ struct ComparisonShareCard: View {
             ShareBrandMark()
         }
         .padding(.horizontal, NodeSpacing.sp4)
-        .padding(.vertical, NodeSpacing.sp3)
+        .padding(.top, NodeSpacing.sp4)
+        .padding(.bottom, NodeSpacing.sp5)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            LinearGradient(
+                colors: [Color.black.opacity(0.7), Color.black.opacity(0)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
 
     private func pane(
@@ -69,7 +80,7 @@ struct ComparisonShareCard: View {
         dateText: String
     ) -> some View {
         GeometryReader { geo in
-            ZStack(alignment: .topLeading) {
+            ZStack(alignment: .bottomLeading) {
                 if let image {
                     Image(uiImage: image)
                         .resizable()
@@ -81,14 +92,13 @@ struct ComparisonShareCard: View {
                 }
 
                 LinearGradient(
-                    colors: [Color.black.opacity(0), Color.black.opacity(0.5)],
+                    colors: [Color.black.opacity(0), Color.black.opacity(0.55)],
                     startPoint: .center,
                     endPoint: .bottom
                 )
 
-                VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 4) {
                     paneLabel(label)
-                    Spacer(minLength: 0)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("\(dayNumber)日目")
                             .font(NodeFont.mono(9))
@@ -114,32 +124,5 @@ struct ComparisonShareCard: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .background(Capsule().fill(NodeColor.void.opacity(0.55)))
-    }
-
-    private var footer: some View {
-        VStack(spacing: 0) {
-            Rectangle()
-                .fill(NodeColor.moss)
-                .frame(height: 2)
-
-            HStack(spacing: 0) {
-                stat(title: "経過日数", value: "\(intervalDays)日")
-                stat(title: "観測差", value: "\(observationDiffCount)回")
-                stat(title: "水やり", value: "\(waterCount)回")
-            }
-            .padding(.horizontal, NodeSpacing.sp4)
-            .padding(.vertical, NodeSpacing.sp3)
-        }
-        .background(NodeColor.void)
-    }
-
-    private func stat(title: LocalizedStringKey, value: LocalizedStringKey) -> some View {
-        VStack(spacing: 3) {
-            MetaLabel(text: title, size: 8)
-            Text(value)
-                .font(NodeFont.display(16, weight: .light))
-                .foregroundStyle(NodeColor.bone)
-        }
-        .frame(maxWidth: .infinity)
     }
 }

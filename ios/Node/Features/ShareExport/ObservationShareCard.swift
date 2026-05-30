@@ -1,6 +1,7 @@
 import SwiftUI
 
 /// 単一の観測写真を 1:1 でまとめた SNS 共有用カード。
+/// テキスト情報は画像の下部にグラデーションで重ねて表示する。
 struct ObservationShareCard: View {
     let plantName: String
     let species: String
@@ -10,17 +11,8 @@ struct ObservationShareCard: View {
     let note: String
 
     var body: some View {
-        VStack(spacing: 0) {
-            imageArea
-            footer
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(NodeColor.void)
-    }
-
-    private var imageArea: some View {
         GeometryReader { geo in
-            ZStack {
+            ZStack(alignment: .bottomLeading) {
                 if let image {
                     Image(uiImage: image)
                         .resizable()
@@ -30,60 +22,71 @@ struct ObservationShareCard: View {
                 } else {
                     NodeColor.bark
                 }
+
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0),
+                        Color.black.opacity(0.45),
+                        Color.black.opacity(0.8)
+                    ],
+                    startPoint: .center,
+                    endPoint: .bottom
+                )
+
+                overlayInfo
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(NodeColor.void)
         .clipped()
     }
 
-    private var footer: some View {
-        VStack(spacing: 0) {
+    private var overlayInfo: some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
             Rectangle()
                 .fill(NodeColor.moss)
-                .frame(height: 2)
+                .frame(width: 28, height: 2)
 
-            VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                HStack(alignment: .firstTextBaseline, spacing: NodeSpacing.sp3) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(plantName)
-                            .font(NodeFont.display(18, weight: .light))
-                            .foregroundStyle(NodeColor.bone)
+            HStack(alignment: .firstTextBaseline, spacing: NodeSpacing.sp3) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(plantName)
+                        .font(NodeFont.display(20, weight: .light))
+                        .foregroundStyle(NodeColor.bone)
+                        .lineLimit(1)
+                    if !species.isEmpty {
+                        Text(species)
+                            .font(NodeFont.display(12, weight: .light))
+                            .italic()
+                            .foregroundStyle(NodeColor.paper)
                             .lineLimit(1)
-                        if !species.isEmpty {
-                            Text(species)
-                                .font(NodeFont.display(11, weight: .light))
-                                .italic()
-                                .foregroundStyle(NodeColor.fog)
-                                .lineLimit(1)
-                        }
                     }
-                    Spacer(minLength: 0)
-                    ShareBrandMark()
                 }
-
-                HStack(spacing: NodeSpacing.sp2) {
-                    Text("\(dayNumber)日目")
-                        .font(NodeFont.mono(10))
-                        .tracking(0.4)
-                        .foregroundStyle(NodeColor.mossSoft)
-                    Text(dateText)
-                        .font(NodeFont.text(NodeFont.caption, weight: .medium))
-                        .foregroundStyle(NodeColor.fog)
-                }
-
-                if !note.isEmpty {
-                    Text(note)
-                        .font(NodeFont.text(NodeFont.caption))
-                        .foregroundStyle(NodeColor.paper)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                Spacer(minLength: 0)
+                ShareBrandMark()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, NodeSpacing.sp4)
-            .padding(.vertical, NodeSpacing.sp3)
+
+            HStack(spacing: NodeSpacing.sp2) {
+                Text("\(dayNumber)日目")
+                    .font(NodeFont.mono(10))
+                    .tracking(0.4)
+                    .foregroundStyle(NodeColor.mossSoft)
+                Text(dateText)
+                    .font(NodeFont.text(NodeFont.caption, weight: .medium))
+                    .foregroundStyle(NodeColor.paper)
+            }
+
+            if !note.isEmpty {
+                Text(note)
+                    .font(NodeFont.text(NodeFont.caption))
+                    .foregroundStyle(NodeColor.bone)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .background(NodeColor.void)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, NodeSpacing.sp5)
+        .padding(.bottom, NodeSpacing.sp5)
+        .padding(.top, NodeSpacing.sp4)
     }
 }

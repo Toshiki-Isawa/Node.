@@ -65,10 +65,7 @@ struct CompareView: View {
                 beforeDayNumber: viewModel.beforeObservation.map(viewModel.observationDayNumber) ?? 1,
                 afterDayNumber: viewModel.afterObservation.map(viewModel.observationDayNumber) ?? 1,
                 beforeDateText: viewModel.beforeObservation?.createdAt.nodeMonthDay() ?? "—",
-                afterDateText: viewModel.afterObservation?.createdAt.nodeMonthDay() ?? "—",
-                intervalDays: viewModel.intervalDays,
-                observationDiffCount: viewModel.observationIntervalCount,
-                waterCount: viewModel.waterLogCount
+                afterDateText: viewModel.afterObservation?.createdAt.nodeMonthDay() ?? "—"
             )
         }
         .presentationDetents([.large])

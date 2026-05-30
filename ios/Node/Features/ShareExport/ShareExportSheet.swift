@@ -39,7 +39,7 @@ struct ShareExportSheet<Card: View>: View {
 
                         exportActions
 
-                        MetaLabel(text: "1:1 · 1080px · 端末内生成", color: NodeColor.fog)
+                        MetaLabel(text: "4:5 · 1080×1350px · 端末内生成", color: NodeColor.fog)
                     }
                     .padding(NodeSpacing.sp6)
                 }
@@ -69,7 +69,7 @@ struct ShareExportSheet<Card: View>: View {
             } else {
                 RoundedRectangle(cornerRadius: NodeRadius.lg)
                     .fill(NodeColor.charcoal)
-                    .aspectRatio(1, contentMode: .fit)
+                    .aspectRatio(4.0 / 5.0, contentMode: .fit)
                     .frame(maxWidth: 280)
                     .overlay {
                         if !didFail {
@@ -120,7 +120,7 @@ struct ShareExportSheet<Card: View>: View {
     @MainActor
     private func render() async {
         guard previewImage == nil else { return }
-        guard let image = ShareCardRenderer.renderSquare(content: card) else {
+        guard let image = ShareCardRenderer.renderCard(content: card) else {
             didFail = true
             return
         }
