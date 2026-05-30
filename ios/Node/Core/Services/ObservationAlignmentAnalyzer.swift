@@ -76,6 +76,12 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         /// 平滑化係数（指数移動平均）。0〜1。大きいほど追従が速いがジッターも増える。
         static let smoothing: CGFloat = 0.45
 
+        /// 「同じ場面か」判定に使うグレースケール署名の一辺（px）。小さいほど小ズレに寛容。
+        static let signatureSize = 32
+        /// 正規化相互相関(NCC)のしきい値。これ未満は別の被写体とみなしグリーンを出さない。
+        /// 0〜1。上げると厳しく（無関係を弾きやすいが、同じ場面でも誤って弾く恐れ）。
+        static let minCorrelation: Float = 0.45
+
         /// ズレ方向の符号補正。実機で矢印・文言の向きが逆ならこの 2 値を反転する（+1 ↔ -1）。
         /// offsetX/Y は「カメラを動かすべき方向」を意味し、UI の矢印・キャプションがこれに従う。
         static let horizontalSign: CGFloat = 1
@@ -96,6 +102,8 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     private let ciContext = CIContext(options: [.useSoftwareRenderer: false])
     private var referencePixelBuffer: CVPixelBuffer?
     private var referenceSize: CGSize = .zero
+    /// 参照画像のグレースケール署名（NCC 用、平均0・正規化前の生輝度）。
+    private var referenceSignature: [Float]?
     private var alignedStreak = 0
     private var lastPublished: AlignmentGuidance = .inactive
     /// レジストレーション連続失敗カウント（searching 判定用）。
@@ -118,6 +126,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         guard let cgImage else {
             referencePixelBuffer = nil
             referenceSize = .zero
+            referenceSignature = nil
             resetState()
             publish(.inactive)
             return
@@ -125,6 +134,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         let scaled = scaledPixelBuffer(from: CIImage(cgImage: cgImage))
         referencePixelBuffer = scaled?.buffer
         referenceSize = scaled?.size ?? .zero
+        referenceSignature = scaled.map { grayscaleSignature(from: $0.buffer) }
         resetState()
     }
 
@@ -157,6 +167,16 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         let oriented = CIImage(cvPixelBuffer: pixelBuffer).oriented(orientation)
         guard let scaled = scaledPixelBuffer(from: oriented, matching: referenceSize) else { return }
 
+        // 「同じ場面か」ゲート: 参照とフレームの正規化相互相関(NCC)が低ければ別の被写体。
+        // この場合 warp が偶然 near-identity でもグリーンにせず searching に固定する。
+        let sceneMatches: Bool
+        if let refSig = referenceSignature {
+            let frameSig = grayscaleSignature(from: scaled.buffer)
+            sceneMatches = normalizedCorrelation(refSig, frameSig) >= Tuning.minCorrelation
+        } else {
+            sceneMatches = true
+        }
+
         guard let metrics = registrationMetrics(reference: reference, frame: scaled.buffer) else {
             // 低テクスチャ／大きくズレて対応点が取れない等。連続失敗で searching に落とす。
             failureStreak += 1
@@ -170,7 +190,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
             return
         }
         failureStreak = 0
-        let guidance = guidance(from: metrics)
+        let guidance = guidance(from: metrics, sceneMatches: sceneMatches)
         publish(guidance)
     }
 
@@ -236,7 +256,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
     // MARK: ズレ → ガイド
 
-    private func guidance(from metrics: RegistrationMetrics) -> AlignmentGuidance {
+    private func guidance(from metrics: RegistrationMetrics, sceneMatches: Bool) -> AlignmentGuidance {
         // 「フレームをどちらへ寄せるべきか」を符号補正して取り出す。
         let rawX = metrics.normalizedTranslationX * Tuning.horizontalSign
         let rawY = metrics.normalizedTranslationY * Tuning.verticalSign
@@ -253,8 +273,10 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         let translationAligned = hypot(x, y) < Tuning.translationAligned
         let scaleAligned = abs(scale) < Tuning.scaleAligned
 
-        // 大きくズレ／極端なスケール差は searching（微調整ガイドを出さない）。
-        let lost = hypot(x, y) > Tuning.lostTranslation || abs(scale) > Tuning.lostScale
+        // 別の被写体（相関が低い）／大きくズレ／極端なスケール差は searching。
+        let lost = !sceneMatches
+            || hypot(x, y) > Tuning.lostTranslation
+            || abs(scale) > Tuning.lostScale
 
         let state: AlignmentGuidance.State
         if lost {
@@ -324,6 +346,67 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
         ciContext.render(scaled, to: buffer)
         return ScaledBuffer(buffer: buffer, size: outputSize)
+    }
+
+    // MARK: 「同じ場面か」判定（NCC）
+
+    /// BGRA の CVPixelBuffer を `signatureSize` 角のグレースケール署名（生輝度）へ落とす。
+    /// CIAreaAverage 系ではなく、CIImage を小さく描いて平均輝度ベクトルを得る。
+    private func grayscaleSignature(from pixelBuffer: CVPixelBuffer) -> [Float] {
+        let n = Tuning.signatureSize
+        let source = CIImage(cvPixelBuffer: pixelBuffer)
+        let extent = source.extent
+        guard extent.width > 0, extent.height > 0 else { return [] }
+
+        // n×n へ縮小（平均化）してから描画。
+        let sx = CGFloat(n) / extent.width
+        let sy = CGFloat(n) / extent.height
+        let small = source
+            .transformed(by: CGAffineTransform(scaleX: sx, y: sy))
+            .transformed(by: CGAffineTransform(translationX: -extent.origin.x * sx,
+                                               y: -extent.origin.y * sy))
+
+        var rgba = [UInt8](repeating: 0, count: n * n * 4)
+        rgba.withUnsafeMutableBytes { ptr in
+            guard let base = ptr.baseAddress else { return }
+            ciContext.render(
+                small,
+                toBitmap: base,
+                rowBytes: n * 4,
+                bounds: CGRect(x: 0, y: 0, width: n, height: n),
+                format: .RGBA8,
+                colorSpace: CGColorSpaceCreateDeviceRGB()
+            )
+        }
+
+        var signature = [Float](repeating: 0, count: n * n)
+        for i in 0..<(n * n) {
+            let r = Float(rgba[i * 4])
+            let g = Float(rgba[i * 4 + 1])
+            let b = Float(rgba[i * 4 + 2])
+            signature[i] = 0.299 * r + 0.587 * g + 0.114 * b
+        }
+        return signature
+    }
+
+    /// 2 つの署名の正規化相互相関（-1〜1）。長さ不一致・無分散時は 0。
+    private func normalizedCorrelation(_ a: [Float], _ b: [Float]) -> Float {
+        guard a.count == b.count, !a.isEmpty else { return 0 }
+        let count = Float(a.count)
+        let meanA = a.reduce(0, +) / count
+        let meanB = b.reduce(0, +) / count
+
+        var cov: Float = 0, varA: Float = 0, varB: Float = 0
+        for i in 0..<a.count {
+            let da = a[i] - meanA
+            let db = b[i] - meanB
+            cov += da * db
+            varA += da * da
+            varB += db * db
+        }
+        let denom = (varA * varB).squareRoot()
+        guard denom > 0 else { return 0 }
+        return cov / denom
     }
 
     // MARK: 通知
