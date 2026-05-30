@@ -2015,12 +2015,12 @@
         }
       }
     },
-    "原画" : {
+    "撮影写真" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Originals"
+            "value" : "Photos"
           }
         }
       }

@@ -337,7 +337,7 @@ struct SettingsView: View {
         SettingsCard(title: "ローカルストレージ") {
             VStack(spacing: NodeSpacing.sp2) {
                 SettingsMetricRow(
-                    label: "原画",
+                    label: "撮影写真",
                     value: "\(StorageFormat.bytes(viewModel.localBreakdown.originalsBytes))"
                 )
                 SettingsMetricRow(
