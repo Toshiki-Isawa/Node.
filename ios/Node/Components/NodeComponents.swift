@@ -330,6 +330,14 @@ struct NodeRecordDateSection: View {
     let range: ClosedRange<Date>
     var label: LocalizedStringKey = "日時"
 
+    /// 表示中は範囲を固定する。上限の `Date.now` が再描画ごとに変化すると、
+    /// コンパクト DatePicker のカレンダーが作り直されて日付を選べなくなるため。
+    @State private var stableRange: ClosedRange<Date>?
+
+    private var effectiveRange: ClosedRange<Date> {
+        stableRange ?? range
+    }
+
     private var isRecordingInPast: Bool {
         date.timeIntervalSinceNow < -60
     }
@@ -341,7 +349,8 @@ struct NodeRecordDateSection: View {
                 Spacer()
                 if isRecordingInPast {
                     Button("今に戻す") {
-                        date = .now
+                        stableRange = range
+                        date = min(.now, range.upperBound)
                     }
                     .font(NodeFont.text(12, weight: .medium))
                     .foregroundStyle(NodeColor.mossSoft)
@@ -352,7 +361,7 @@ struct NodeRecordDateSection: View {
                 DatePicker(
                     "",
                     selection: $date,
-                    in: range,
+                    in: effectiveRange,
                     displayedComponents: [.date, .hourAndMinute]
                 )
                 .datePickerStyle(.compact)
@@ -376,6 +385,11 @@ struct NodeRecordDateSection: View {
                             .stroke(NodeColor.hairline, lineWidth: 1)
                     )
             )
+        }
+        .onAppear {
+            if stableRange == nil {
+                stableRange = range
+            }
         }
     }
 }
