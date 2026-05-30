@@ -78,9 +78,10 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
         /// 「同じ場面か」判定に使うグレースケール署名の一辺（px）。小さいほど小ズレに寛容。
         static let signatureSize = 32
-        /// 正規化相互相関(NCC)のしきい値。これ未満は別の被写体とみなしグリーンを出さない。
-        /// 0〜1。上げると厳しく（無関係を弾きやすいが、同じ場面でも誤って弾く恐れ）。
-        static let minCorrelation: Float = 0.45
+        /// 正規化相互相関(NCC)のしきい値。これ未満は「参照シーンが見えていない」（枠外/別被写体）とみなす。
+        /// 0〜1。ライブ映像と保存写真は露出・色みが異なり相関が下がりやすいため低め。
+        /// 上げると厳しく（枠外を弾きやすいが、同じ植物でも誤って弾く恐れ）。下げると寛容。
+        static let minCorrelation: Float = 0.25
 
         /// ズレ方向の符号補正。実機で矢印・文言の向きが逆ならこの 2 値を反転する（+1 ↔ -1）。
         /// offsetX/Y は「カメラを動かすべき方向」を意味し、UI の矢印・キャプションがこれに従う。
@@ -167,18 +168,26 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         let oriented = CIImage(cvPixelBuffer: pixelBuffer).oriented(orientation)
         guard let scaled = scaledPixelBuffer(from: oriented, matching: referenceSize) else { return }
 
-        // 「同じ場面か」ゲート: 参照とフレームの正規化相互相関(NCC)が低ければ別の被写体。
-        // この場合 warp が偶然 near-identity でもグリーンにせず searching に固定する。
-        let sceneMatches: Bool
+        // 「参照シーンが見えているか」判定（NCC）。これを先に行い、見えていなければ
+        // （＝植物が枠外 or 別被写体）レジストレーションに進まず searching を表示する。
+        // 誤グリーンの防止も、枠外メッセージも、この 1 つの判定で扱う。
         if let refSig = referenceSignature {
             let frameSig = grayscaleSignature(from: scaled.buffer)
-            sceneMatches = normalizedCorrelation(refSig, frameSig) >= Tuning.minCorrelation
-        } else {
-            sceneMatches = true
+            let correlation = normalizedCorrelation(refSig, frameSig)
+            if correlation < Tuning.minCorrelation {
+                smoothed = nil
+                alignedStreak = 0
+                failureStreak = 0
+                publish(AlignmentGuidance(
+                    state: .searching, offsetX: 0, offsetY: 0, scaleDelta: 0, isActive: true
+                ))
+                return
+            }
         }
 
         guard let metrics = registrationMetrics(reference: reference, frame: scaled.buffer) else {
-            // 低テクスチャ／大きくズレて対応点が取れない等。連続失敗で searching に落とす。
+            // シーンは見えているが対応点が取れない（手ブレ・低テクスチャ等）。
+            // 連続失敗が続けば searching に落とすが、単発なら直近表示を維持する。
             failureStreak += 1
             if failureStreak >= Tuning.lostFailureStreak {
                 smoothed = nil
@@ -190,7 +199,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
             return
         }
         failureStreak = 0
-        let guidance = guidance(from: metrics, sceneMatches: sceneMatches)
+        let guidance = guidance(from: metrics)
         publish(guidance)
     }
 
@@ -256,7 +265,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
     // MARK: ズレ → ガイド
 
-    private func guidance(from metrics: RegistrationMetrics, sceneMatches: Bool) -> AlignmentGuidance {
+    private func guidance(from metrics: RegistrationMetrics) -> AlignmentGuidance {
         // 「フレームをどちらへ寄せるべきか」を符号補正して取り出す。
         let rawX = metrics.normalizedTranslationX * Tuning.horizontalSign
         let rawY = metrics.normalizedTranslationY * Tuning.verticalSign
@@ -273,10 +282,9 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         let translationAligned = hypot(x, y) < Tuning.translationAligned
         let scaleAligned = abs(scale) < Tuning.scaleAligned
 
-        // 別の被写体（相関が低い）／大きくズレ／極端なスケール差は searching。
-        let lost = !sceneMatches
-            || hypot(x, y) > Tuning.lostTranslation
-            || abs(scale) > Tuning.lostScale
+        // 大きくズレ／極端なスケール差は searching（微調整ガイドを出さない）。
+        // 「別の被写体／枠外」判定は process 側の NCC ゲートで済んでいる。
+        let lost = hypot(x, y) > Tuning.lostTranslation || abs(scale) > Tuning.lostScale
 
         let state: AlignmentGuidance.State
         if lost {
