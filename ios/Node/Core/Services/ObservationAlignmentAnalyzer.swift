@@ -1,9 +1,7 @@
 import CoreImage
 import CoreVideo
 import Foundation
-import simd
 import UIKit
-import Vision
 
 /// 観測撮影時のガイド状態。前回写真と現在フレームのズレを連続値で保持し、
 /// UI 側で方向矢印・リングサイズ・グリーン判定に展開する。
@@ -38,15 +36,22 @@ struct AlignmentGuidance: Equatable {
     var translationMagnitude: CGFloat { hypot(offsetX, offsetY) }
 }
 
-/// 前回の観測写真とライブフレームを Vision の画像レジストレーションで比較し、
-/// 「どれだけ・どちらへ寄せるべきか」を連続値（offsetX/Y・scaleDelta）として返す。
-/// UI 側で方向矢印・ターゲット点・グリーン判定に展開する。
+/// 前回の観測写真とライブフレームを比較し、「どれだけ・どちらへ寄せるべきか」を
+/// 連続値（offsetX/Y・scaleDelta）として返す。
 ///
-/// - スレッド: 解析は内部の serial queue 上で実行する。`ingest(_:orientation:)` は
-///   カメラの video data queue から呼ばれ、軽量なゲート判定のみ行ってから解析を dispatch する
-///   （フレームの取りこぼし＝省電力）。
-/// - 結果は `onGuidance` で main へホップして通知する。
-/// - 生成 AI（Apple Intelligence）は使わず、classic VN API のみ（iOS 17 で動作）。
+/// ## アルゴリズム
+/// Vision の画像レジストレーションは同一カメラの連写向けで、保存写真 vs ライブ映像の
+/// ようなクロスドメイン（露出・WB・色みが違う）では失敗や near-identity を返しやすい。
+/// そこで古典 CV パイプラインに置き換えている:
+///  1. **観測枠クロップ**: ライブフレームを参照写真と同じアスペクトへセンタークロップし、
+///     視野（FOV）を揃える（保存写真は観測枠にクロップ済みのため）。
+///  2. **勾配エッジ化**: グレースケール→Sobel 勾配強度。照明・露出差に不変にする。
+///  3. **多スケール ZNCC テンプレートマッチング**: 参照中央のテンプレートを、複数スケール×
+///     平行移動の探索空間でフレームに重ね、ゼロ平均正規化相互相関(ZNCC)のピークを探す
+///     （coarse-to-fine）。ピーク位置→平行移動、最良スケール→遠近、ピーク値→信頼度。
+///
+/// - スレッド: 解析は内部の serial queue 上で実行する。結果は `onGuidance` で main へ通知。
+/// - 生成 AI（Apple Intelligence）は使わない。iOS 17 で動作。
 final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     /// 解析結果の通知（main で呼ばれる）。利用開始前に main で 1 度だけ設定する。
     var onGuidance: ((AlignmentGuidance) -> Void)?
@@ -54,37 +59,43 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     // MARK: - チューニング定数（実機調整はここだけ触ればよい）
 
     enum Tuning {
-        /// 解析に使う画像の長辺（px）。速度優先で十分。
-        static let workingMaxDimension: CGFloat = 480
+        /// エッジ画像の長辺（px）。大きいほど精度が上がるが重い。
+        static let workingLongSide: CGFloat = 200
         /// フレーム解析の最小間隔（秒）。約 4fps。
         static let minInterval: TimeInterval = 0.25
 
-        /// 平行移動: 整合（グリーン）と判定する正規化しきい値（フレーム長辺比）。緩めるとグリーンが出やすい。
-        static let translationAligned: CGFloat = 0.06
+        /// テンプレート格子の一辺（サンプル数）。中央領域を G×G に等間隔サンプル。
+        static let templateGrid = 40
+        /// テンプレートが覆う参照中央領域の割合（0〜1）。
+        static let templateCenterFraction: CGFloat = 0.6
+
+        /// 探索するスケール候補（フレーム上で参照内容が何倍に見えるか）。
+        static let scales: [CGFloat] = [0.72, 0.82, 0.9, 1.0, 1.1, 1.22, 1.38]
+        /// 平行移動の探索範囲（長辺比）。±この割合。
+        static let searchRangeFraction: CGFloat = 0.24
+        /// coarse 探索のステップ（px）。
+        static let coarseStep = 4
+        /// fine 探索の片側範囲（px, coarseStep 近傍）。
+        static let fineSpan = 4
+
+        /// 「参照シーンが見えている」とみなす最小スコア（ZNCC ピーク）。未満は searching。
+        /// 上げると枠外を弾きやすいが、同じ植物でも誤って弾く恐れ。下げると寛容。
+        static let minSceneScore: Float = 0.18
+        /// グリーン（整合）を許可する最小スコア。内容が十分一致していないと緑にしない。
+        /// minSceneScore より高くする。誤グリーンが出るなら上げる。
+        static let minAlignedScore: Float = 0.45
+
+        /// 平行移動: 整合（グリーン）と判定する正規化しきい値（長辺比）。緩めるとグリーンが出やすい。
+        static let translationAligned: CGFloat = 0.05
         /// スケール: 整合と判定する 1 からの許容幅。緩めるとグリーンが出やすい。
-        static let scaleAligned: CGFloat = 0.12
+        static let scaleAligned: CGFloat = 0.1
         /// 整合確定に必要な連続フレーム数。
         static let alignedStreakRequired = 2
 
-        /// これを超える平行移動ズレは「大きくズレ」とみなし微調整ガイドを出さない。
-        static let lostTranslation: CGFloat = 0.30
-        /// これを超えるスケール差は「大きくズレ」とみなす。
-        static let lostScale: CGFloat = 0.5
-        /// レジストレーション連続失敗がこの回数に達したら searching（未捕捉）に落とす。
-        static let lostFailureStreak = 3
-
         /// 平滑化係数（指数移動平均）。0〜1。大きいほど追従が速いがジッターも増える。
-        static let smoothing: CGFloat = 0.45
-
-        /// 「同じ場面か」判定に使うグレースケール署名の一辺（px）。小さいほど小ズレに寛容。
-        static let signatureSize = 32
-        /// 正規化相互相関(NCC)のしきい値。これ未満は「参照シーンが見えていない」（枠外/別被写体）とみなす。
-        /// 0〜1。ライブ映像と保存写真は露出・色みが異なり相関が下がりやすいため低め。
-        /// 上げると厳しく（枠外を弾きやすいが、同じ植物でも誤って弾く恐れ）。下げると寛容。
-        static let minCorrelation: Float = 0.25
-        /// グリーン（整合）を許可する最小相関。内容が十分一致していないと緑にしない。
-        /// minCorrelation より高くする。誤グリーンが出るなら上げる。
-        static let minAlignedCorrelation: Float = 0.6
+        static let smoothing: CGFloat = 0.5
+        /// シーン未検出（low score）が続いて searching に落とす連続回数。
+        static let lostScoreStreak = 2
 
         /// ズレ方向の符号補正。実機で矢印・文言の向きが逆ならこの 2 値を反転する（+1 ↔ -1）。
         /// offsetX/Y は「カメラを動かすべき方向」を意味し、UI の矢印・キャプションがこれに従う。
@@ -96,23 +107,20 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
     private let queue = DispatchQueue(label: "app.node.alignment", qos: .userInitiated)
     private let gate = NSLock()
-    /// 解析実行中フラグ（gate 保護）。実行中はフレームを捨てる。
     private var inFlight = false
-    /// 直近の取り込み時刻（gate 保護）。スロットリング用。
     private var lastIngestAt: Date = .distantPast
 
     // MARK: 解析状態（queue 上でのみ触る）
 
     private let ciContext = CIContext(options: [.useSoftwareRenderer: false])
-    private var referencePixelBuffer: CVPixelBuffer?
-    private var referenceSize: CGSize = .zero
-    /// 参照画像のグレースケール署名（NCC 用、平均0・正規化前の生輝度）。
-    private var referenceSignature: [Float]?
+    /// 参照（前回写真）のエッジ画像。
+    private var referenceEdge: EdgeImage?
+    /// 参照中央から作ったテンプレート。
+    private var template: Template?
     private var alignedStreak = 0
+    private var lowScoreStreak = 0
     private var lastPublished: AlignmentGuidance = .inactive
-    /// レジストレーション連続失敗カウント（searching 判定用）。
-    private var failureStreak = 0
-    /// 平滑化済みの連続値（EMA 状態）。初回は実測で初期化。
+    /// 平滑化済みの連続値（EMA 状態）。
     private var smoothed: (x: CGFloat, y: CGFloat, scale: CGFloat)?
 
     // MARK: 参照画像
@@ -121,25 +129,23 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     func setReference(_ image: UIImage?) {
         let cgImage = image?.cgImage
         queue.async { [weak self] in
-            guard let self else { return }
-            self.applyReference(cgImage)
+            self?.applyReference(cgImage)
         }
     }
 
     private func applyReference(_ cgImage: CGImage?) {
+        resetState()
         guard let cgImage else {
-            referencePixelBuffer = nil
-            referenceSize = .zero
-            referenceSignature = nil
-            resetState()
+            referenceEdge = nil
+            template = nil
             publish(.inactive)
             return
         }
-        let scaled = scaledPixelBuffer(from: CIImage(cgImage: cgImage))
-        referencePixelBuffer = scaled?.buffer
-        referenceSize = scaled?.size ?? .zero
-        referenceSignature = scaled.map { grayscaleSignature(from: $0.buffer) }
-        resetState()
+        // 参照はアスペクトを保ったまま長辺 workingLongSide のエッジ画像に。
+        let aspect = CGFloat(cgImage.width) / CGFloat(max(1, cgImage.height))
+        let (w, h) = workingDimensions(aspect: aspect)
+        referenceEdge = edgeImage(from: CIImage(cgImage: cgImage), width: w, height: h, cropAspect: nil)
+        template = referenceEdge.flatMap(makeTemplate)
     }
 
     // MARK: フレーム取り込み
@@ -166,114 +172,49 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     }
 
     private func process(_ pixelBuffer: CVPixelBuffer, orientation: CGImagePropertyOrientation) {
-        guard let reference = referencePixelBuffer, referenceSize != .zero else { return }
+        guard let reference = referenceEdge, let template else { return }
 
+        // フレームを参照と同じアスペクト・同じ寸法のエッジ画像に（センタークロップで FOV を揃える）。
+        let aspect = CGFloat(reference.w) / CGFloat(reference.h)
         let oriented = CIImage(cvPixelBuffer: pixelBuffer).oriented(orientation)
-        guard let scaled = scaledPixelBuffer(from: oriented, matching: referenceSize) else { return }
-
-        // 参照とフレームの正規化相互相関(NCC)。2 段階で使う:
-        //  - minCorrelation 未満 → 参照シーンが見えていない（枠外/別被写体）→ searching
-        //  - minAlignedCorrelation 未満 → 内容が十分一致していない → グリーンにはしない
-        var correlation: Float = 1
-        if let refSig = referenceSignature {
-            correlation = normalizedCorrelation(refSig, grayscaleSignature(from: scaled.buffer))
+        guard let frame = edgeImage(from: oriented, width: reference.w, height: reference.h, cropAspect: aspect) else {
+            return
         }
-        if correlation < Tuning.minCorrelation {
+
+        guard let match = bestMatch(template: template, in: frame) else {
+            handleLowScore()
+            return
+        }
+
+        // スコアが低い＝参照シーンが見えていない（枠外/別被写体）。
+        if match.score < Tuning.minSceneScore {
+            handleLowScore()
+            return
+        }
+        lowScoreStreak = 0
+
+        let longSide = CGFloat(max(frame.w, frame.h))
+        let rawX = (match.dx / longSide) * Tuning.horizontalSign
+        let rawY = (match.dy / longSide) * Tuning.verticalSign
+        let rawScale = match.scale - 1
+
+        publish(guidance(rawX: rawX, rawY: rawY, rawScale: rawScale, score: match.score))
+    }
+
+    private func handleLowScore() {
+        lowScoreStreak += 1
+        if lowScoreStreak >= Tuning.lostScoreStreak {
             smoothed = nil
             alignedStreak = 0
-            failureStreak = 0
             publish(AlignmentGuidance(
                 state: .searching, offsetX: 0, offsetY: 0, scaleDelta: 0, isActive: true
             ))
-            return
         }
-
-        guard let metrics = registrationMetrics(reference: reference, frame: scaled.buffer) else {
-            // シーンは見えているが対応点が取れない（手ブレ・低テクスチャ等）。
-            // 連続失敗が続けば searching に落とすが、単発なら直近表示を維持する。
-            failureStreak += 1
-            if failureStreak >= Tuning.lostFailureStreak {
-                smoothed = nil
-                alignedStreak = 0
-                publish(AlignmentGuidance(
-                    state: .searching, offsetX: 0, offsetY: 0, scaleDelta: 0, isActive: true
-                ))
-            }
-            return
-        }
-        failureStreak = 0
-        let guidance = guidance(from: metrics, correlation: correlation)
-        publish(guidance)
-    }
-
-    // MARK: Vision レジストレーション
-
-    private struct RegistrationMetrics {
-        /// フレーム長辺に対する正規化平行移動（+x = 右, +y = 下）。
-        var normalizedTranslationX: CGFloat
-        var normalizedTranslationY: CGFloat
-        /// 拡大率（1 = 等倍, >1 = フレームが大きい=近い）。
-        var scale: CGFloat
-    }
-
-    private func registrationMetrics(reference: CVPixelBuffer, frame: CVPixelBuffer) -> RegistrationMetrics? {
-        let handler = VNImageRequestHandler(cvPixelBuffer: reference, options: [:])
-
-        // 主: ホモグラフィ（平行移動＋スケール）。
-        let homographic = VNHomographicImageRegistrationRequest(targetedCVPixelBuffer: frame)
-        if (try? handler.perform([homographic])) != nil,
-           let warp = (homographic.results?.first as? VNImageHomographicAlignmentObservation)?.warpTransform,
-           let metrics = metrics(fromWarp: warp) {
-            return metrics
-        }
-
-        // フォールバック: 平行移動のみ（スケールは等倍扱い）。
-        let translational = VNTranslationalImageRegistrationRequest(targetedCVPixelBuffer: frame)
-        if (try? handler.perform([translational])) != nil,
-           let transform = (translational.results?.first as? VNImageTranslationAlignmentObservation)?.alignmentTransform {
-            let longSide = max(referenceSize.width, referenceSize.height)
-            guard longSide > 0 else { return nil }
-            return RegistrationMetrics(
-                normalizedTranslationX: CGFloat(transform.tx) / longSide,
-                normalizedTranslationY: CGFloat(transform.ty) / longSide,
-                scale: 1
-            )
-        }
-
-        return nil
-    }
-
-    /// simd_float3x3 の warp から平行移動とスケールを抽出する。
-    private func metrics(fromWarp warp: matrix_float3x3) -> RegistrationMetrics? {
-        let longSide = max(referenceSize.width, referenceSize.height)
-        guard longSide > 0 else { return nil }
-
-        // 列ベクトルアクセス（column.2 が平行移動成分）。
-        let tx = CGFloat(warp.columns.2.x)
-        let ty = CGFloat(warp.columns.2.y)
-
-        // 上左 2x2 の列ノルム平均をスケールとみなす。
-        let col0 = hypot(CGFloat(warp.columns.0.x), CGFloat(warp.columns.0.y))
-        let col1 = hypot(CGFloat(warp.columns.1.x), CGFloat(warp.columns.1.y))
-        let scale = (col0 + col1) / 2
-
-        guard tx.isFinite, ty.isFinite, scale.isFinite, scale > 0.2, scale < 5 else { return nil }
-
-        return RegistrationMetrics(
-            normalizedTranslationX: tx / longSide,
-            normalizedTranslationY: ty / longSide,
-            scale: scale
-        )
     }
 
     // MARK: ズレ → ガイド
 
-    private func guidance(from metrics: RegistrationMetrics, correlation: Float) -> AlignmentGuidance {
-        // 「フレームをどちらへ寄せるべきか」を符号補正して取り出す。
-        let rawX = metrics.normalizedTranslationX * Tuning.horizontalSign
-        let rawY = metrics.normalizedTranslationY * Tuning.verticalSign
-        let rawScale = metrics.scale - 1
-
+    private func guidance(rawX: CGFloat, rawY: CGFloat, rawScale: CGFloat, score: Float) -> AlignmentGuidance {
         // 指数移動平均で平滑化（ジッター低減）。
         let a = Tuning.smoothing
         let prev = smoothed ?? (rawX, rawY, rawScale)
@@ -284,19 +225,10 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
         let translationAligned = hypot(x, y) < Tuning.translationAligned
         let scaleAligned = abs(scale) < Tuning.scaleAligned
-        // グリーンには「位置・スケール一致」に加えて「内容が十分一致」も要求する。
-        // これにより、背景だけ一致して被写体が違うケースの誤グリーンを防ぐ。
-        let contentMatches = correlation >= Tuning.minAlignedCorrelation
-
-        // 大きくズレ／極端なスケール差は searching（微調整ガイドを出さない）。
-        // 「別の被写体／枠外」判定は process 側の NCC ゲートで済んでいる。
-        let lost = hypot(x, y) > Tuning.lostTranslation || abs(scale) > Tuning.lostScale
+        let contentMatches = score >= Tuning.minAlignedScore
 
         let state: AlignmentGuidance.State
-        if lost {
-            alignedStreak = 0
-            state = .searching
-        } else if translationAligned && scaleAligned && contentMatches {
+        if translationAligned && scaleAligned && contentMatches {
             alignedStreak += 1
             state = alignedStreak >= Tuning.alignedStreakRequired ? .aligned : .guiding
         } else {
@@ -313,121 +245,257 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         )
     }
 
-    // MARK: 画像縮小
+    // MARK: - エッジ画像
 
-    private struct ScaledBuffer {
-        let buffer: CVPixelBuffer
-        let size: CGSize
+    /// グレースケール Sobel 勾配強度の画像。
+    private struct EdgeImage {
+        let w: Int
+        let h: Int
+        var px: [Float]
     }
 
-    /// CIImage を長辺 `workingMaxDimension` 程度（または `target` に一致）へ縮小し、CVPixelBuffer 化する。
-    private func scaledPixelBuffer(from image: CIImage, matching target: CGSize? = nil) -> ScaledBuffer? {
-        let extent = image.extent
+    private func workingDimensions(aspect: CGFloat) -> (Int, Int) {
+        let long = Tuning.workingLongSide
+        if aspect >= 1 {
+            return (Int(long.rounded()), Int((long / aspect).rounded()))
+        } else {
+            return (Int((long * aspect).rounded()), Int(long.rounded()))
+        }
+    }
+
+    /// CIImage を必要なら `cropAspect` でセンタークロップ→ w×h へ縮小→輝度→Sobel 勾配。
+    private func edgeImage(from image: CIImage, width: Int, height: Int, cropAspect: CGFloat?) -> EdgeImage? {
+        guard width > 2, height > 2 else { return nil }
+        var src = image
+        let extent = src.extent
         guard extent.width > 0, extent.height > 0, extent.width.isFinite, extent.height.isFinite else { return nil }
 
-        let outputSize: CGSize
-        if let target, target.width > 0, target.height > 0 {
-            outputSize = target
-        } else {
-            let longSide = max(extent.width, extent.height)
-            let factor = min(1, Tuning.workingMaxDimension / longSide)
-            outputSize = CGSize(width: (extent.width * factor).rounded(),
-                                height: (extent.height * factor).rounded())
+        // センタークロップ（FOV を参照に合わせる）。
+        var cropRect = extent
+        if let cropAspect {
+            let srcAspect = extent.width / extent.height
+            if srcAspect > cropAspect {
+                let cw = extent.height * cropAspect
+                cropRect = CGRect(x: extent.midX - cw / 2, y: extent.minY, width: cw, height: extent.height)
+            } else {
+                let ch = extent.width / cropAspect
+                cropRect = CGRect(x: extent.minX, y: extent.midY - ch / 2, width: extent.width, height: ch)
+            }
+            src = src.cropped(to: cropRect)
         }
-        guard outputSize.width >= 1, outputSize.height >= 1 else { return nil }
 
-        let scaleX = outputSize.width / extent.width
-        let scaleY = outputSize.height / extent.height
-        let scaled = image
-            .transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
-            .transformed(by: CGAffineTransform(translationX: -extent.origin.x * scaleX,
-                                               y: -extent.origin.y * scaleY))
-
-        var pixelBuffer: CVPixelBuffer?
-        let attrs: [CFString: Any] = [
-            kCVPixelBufferCGImageCompatibilityKey: true,
-            kCVPixelBufferCGBitmapContextCompatibilityKey: true,
-        ]
-        let status = CVPixelBufferCreate(
-            kCFAllocatorDefault,
-            Int(outputSize.width),
-            Int(outputSize.height),
-            kCVPixelFormatType_32BGRA,
-            attrs as CFDictionary,
-            &pixelBuffer
-        )
-        guard status == kCVReturnSuccess, let buffer = pixelBuffer else { return nil }
-
-        ciContext.render(scaled, to: buffer)
-        return ScaledBuffer(buffer: buffer, size: outputSize)
-    }
-
-    // MARK: 「同じ場面か」判定（NCC）
-
-    /// BGRA の CVPixelBuffer を `signatureSize` 角のグレースケール署名（生輝度）へ落とす。
-    /// CIAreaAverage 系ではなく、CIImage を小さく描いて平均輝度ベクトルを得る。
-    private func grayscaleSignature(from pixelBuffer: CVPixelBuffer) -> [Float] {
-        let n = Tuning.signatureSize
-        let source = CIImage(cvPixelBuffer: pixelBuffer)
-        let extent = source.extent
-        guard extent.width > 0, extent.height > 0 else { return [] }
-
-        // n×n へ縮小（平均化）してから描画。
-        let sx = CGFloat(n) / extent.width
-        let sy = CGFloat(n) / extent.height
-        let small = source
+        let sx = CGFloat(width) / cropRect.width
+        let sy = CGFloat(height) / cropRect.height
+        let scaled = src
             .transformed(by: CGAffineTransform(scaleX: sx, y: sy))
-            .transformed(by: CGAffineTransform(translationX: -extent.origin.x * sx,
-                                               y: -extent.origin.y * sy))
+            .transformed(by: CGAffineTransform(translationX: -cropRect.origin.x * sx,
+                                               y: -cropRect.origin.y * sy))
 
-        var rgba = [UInt8](repeating: 0, count: n * n * 4)
+        var rgba = [UInt8](repeating: 0, count: width * height * 4)
         rgba.withUnsafeMutableBytes { ptr in
             guard let base = ptr.baseAddress else { return }
             ciContext.render(
-                small,
+                scaled,
                 toBitmap: base,
-                rowBytes: n * 4,
-                bounds: CGRect(x: 0, y: 0, width: n, height: n),
+                rowBytes: width * 4,
+                bounds: CGRect(x: 0, y: 0, width: width, height: height),
                 format: .RGBA8,
                 colorSpace: CGColorSpaceCreateDeviceRGB()
             )
         }
 
-        var signature = [Float](repeating: 0, count: n * n)
-        for i in 0..<(n * n) {
+        // 輝度。
+        var lum = [Float](repeating: 0, count: width * height)
+        for i in 0..<(width * height) {
             let r = Float(rgba[i * 4])
             let g = Float(rgba[i * 4 + 1])
             let b = Float(rgba[i * 4 + 2])
-            signature[i] = 0.299 * r + 0.587 * g + 0.114 * b
+            lum[i] = 0.299 * r + 0.587 * g + 0.114 * b
         }
-        return signature
+
+        // Sobel 勾配強度（照明不変）。
+        var edge = [Float](repeating: 0, count: width * height)
+        for y in 1..<(height - 1) {
+            for x in 1..<(width - 1) {
+                let i = y * width + x
+                let tl = lum[i - width - 1], tc = lum[i - width], tr = lum[i - width + 1]
+                let ml = lum[i - 1], mr = lum[i + 1]
+                let bl = lum[i + width - 1], bc = lum[i + width], br = lum[i + width + 1]
+                let gx = (tr + 2 * mr + br) - (tl + 2 * ml + bl)
+                let gy = (bl + 2 * bc + br) - (tl + 2 * tc + tr)
+                edge[i] = (gx * gx + gy * gy).squareRoot()
+            }
+        }
+        return EdgeImage(w: width, h: height, px: edge)
     }
 
-    /// 2 つの署名の正規化相互相関（-1〜1）。長さ不一致・無分散時は 0。
-    private func normalizedCorrelation(_ a: [Float], _ b: [Float]) -> Float {
-        guard a.count == b.count, !a.isEmpty else { return 0 }
-        let count = Float(a.count)
-        let meanA = a.reduce(0, +) / count
-        let meanB = b.reduce(0, +) / count
+    // MARK: - テンプレートマッチング
 
-        var cov: Float = 0, varA: Float = 0, varB: Float = 0
-        for i in 0..<a.count {
-            let da = a[i] - meanA
-            let db = b[i] - meanB
-            cov += da * db
-            varA += da * da
-            varB += db * db
+    /// 参照中央から等間隔サンプルしたテンプレート（ZNCC 用に平均0化済み）。
+    private struct Template {
+        let count: Int
+        /// 参照中心からの相対座標（px）。
+        let relX: [CGFloat]
+        let relY: [CGFloat]
+        /// 平均を引いたテンプレート値。
+        let centered: [Float]
+        /// Σ centered²（ZNCC 分母用）。
+        let sumSq: Float
+        let refCenterX: CGFloat
+        let refCenterY: CGFloat
+    }
+
+    private func makeTemplate(from edge: EdgeImage) -> Template? {
+        let g = Tuning.templateGrid
+        guard edge.w > g, edge.h > g else { return nil }
+
+        let cx = CGFloat(edge.w) / 2
+        let cy = CGFloat(edge.h) / 2
+        let halfW = CGFloat(edge.w) * Tuning.templateCenterFraction / 2
+        let halfH = CGFloat(edge.h) * Tuning.templateCenterFraction / 2
+
+        var relX = [CGFloat](); relX.reserveCapacity(g * g)
+        var relY = [CGFloat](); relY.reserveCapacity(g * g)
+        var values = [Float](); values.reserveCapacity(g * g)
+
+        for b in 0..<g {
+            let fy = CGFloat(b) / CGFloat(g - 1) - 0.5   // -0.5...0.5
+            let ry = fy * 2 * halfH
+            for a in 0..<g {
+                let fx = CGFloat(a) / CGFloat(g - 1) - 0.5
+                let rx = fx * 2 * halfW
+                relX.append(rx)
+                relY.append(ry)
+                values.append(sampleBilinear(edge, x: cx + rx, y: cy + ry))
+            }
         }
-        let denom = (varA * varB).squareRoot()
+
+        let n = Float(values.count)
+        let mean = values.reduce(0, +) / n
+        var centered = [Float](repeating: 0, count: values.count)
+        var sumSq: Float = 0
+        for i in 0..<values.count {
+            let c = values[i] - mean
+            centered[i] = c
+            sumSq += c * c
+        }
+        guard sumSq > 0 else { return nil }
+
+        return Template(
+            count: values.count,
+            relX: relX, relY: relY,
+            centered: centered, sumSq: sumSq,
+            refCenterX: cx, refCenterY: cy
+        )
+    }
+
+    private struct Match {
+        let score: Float
+        let dx: CGFloat
+        let dy: CGFloat
+        let scale: CGFloat
+    }
+
+    /// 多スケール×平行移動でテンプレートをフレームに重ね、ZNCC ピークを探す（coarse-to-fine）。
+    private func bestMatch(template t: Template, in frame: EdgeImage) -> Match? {
+        let fcx = CGFloat(frame.w) / 2
+        let fcy = CGFloat(frame.h) / 2
+        let range = CGFloat(max(frame.w, frame.h)) * Tuning.searchRangeFraction
+        let coarse = Tuning.coarseStep
+
+        var best: Match?
+
+        func evaluate(scale: CGFloat, dx: CGFloat, dy: CGFloat) -> Float {
+            zncc(template: t, frame: frame, fcx: fcx + dx, fcy: fcy + dy, scale: scale)
+        }
+
+        // coarse: 各スケール×粗いグリッド。
+        let steps = Int((range / CGFloat(coarse)).rounded())
+        for scale in Tuning.scales {
+            var iy = -steps
+            while iy <= steps {
+                let dy = CGFloat(iy * coarse)
+                var ix = -steps
+                while ix <= steps {
+                    let dx = CGFloat(ix * coarse)
+                    let s = evaluate(scale: scale, dx: dx, dy: dy)
+                    if best == nil || s > best!.score {
+                        best = Match(score: s, dx: dx, dy: dy, scale: scale)
+                    }
+                    ix += 1
+                }
+                iy += 1
+            }
+        }
+
+        guard var refined = best else { return nil }
+
+        // fine: 最良の近傍を 1px ステップで精緻化（平行移動のみ）。
+        let span = Tuning.fineSpan
+        var dy = refined.dy - CGFloat(span)
+        while dy <= refined.dy + CGFloat(span) {
+            var dx = refined.dx - CGFloat(span)
+            while dx <= refined.dx + CGFloat(span) {
+                let s = evaluate(scale: refined.scale, dx: dx, dy: dy)
+                if s > refined.score {
+                    refined = Match(score: s, dx: dx, dy: dy, scale: refined.scale)
+                }
+                dx += 1
+            }
+            dy += 1
+        }
+        return refined
+    }
+
+    /// テンプレートをフレーム上の (fcx,fcy) 中心・倍率 scale で重ねたときの ZNCC（-1〜1）。
+    private func zncc(template t: Template, frame: EdgeImage, fcx: CGFloat, fcy: CGFloat, scale: CGFloat) -> Float {
+        let n = t.count
+        var samples = [Float](repeating: 0, count: n)
+        var sum: Float = 0
+        for i in 0..<n {
+            let fx = fcx + t.relX[i] * scale
+            let fy = fcy + t.relY[i] * scale
+            let v = sampleBilinear(frame, x: fx, y: fy)
+            samples[i] = v
+            sum += v
+        }
+        let mean = sum / Float(n)
+
+        var num: Float = 0
+        var frameSS: Float = 0
+        for i in 0..<n {
+            let fc = samples[i] - mean
+            num += t.centered[i] * fc
+            frameSS += fc * fc
+        }
+        let denom = (t.sumSq * frameSS).squareRoot()
         guard denom > 0 else { return 0 }
-        return cov / denom
+        return num / denom
+    }
+
+    /// エッジ画像をバイリニア補間でサンプル（範囲外はエッジクランプ）。
+    private func sampleBilinear(_ img: EdgeImage, x: CGFloat, y: CGFloat) -> Float {
+        let cx = min(max(x, 0), CGFloat(img.w - 1))
+        let cy = min(max(y, 0), CGFloat(img.h - 1))
+        let x0 = Int(cx), y0 = Int(cy)
+        let x1 = min(x0 + 1, img.w - 1)
+        let y1 = min(y0 + 1, img.h - 1)
+        let fx = Float(cx - CGFloat(x0))
+        let fy = Float(cy - CGFloat(y0))
+        let p00 = img.px[y0 * img.w + x0]
+        let p10 = img.px[y0 * img.w + x1]
+        let p01 = img.px[y1 * img.w + x0]
+        let p11 = img.px[y1 * img.w + x1]
+        let top = p00 + (p10 - p00) * fx
+        let bottom = p01 + (p11 - p01) * fx
+        return top + (bottom - top) * fy
     }
 
     // MARK: 通知
 
     private func resetState() {
         alignedStreak = 0
-        failureStreak = 0
+        lowScoreStreak = 0
         lastPublished = .inactive
         smoothed = nil
     }
