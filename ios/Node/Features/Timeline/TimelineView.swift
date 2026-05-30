@@ -236,17 +236,35 @@ struct TimelineView: View {
             cardHeader(plantName: plant.name, syncStatus: log.syncStatus, badge: "\(log.type.label)")
 
             HStack(spacing: NodeSpacing.sp3) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: NodeRadius.lg)
-                        .fill(NodeColor.bark)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: NodeRadius.lg)
-                                .stroke(NodeColor.hairline, lineWidth: 1)
-                        )
-                    Image(systemName: log.type.systemImage)
-                        .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(NodeColor.olive)
-                }
+                PhotoCard(
+                    imagePath: plant.latestObservation.flatMap {
+                        observationImageService.displayThumbnailPath(for: $0)
+                    },
+                    imageStore: imageStore,
+                    aspectRatio: 1,
+                    cornerRadius: NodeRadius.lg,
+                    overlay: AnyView(
+                        VStack {
+                            HStack {
+                                Image(systemName: log.type.systemImage)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(NodeColor.olive)
+                                    .frame(width: 28, height: 28)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: NodeRadius.sm)
+                                            .fill(NodeColor.surfaceOverlay)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: NodeRadius.sm)
+                                                    .stroke(NodeColor.hairlineStrong, lineWidth: 1)
+                                            )
+                                    )
+                                Spacer(minLength: 0)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .padding(6)
+                    )
+                )
                 .frame(width: 88, height: 88)
 
                 VStack(alignment: .leading, spacing: 6) {
