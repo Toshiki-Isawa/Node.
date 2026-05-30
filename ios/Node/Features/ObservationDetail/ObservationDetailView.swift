@@ -89,7 +89,8 @@ struct ObservationDetailView: View {
 
     private func observationImage() -> UIImage? {
         imageStore.loadImage(path: observation.localImagePath)
-            ?? imageStore.loadImage(path: observationImageService.displayThumbnailPath(for: observation))
+            ?? observationImageService.displayThumbnailPath(for: observation)
+                .flatMap { imageStore.loadImage(path: $0) }
     }
 
     private var observationDayNumber: Int {
