@@ -5,29 +5,31 @@ import simd
 import UIKit
 import Vision
 
-/// 観測撮影時のガイド状態。前回写真と現在フレームのズレを 1 軸の指示にまとめる。
+/// 観測撮影時のガイド状態。前回写真と現在フレームのズレを連続値で保持し、
+/// UI 側で大きな方向矢印・ターゲット点・グリーン判定に展開する。
 struct AlignmentGuidance: Equatable {
-    enum Hint: Equatable {
-        case moveLeft
-        case moveRight
-        case moveUp
-        case moveDown
-        case moveCloser
-        case moveFarther
-    }
-
-    /// 提示する指示（ズレが最大の 1 軸のみ）。`nil` かつ `isAligned == false` は判定保留。
-    var primaryHint: Hint?
+    /// 正規化水平オフセット（フレーム長辺比）= カメラを動かすべき方向。+ = 右。
+    var offsetX: CGFloat
+    /// 正規化垂直オフセット = カメラを動かすべき方向。+ = 下。
+    var offsetY: CGFloat
+    /// スケール差（0 = 等倍, + = 近すぎ／引くべき, − = 遠すぎ／寄るべき）。
+    var scaleDelta: CGFloat
     /// おおよそ位置が合った状態。グリーンマーク表示の条件。
     var isAligned: Bool
     /// 参照画像があり解析中。`false` のときはガイド非表示。
     var isActive: Bool
 
-    static let inactive = AlignmentGuidance(primaryHint: nil, isAligned: false, isActive: false)
+    static let inactive = AlignmentGuidance(
+        offsetX: 0, offsetY: 0, scaleDelta: 0, isAligned: false, isActive: false
+    )
+
+    /// 平行移動ズレの大きさ（正規化）。
+    var translationMagnitude: CGFloat { hypot(offsetX, offsetY) }
 }
 
 /// 前回の観測写真とライブフレームを Vision の画像レジストレーションで比較し、
-/// 「もう少し右/左/上/下」「少し遠い/近い」といったガイドへ変換する。
+/// 「どれだけ・どちらへ寄せるべきか」を連続値（offsetX/Y・scaleDelta）として返す。
+/// UI 側で方向矢印・ターゲット点・グリーン判定に展開する。
 ///
 /// - スレッド: 解析は内部の serial queue 上で実行する。`ingest(_:orientation:)` は
 ///   カメラの video data queue から呼ばれ、軽量なゲート判定のみ行ってから解析を dispatch する
@@ -38,27 +40,29 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     /// 解析結果の通知（main で呼ばれる）。利用開始前に main で 1 度だけ設定する。
     var onGuidance: ((AlignmentGuidance) -> Void)?
 
-    // MARK: チューニング定数
+    // MARK: - チューニング定数（実機調整はここだけ触ればよい）
 
-    /// 解析に使う画像の長辺（px）。速度優先で十分。
-    private let workingMaxDimension: CGFloat = 480
-    /// フレーム解析の最小間隔（秒）。約 4fps。
-    private let minInterval: TimeInterval = 0.25
-    /// 平行移動: ズレと判定する正規化しきい値（フレーム長辺比）。
-    private let translationEnter: CGFloat = 0.06
-    /// 平行移動: 整合と判定する正規化しきい値。
-    private let translationExit: CGFloat = 0.03
-    /// スケール: 整合と判定する 1 からの許容幅。
-    private let scaleTolerance: CGFloat = 0.08
-    /// 整合確定に必要な連続フレーム数。
-    private let alignedStreakRequired = 2
-    /// 同一ヒントを保持する最小時間（秒）。ちらつき防止。
-    private let hintMinHold: TimeInterval = 0.5
+    enum Tuning {
+        /// 解析に使う画像の長辺（px）。速度優先で十分。
+        static let workingMaxDimension: CGFloat = 480
+        /// フレーム解析の最小間隔（秒）。約 4fps。
+        static let minInterval: TimeInterval = 0.25
 
-    /// ズレ方向 → ヒントの符号補正。実機キャリブレーションはこの 2 値だけ反転すれば直る。
-    /// `tx > 0`（参照に対しフレームが右へずれている）のとき、ユーザーは左へ寄せるべき → moveLeft。
-    private let horizontalSign: CGFloat = 1
-    private let verticalSign: CGFloat = 1
+        /// 平行移動: 整合（グリーン）と判定する正規化しきい値（フレーム長辺比）。緩めるとグリーンが出やすい。
+        static let translationAligned: CGFloat = 0.06
+        /// スケール: 整合と判定する 1 からの許容幅。緩めるとグリーンが出やすい。
+        static let scaleAligned: CGFloat = 0.12
+        /// 整合確定に必要な連続フレーム数。
+        static let alignedStreakRequired = 2
+
+        /// 平滑化係数（指数移動平均）。0〜1。大きいほど追従が速いがジッターも増える。
+        static let smoothing: CGFloat = 0.45
+
+        /// ズレ方向の符号補正。実機で矢印・文言の向きが逆ならこの 2 値を反転する（+1 ↔ -1）。
+        /// offsetX/Y は「カメラを動かすべき方向」を意味し、UI の矢印・キャプションがこれに従う。
+        static let horizontalSign: CGFloat = 1
+        static let verticalSign: CGFloat = 1
+    }
 
     // MARK: スレッド制御
 
@@ -76,7 +80,8 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     private var referenceSize: CGSize = .zero
     private var alignedStreak = 0
     private var lastPublished: AlignmentGuidance = .inactive
-    private var lastHintChangedAt: Date = .distantPast
+    /// 平滑化済みの連続値（EMA 状態）。初回は実測で初期化。
+    private var smoothed: (x: CGFloat, y: CGFloat, scale: CGFloat)?
 
     // MARK: 参照画像
 
@@ -109,7 +114,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     func ingest(_ pixelBuffer: CVPixelBuffer, orientation: CGImagePropertyOrientation) {
         gate.lock()
         let now = Date()
-        if inFlight || now.timeIntervalSince(lastIngestAt) < minInterval {
+        if inFlight || now.timeIntervalSince(lastIngestAt) < Tuning.minInterval {
             gate.unlock()
             return
         }
@@ -119,14 +124,14 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
         queue.async { [weak self] in
             guard let self else { return }
-            self.process(pixelBuffer, orientation: orientation, now: now)
+            self.process(pixelBuffer, orientation: orientation)
             self.gate.lock()
             self.inFlight = false
             self.gate.unlock()
         }
     }
 
-    private func process(_ pixelBuffer: CVPixelBuffer, orientation: CGImagePropertyOrientation, now: Date) {
+    private func process(_ pixelBuffer: CVPixelBuffer, orientation: CGImagePropertyOrientation) {
         guard let reference = referencePixelBuffer, referenceSize != .zero else { return }
 
         let oriented = CIImage(cvPixelBuffer: pixelBuffer).oriented(orientation)
@@ -136,7 +141,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
             // 低テクスチャ等で失敗。判定保留（直近表示は維持）。
             return
         }
-        let guidance = guidance(from: metrics, now: now)
+        let guidance = guidance(from: metrics)
         publish(guidance)
     }
 
@@ -202,62 +207,38 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
     // MARK: ズレ → ガイド
 
-    private func guidance(from metrics: RegistrationMetrics, now: Date) -> AlignmentGuidance {
-        let dx = metrics.normalizedTranslationX
-        let dy = metrics.normalizedTranslationY
-        let scaleDelta = metrics.scale - 1
+    private func guidance(from metrics: RegistrationMetrics) -> AlignmentGuidance {
+        // 「フレームをどちらへ寄せるべきか」を符号補正して取り出す。
+        let rawX = metrics.normalizedTranslationX * Tuning.horizontalSign
+        let rawY = metrics.normalizedTranslationY * Tuning.verticalSign
+        let rawScale = metrics.scale - 1
 
-        let translationAligned = abs(dx) < translationExit && abs(dy) < translationExit
-        let scaleAligned = abs(scaleDelta) < scaleTolerance
+        // 指数移動平均で平滑化（ジッター低減）。
+        let a = Tuning.smoothing
+        let prev = smoothed ?? (rawX, rawY, rawScale)
+        let x = prev.x + a * (rawX - prev.x)
+        let y = prev.y + a * (rawY - prev.y)
+        let scale = prev.scale + a * (rawScale - prev.scale)
+        smoothed = (x, y, scale)
 
+        let translationAligned = hypot(x, y) < Tuning.translationAligned
+        let scaleAligned = abs(scale) < Tuning.scaleAligned
+
+        var isAligned = false
         if translationAligned && scaleAligned {
             alignedStreak += 1
-            if alignedStreak >= alignedStreakRequired {
-                return AlignmentGuidance(primaryHint: nil, isAligned: true, isActive: true)
-            }
-            // 整合確定前は直近のヒントを維持（ちらつき防止）。
-            return lastPublished.isActive
-                ? lastPublished
-                : AlignmentGuidance(primaryHint: nil, isAligned: false, isActive: true)
+            isAligned = alignedStreak >= Tuning.alignedStreakRequired
+        } else {
+            alignedStreak = 0
         }
 
-        alignedStreak = 0
-
-        // ズレ最大の 1 軸を選ぶ。スケールは平行移動と同尺度に換算して比較する。
-        let horizontalMag = abs(dx)
-        let verticalMag = abs(dy)
-        let scaleMag = abs(scaleDelta) >= scaleTolerance ? abs(scaleDelta) : 0
-        let scaleComparable = scaleMag * (translationEnter / scaleTolerance)
-
-        var candidate: AlignmentGuidance.Hint?
-        let maxMag = max(horizontalMag, verticalMag, scaleComparable)
-
-        if maxMag == scaleComparable && scaleMag > 0 {
-            candidate = scaleDelta > 0 ? .moveFarther : .moveCloser
-        } else if maxMag == horizontalMag && horizontalMag >= translationEnter {
-            candidate = (dx * horizontalSign) > 0 ? .moveLeft : .moveRight
-        } else if verticalMag >= translationEnter {
-            candidate = (dy * verticalSign) > 0 ? .moveUp : .moveDown
-        }
-
-        guard let hint = candidate else {
-            // しきい値の谷間（enter 未満・exit 超）。直近表示を維持。
-            return lastPublished.isActive
-                ? lastPublished
-                : AlignmentGuidance(primaryHint: nil, isAligned: false, isActive: true)
-        }
-
-        // 最小表示時間: 別ヒントへ切り替えるには hintMinHold 経過が必要。
-        if let previous = lastPublished.primaryHint,
-           previous != hint,
-           now.timeIntervalSince(lastHintChangedAt) < hintMinHold {
-            return lastPublished
-        }
-
-        if lastPublished.primaryHint != hint {
-            lastHintChangedAt = now
-        }
-        return AlignmentGuidance(primaryHint: hint, isAligned: false, isActive: true)
+        return AlignmentGuidance(
+            offsetX: x,
+            offsetY: y,
+            scaleDelta: scale,
+            isAligned: isAligned,
+            isActive: true
+        )
     }
 
     // MARK: 画像縮小
@@ -277,7 +258,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
             outputSize = target
         } else {
             let longSide = max(extent.width, extent.height)
-            let factor = min(1, workingMaxDimension / longSide)
+            let factor = min(1, Tuning.workingMaxDimension / longSide)
             outputSize = CGSize(width: (extent.width * factor).rounded(),
                                 height: (extent.height * factor).rounded())
         }
@@ -314,7 +295,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     private func resetState() {
         alignedStreak = 0
         lastPublished = .inactive
-        lastHintChangedAt = .distantPast
+        smoothed = nil
     }
 
     private func publish(_ guidance: AlignmentGuidance) {

@@ -266,11 +266,6 @@ struct CameraView: View {
             if !CameraService.usesPhotoLibraryFallback {
                 LevelIndicator(roll: cameraService.rollDegrees)
                     .frame(maxWidth: .infinity, alignment: .center)
-
-                if viewModel.alignmentGuidance.isActive {
-                    AlignmentGuideOverlay(guidance: viewModel.alignmentGuidance)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                }
             }
 
             previousObservationPreview
@@ -332,9 +327,15 @@ struct CameraView: View {
 
                 if cameraService.showGrid {
                     GridOverlay(frame: alignedFrame)
-                    SubjectZoneOverlay(frame: alignedFrame)
                 }
                 ReticleOverlay(frame: alignedFrame)
+
+                if viewModel.alignmentGuidance.isActive {
+                    AlignmentGuideOverlay(guidance: viewModel.alignmentGuidance, frame: alignedFrame)
+                } else if cameraService.showGrid {
+                    // ガイド非アクティブ時は従来の中央クロスを残す。
+                    SubjectZoneOverlay(frame: alignedFrame)
+                }
             }
         }
         .ignoresSafeArea()

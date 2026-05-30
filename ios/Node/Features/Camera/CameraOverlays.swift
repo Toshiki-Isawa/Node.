@@ -90,62 +90,139 @@ struct ReticleOverlay: View {
     }
 }
 
-/// 前回写真との位置合わせガイド。`LevelIndicator` のスタイルを踏襲し、
-/// 方向ヒント or 整合（グリーンチェック）を 1 行で提示する。
+/// 前回写真との位置合わせガイド（観測枠の中央に描く照準型 UI）。
+/// - 中央の固定ターゲットリング（合わせるべき位置）
+/// - 現在位置を示す可動リング（offset ぶんずれ、scaleDelta で径が変わる＝遠近）
+/// - 中央へ向かう大きな方向矢印（複合方向をベクトルで表現）
+/// - おおよそ重なると moss 色＋チェックに切り替わる
 struct AlignmentGuideOverlay: View {
     let guidance: AlignmentGuidance
+    /// 観測枠の矩形（オーバーレイ座標系）。中央と移動量スケールの基準。
+    let frame: CGRect
 
-    private var symbol: String {
-        if guidance.isAligned { return "checkmark.circle.fill" }
-        switch guidance.primaryHint {
-        case .moveLeft: return "arrow.left"
-        case .moveRight: return "arrow.right"
-        case .moveUp: return "arrow.up"
-        case .moveDown: return "arrow.down"
-        case .moveCloser: return "plus.magnifyingglass"
-        case .moveFarther: return "minus.magnifyingglass"
-        case nil: return "viewfinder"
-        }
+    /// 正規化オフセットを画面ポイントへ変換する係数（枠長辺基準・誇張ゲイン込み）。
+    private var displayGain: CGFloat {
+        max(frame.width, frame.height) * 1.1
     }
 
-    private var message: LocalizedStringKey {
-        if guidance.isAligned { return "位置が合いました" }
-        switch guidance.primaryHint {
-        case .moveLeft: return "もう少し左です"
-        case .moveRight: return "もう少し右です"
-        case .moveUp: return "もう少し上です"
-        case .moveDown: return "もう少し下です"
-        case .moveCloser: return "前回より少し近いようです"
-        case .moveFarther: return "前回より少し遠いようです"
-        case nil: return "前回の位置に合わせています"
-        }
+    /// 可動リングの中心（現在の被写体位置）。
+    /// offset は「カメラをどちらへ動かすべきか」のベクトル。被写体はその逆側にあるので符号を反転。
+    private var currentCenter: CGPoint {
+        CGPoint(
+            x: frame.midX - guidance.offsetX * displayGain,
+            y: frame.midY - guidance.offsetY * displayGain
+        )
     }
 
-    private var accentColor: Color {
+    /// 可動リングの径（scaleDelta>0=近い=大きく）。
+    private var currentRingDiameter: CGFloat {
+        let base: CGFloat = 84
+        return max(40, min(160, base * (1 + guidance.scaleDelta)))
+    }
+
+    private var accent: Color {
         guidance.isAligned ? NodeColor.moss : NodeColor.bone
     }
 
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: symbol)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(accentColor)
+    /// 方向矢印の表示判定（ほぼ合っていれば出さない）。
+    private var showsArrow: Bool {
+        !guidance.isAligned && guidance.translationMagnitude > 0.02
+    }
 
-            Text(message)
-                .font(NodeFont.text(12, weight: .semibold))
-                .foregroundStyle(accentColor)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background {
-            Capsule().fill(.ultraThinMaterial)
-        }
-        .overlay {
-            if guidance.isAligned {
-                Capsule().stroke(NodeColor.moss.opacity(0.6), lineWidth: 1)
+    var body: some View {
+        ZStack {
+            // 固定ターゲット（合わせるべき位置）。十字つきリング。
+            Circle()
+                .stroke(accent.opacity(0.9), style: StrokeStyle(lineWidth: 2, dash: [4, 4]))
+                .frame(width: 84, height: 84)
+                .position(x: frame.midX, y: frame.midY)
+
+            crosshair
+                .stroke(accent.opacity(0.9), lineWidth: 1.5)
+
+            // 現在位置リング（実映像のズレ）。
+            Circle()
+                .stroke(NodeColor.bone.opacity(0.55), lineWidth: 2)
+                .frame(width: currentRingDiameter, height: currentRingDiameter)
+                .position(currentCenter)
+
+            // 中央へ導く大きな方向矢印（複合方向はベクトルで）。
+            if showsArrow {
+                directionArrow
             }
+
+            // 整合チェック。
+            if guidance.isAligned {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundStyle(NodeColor.moss)
+                    .position(x: frame.midX, y: frame.midY)
+                    .transition(.scale.combined(with: .opacity))
+            }
+
+            // 枠下の文言キャプション（補助）。
+            caption
+                .position(x: frame.midX, y: frame.maxY + 28)
         }
-        .animation(.easeOut(duration: 0.12), value: guidance)
+        .animation(.easeOut(duration: 0.16), value: guidance)
+        .allowsHitTesting(false)
+    }
+
+    private var caption: some View {
+        Text(captionText)
+            .font(NodeFont.text(13, weight: .semibold))
+            .foregroundStyle(accent)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background { Capsule().fill(.ultraThinMaterial) }
+    }
+
+    /// 連続値から主要なズレ方向を 1 つ選び、文言キーへ変換する（補助表示）。
+    private var captionText: LocalizedStringKey {
+        if guidance.isAligned { return "位置が合いました" }
+
+        let horizontal = abs(guidance.offsetX)
+        let vertical = abs(guidance.offsetY)
+        // スケールを平行移動と同尺度へ換算して比較。
+        let scaleComparable = abs(guidance.scaleDelta) * 0.5
+        let maxMag = max(horizontal, vertical, scaleComparable)
+
+        guard maxMag > 0.02 else { return "前回の位置に合わせています" }
+
+        if maxMag == scaleComparable {
+            // scaleDelta>0 = 近すぎ → 引く（遠ざける）。
+            return guidance.scaleDelta > 0 ? "前回より少し近いようです" : "前回より少し遠いようです"
+        }
+        if maxMag == horizontal {
+            // offsetX = カメラを動かすべき方向。
+            return guidance.offsetX > 0 ? "もう少し右です" : "もう少し左です"
+        }
+        return guidance.offsetY > 0 ? "もう少し下です" : "もう少し上です"
+    }
+
+    private var crosshair: Path {
+        Path { p in
+            let c = CGPoint(x: frame.midX, y: frame.midY)
+            p.move(to: CGPoint(x: c.x - 10, y: c.y))
+            p.addLine(to: CGPoint(x: c.x + 10, y: c.y))
+            p.move(to: CGPoint(x: c.x, y: c.y - 10))
+            p.addLine(to: CGPoint(x: c.x, y: c.y + 10))
+        }
+    }
+
+    /// 中央から、合わせるべき方向（offset の向き）へ伸びる矢印。
+    private var directionArrow: some View {
+        let angle = atan2(guidance.offsetY, guidance.offsetX)
+        let length = min(frame.width, frame.height) * 0.34
+        return Image(systemName: "arrow.right")
+            .font(.system(size: 34, weight: .bold))
+            .foregroundStyle(NodeColor.bone)
+            .shadow(color: .black.opacity(0.4), radius: 3)
+            .rotationEffect(.radians(angle))
+            .position(
+                x: frame.midX + cos(angle) * length,
+                y: frame.midY + sin(angle) * length
+            )
     }
 }
 
