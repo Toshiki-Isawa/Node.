@@ -3544,6 +3544,16 @@
           }
         }
       }
+    },
+    "フレームに収めてください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fit it within the frame"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

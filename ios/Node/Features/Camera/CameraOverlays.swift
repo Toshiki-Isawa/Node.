@@ -91,81 +91,94 @@ struct ReticleOverlay: View {
 }
 
 /// 前回写真との位置合わせガイド（観測枠の中央に描く照準型 UI）。
-/// - 中央の固定ターゲットリング（合わせるべき位置）
-/// - 現在位置を示す可動リング（offset ぶんずれ、scaleDelta で径が変わる＝遠近）
-/// - 中央へ向かう大きな方向矢印（複合方向をベクトルで表現）
-/// - おおよそ重なると moss 色＋チェックに切り替わる
+/// - 中央の固定リファレンスサークル＋十字（合わせるべき位置・サイズ）
+/// - ターゲットリング（被写体の現在位置。offset でずれ、scaleDelta で径が変わる
+///   ＝遠い→小さい / 近い→大きい）
+/// - 中央へ導く大きな方向矢印（複合方向をベクトルで表現）
+/// - リファレンスに重なると moss 色＋チェック
+/// - 大きくズレ（searching）時は矢印・リングを出さず「フレームに収めてください」のみ
 struct AlignmentGuideOverlay: View {
     let guidance: AlignmentGuidance
     /// 観測枠の矩形（オーバーレイ座標系）。中央と移動量スケールの基準。
     let frame: CGRect
+
+    /// リファレンスサークルの基準径。
+    private let neutralDiameter: CGFloat = 84
 
     /// 正規化オフセットを画面ポイントへ変換する係数（枠長辺基準・誇張ゲイン込み）。
     private var displayGain: CGFloat {
         max(frame.width, frame.height) * 1.1
     }
 
-    /// 可動リングの中心（現在の被写体位置）。
+    /// ターゲットリングの中心（現在の被写体位置）。
     /// offset は「カメラをどちらへ動かすべきか」のベクトル。被写体はその逆側にあるので符号を反転。
-    private var currentCenter: CGPoint {
+    private var targetCenter: CGPoint {
         CGPoint(
             x: frame.midX - guidance.offsetX * displayGain,
             y: frame.midY - guidance.offsetY * displayGain
         )
     }
 
-    /// 可動リングの径（scaleDelta>0=近い=大きく）。
-    private var currentRingDiameter: CGFloat {
-        let base: CGFloat = 84
-        return max(40, min(160, base * (1 + guidance.scaleDelta)))
+    /// ターゲットリングの径。遠い（scaleDelta<0）→小さい、近い（scaleDelta>0）→大きい。
+    private var targetRingDiameter: CGFloat {
+        let sizeGain: CGFloat = 1.5
+        return max(36, min(180, neutralDiameter * (1 + guidance.scaleDelta * sizeGain)))
     }
 
     private var accent: Color {
         guidance.isAligned ? NodeColor.moss : NodeColor.bone
     }
 
-    /// 方向矢印の表示判定（ほぼ合っていれば出さない）。
     private var showsArrow: Bool {
-        !guidance.isAligned && guidance.translationMagnitude > 0.02
+        guidance.state == .guiding && guidance.translationMagnitude > 0.02
     }
 
     var body: some View {
         ZStack {
-            // 固定ターゲット（合わせるべき位置）。十字つきリング。
-            Circle()
-                .stroke(accent.opacity(0.9), style: StrokeStyle(lineWidth: 2, dash: [4, 4]))
-                .frame(width: 84, height: 84)
-                .position(x: frame.midX, y: frame.midY)
-
-            crosshair
-                .stroke(accent.opacity(0.9), lineWidth: 1.5)
-
-            // 現在位置リング（実映像のズレ）。
-            Circle()
-                .stroke(NodeColor.bone.opacity(0.55), lineWidth: 2)
-                .frame(width: currentRingDiameter, height: currentRingDiameter)
-                .position(currentCenter)
-
-            // 中央へ導く大きな方向矢印（複合方向はベクトルで）。
-            if showsArrow {
-                directionArrow
-            }
-
-            // 整合チェック。
-            if guidance.isAligned {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 30, weight: .bold))
-                    .foregroundStyle(NodeColor.moss)
+            if guidance.state == .searching {
+                searchingView
+            } else {
+                // 固定リファレンス（合わせるべき位置・サイズ）。
+                Circle()
+                    .stroke(accent.opacity(0.9), lineWidth: 2)
+                    .frame(width: neutralDiameter, height: neutralDiameter)
                     .position(x: frame.midX, y: frame.midY)
-                    .transition(.scale.combined(with: .opacity))
+
+                crosshair
+                    .stroke(accent.opacity(0.9), lineWidth: 1.5)
+
+                // ターゲットリング（被写体の現在位置・サイズ＝遠近）。
+                Circle()
+                    .stroke(NodeColor.bone.opacity(0.6), style: StrokeStyle(lineWidth: 2, dash: [5, 4]))
+                    .frame(width: targetRingDiameter, height: targetRingDiameter)
+                    .position(targetCenter)
+
+                if showsArrow {
+                    directionArrow
+                }
+
+                if guidance.isAligned {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundStyle(NodeColor.moss)
+                        .position(x: frame.midX, y: frame.midY)
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
 
-            // 枠下の文言キャプション（補助）。
             caption
                 .position(x: frame.midX, y: frame.maxY + 28)
         }
         .animation(.easeOut(duration: 0.16), value: guidance)
         .allowsHitTesting(false)
+    }
+
+    /// 大きくズレ時の表示（リング・矢印を出さず注意マークのみ）。
+    private var searchingView: some View {
+        Image(systemName: "viewfinder")
+            .font(.system(size: 44, weight: .light))
+            .foregroundStyle(NodeColor.bone.opacity(0.85))
+            .position(x: frame.midX, y: frame.midY)
     }
 
     private var caption: some View {
@@ -177,9 +190,16 @@ struct AlignmentGuideOverlay: View {
             .background { Capsule().fill(.ultraThinMaterial) }
     }
 
-    /// 連続値から主要なズレ方向を 1 つ選び、文言キーへ変換する（補助表示）。
+    /// 状態・連続値から表示文言を決める。
     private var captionText: LocalizedStringKey {
-        if guidance.isAligned { return "位置が合いました" }
+        switch guidance.state {
+        case .searching:
+            return "フレームに収めてください"
+        case .aligned:
+            return "位置が合いました"
+        case .guiding:
+            break
+        }
 
         let horizontal = abs(guidance.offsetX)
         let vertical = abs(guidance.offsetY)

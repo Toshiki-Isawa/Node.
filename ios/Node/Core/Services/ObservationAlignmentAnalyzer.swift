@@ -6,22 +6,33 @@ import UIKit
 import Vision
 
 /// 観測撮影時のガイド状態。前回写真と現在フレームのズレを連続値で保持し、
-/// UI 側で大きな方向矢印・ターゲット点・グリーン判定に展開する。
+/// UI 側で方向矢印・リングサイズ・グリーン判定に展開する。
 struct AlignmentGuidance: Equatable {
+    enum State: Equatable {
+        /// 大きくズレ／未捕捉。微調整ガイドは出さず「フレームに収めてください」を促す。
+        case searching
+        /// 微調整ガイド中（矢印・リング表示）。
+        case guiding
+        /// おおよそ整合（グリーン）。
+        case aligned
+    }
+
+    var state: State
     /// 正規化水平オフセット（フレーム長辺比）= カメラを動かすべき方向。+ = 右。
     var offsetX: CGFloat
     /// 正規化垂直オフセット = カメラを動かすべき方向。+ = 下。
     var offsetY: CGFloat
     /// スケール差（0 = 等倍, + = 近すぎ／引くべき, − = 遠すぎ／寄るべき）。
     var scaleDelta: CGFloat
-    /// おおよそ位置が合った状態。グリーンマーク表示の条件。
-    var isAligned: Bool
     /// 参照画像があり解析中。`false` のときはガイド非表示。
     var isActive: Bool
 
     static let inactive = AlignmentGuidance(
-        offsetX: 0, offsetY: 0, scaleDelta: 0, isAligned: false, isActive: false
+        state: .searching, offsetX: 0, offsetY: 0, scaleDelta: 0, isActive: false
     )
+
+    /// おおよそ位置が合った状態。グリーンマーク表示の条件。
+    var isAligned: Bool { state == .aligned }
 
     /// 平行移動ズレの大きさ（正規化）。
     var translationMagnitude: CGFloat { hypot(offsetX, offsetY) }
@@ -55,6 +66,13 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         /// 整合確定に必要な連続フレーム数。
         static let alignedStreakRequired = 2
 
+        /// これを超える平行移動ズレは「大きくズレ」とみなし微調整ガイドを出さない。
+        static let lostTranslation: CGFloat = 0.30
+        /// これを超えるスケール差は「大きくズレ」とみなす。
+        static let lostScale: CGFloat = 0.5
+        /// レジストレーション連続失敗がこの回数に達したら searching（未捕捉）に落とす。
+        static let lostFailureStreak = 3
+
         /// 平滑化係数（指数移動平均）。0〜1。大きいほど追従が速いがジッターも増える。
         static let smoothing: CGFloat = 0.45
 
@@ -80,6 +98,8 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
     private var referenceSize: CGSize = .zero
     private var alignedStreak = 0
     private var lastPublished: AlignmentGuidance = .inactive
+    /// レジストレーション連続失敗カウント（searching 判定用）。
+    private var failureStreak = 0
     /// 平滑化済みの連続値（EMA 状態）。初回は実測で初期化。
     private var smoothed: (x: CGFloat, y: CGFloat, scale: CGFloat)?
 
@@ -138,9 +158,18 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         guard let scaled = scaledPixelBuffer(from: oriented, matching: referenceSize) else { return }
 
         guard let metrics = registrationMetrics(reference: reference, frame: scaled.buffer) else {
-            // 低テクスチャ等で失敗。判定保留（直近表示は維持）。
+            // 低テクスチャ／大きくズレて対応点が取れない等。連続失敗で searching に落とす。
+            failureStreak += 1
+            if failureStreak >= Tuning.lostFailureStreak {
+                smoothed = nil
+                alignedStreak = 0
+                publish(AlignmentGuidance(
+                    state: .searching, offsetX: 0, offsetY: 0, scaleDelta: 0, isActive: true
+                ))
+            }
             return
         }
+        failureStreak = 0
         let guidance = guidance(from: metrics)
         publish(guidance)
     }
@@ -224,19 +253,26 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
         let translationAligned = hypot(x, y) < Tuning.translationAligned
         let scaleAligned = abs(scale) < Tuning.scaleAligned
 
-        var isAligned = false
-        if translationAligned && scaleAligned {
+        // 大きくズレ／極端なスケール差は searching（微調整ガイドを出さない）。
+        let lost = hypot(x, y) > Tuning.lostTranslation || abs(scale) > Tuning.lostScale
+
+        let state: AlignmentGuidance.State
+        if lost {
+            alignedStreak = 0
+            state = .searching
+        } else if translationAligned && scaleAligned {
             alignedStreak += 1
-            isAligned = alignedStreak >= Tuning.alignedStreakRequired
+            state = alignedStreak >= Tuning.alignedStreakRequired ? .aligned : .guiding
         } else {
             alignedStreak = 0
+            state = .guiding
         }
 
         return AlignmentGuidance(
+            state: state,
             offsetX: x,
             offsetY: y,
             scaleDelta: scale,
-            isAligned: isAligned,
             isActive: true
         )
     }
@@ -294,6 +330,7 @@ final class ObservationAlignmentAnalyzer: @unchecked Sendable {
 
     private func resetState() {
         alignedStreak = 0
+        failureStreak = 0
         lastPublished = .inactive
         smoothed = nil
     }
