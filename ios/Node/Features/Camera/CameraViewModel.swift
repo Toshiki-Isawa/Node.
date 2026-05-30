@@ -1,4 +1,6 @@
+import CoreVideo
 import Foundation
+import ImageIO
 import SwiftData
 import UIKit
 
@@ -36,6 +38,7 @@ final class CameraViewModel: ObservableObject {
     @Published var captureMode: CameraCaptureMode = .single
     @Published private(set) var capturePhase: CameraCapturePhase = .idle
     @Published private(set) var sessionSaveCount = 0
+    @Published private(set) var alignmentGuidance: AlignmentGuidance = .inactive
 
     enum CameraCapturePhase: Equatable {
         case idle
@@ -59,6 +62,10 @@ final class CameraViewModel: ObservableObject {
     private let syncEngine: SyncEngine
     private let analyticsService: AnalyticsService
     private let reviewPromptService: ReviewPromptService
+    private let alignmentAnalyzer = ObservationAlignmentAnalyzer()
+
+    /// 位置合わせガイドが有効か（前回写真あり & 参照オーバーレイ ON）。
+    private var alignmentActive = false
 
     init(
         modelContext: ModelContext,
@@ -75,6 +82,12 @@ final class CameraViewModel: ObservableObject {
         self.analyticsService = analyticsService
         self.reviewPromptService = reviewPromptService
         reloadPlants()
+        alignmentAnalyzer.onGuidance = { [weak self] guidance in
+            // analyzer は main へホップして呼ぶ。
+            MainActor.assumeIsolated {
+                self?.alignmentGuidance = guidance
+            }
+        }
     }
 
     func reloadPlants() {
@@ -89,6 +102,10 @@ final class CameraViewModel: ObservableObject {
     func selectPlant(_ plant: Plant) {
         selectedPlant = plant
         clampObservedAt()
+        // 植物が変われば参照写真も変わる。ガイドが有効なら差し替える。
+        if alignmentActive {
+            refreshAlignmentReference(active: true)
+        }
     }
 
     func prepareForSession() {
@@ -126,6 +143,26 @@ final class CameraViewModel: ObservableObject {
             return observation.localImagePath
         }
         return observationImageService.displayThumbnailPath(for: observation)
+    }
+
+    // MARK: - 位置合わせガイド
+
+    /// ガイドの有効/無効を切り替え、参照（前回写真）を解析器へロードする。
+    /// `active` かつ前回写真があるときだけ解析する（それ以外は停止＝省電力）。
+    func refreshAlignmentReference(active: Bool) {
+        alignmentActive = active
+        guard active, let path = previousObservationImagePath else {
+            alignmentAnalyzer.setReference(nil)
+            alignmentGuidance = .inactive
+            return
+        }
+        let image = imageStore.loadImage(path: path)
+        alignmentAnalyzer.setReference(image)
+    }
+
+    /// カメラのライブフレームを解析器へ渡す（video data queue から呼ばれる）。
+    nonisolated func ingestFrame(_ pixelBuffer: CVPixelBuffer, orientation: CGImagePropertyOrientation) {
+        alignmentAnalyzer.ingest(pixelBuffer, orientation: orientation)
     }
 
     var observedAtRange: ClosedRange<Date> {

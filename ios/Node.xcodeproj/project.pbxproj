@@ -51,6 +51,7 @@
 		747823492E7FEAF383160034 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B14D87D42DD6392A3545B38 /* RootView.swift */; };
 		76E736472648194DAEF0AD31 /* CareNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAE6CEE0CDBAADA75D77F68C /* CareNotificationService.swift */; };
 		7883E8E9C481C149AD2E2FF1 /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46306554A82171C0E12FD9B2 /* CameraService.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* ObservationAlignmentAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F1E2D3C4B5A69788796A5B4 /* ObservationAlignmentAnalyzer.swift */; };
 		7B66FA02A6622F4491B77732 /* ImagePathMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6624E1E2F99FB2116D60871D /* ImagePathMigration.swift */; };
 		7C4E608186F298A71205F8FC /* QuickLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 724C7EDBEE948B94082015F5 /* QuickLogViewModel.swift */; };
 		81B918F29E60E0C6F4449622 /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADCB49B70F04ACB4688C3B32 /* CameraView.swift */; };
@@ -114,6 +115,7 @@
 		400B1B9AA5FFEE873994DE26 /* Node.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Node.entitlements; sourceTree = "<group>"; };
 		43FAE9AE05B4A8C123F669B6 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		46306554A82171C0E12FD9B2 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
+		0F1E2D3C4B5A69788796A5B4 /* ObservationAlignmentAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationAlignmentAnalyzer.swift; sourceTree = "<group>"; };
 		4804134E2D404667CBD3EE44 /* LegalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalConfig.swift; sourceTree = "<group>"; };
 		4B14D87D42DD6392A3545B38 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		51A94ACB1051042365F85673 /* Node.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Node.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -448,6 +450,7 @@
 				BAE6CEE0CDBAADA75D77F68C /* CareNotificationService.swift */,
 				6624E1E2F99FB2116D60871D /* ImagePathMigration.swift */,
 				BB7FAE20867D33B75380E98A /* ImageStore.swift */,
+				0F1E2D3C4B5A69788796A5B4 /* ObservationAlignmentAnalyzer.swift */,
 				B7F28E9404B202F795DC1613 /* ObservationImageService.swift */,
 				5D96D305566A34F142C1DC1B /* PlanService.swift */,
 				2CBF394417CDAEE1D8CDA206 /* RecordDeletionService.swift */,
@@ -615,6 +618,7 @@
 				1E9797E9DAEC2B5BD3257567 /* NodeDesignTokens.swift in Sources */,
 				F2EBBECEC1C75E8CC74C46F6 /* NodeModels.swift in Sources */,
 				29565849524FA535773F0F99 /* NodeTabBar.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* ObservationAlignmentAnalyzer.swift in Sources */,
 				B4A6F0644C6E1E4334FDC515 /* ObservationDetailView.swift in Sources */,
 				56FEBE3F76796AC7A38375CF /* ObservationImageProcessor.swift in Sources */,
 				E95A1AFE72BCF507A2BB7AF5 /* ObservationImageService.swift in Sources */,

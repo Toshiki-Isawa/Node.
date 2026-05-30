@@ -24,10 +24,22 @@ final class CameraService: NSObject, ObservableObject {
 
     let session = AVCaptureSession()
     private let photoOutput = AVCapturePhotoOutput()
+    private let videoDataOutput = AVCaptureVideoDataOutput()
+    private let videoDataQueue = DispatchQueue(label: "app.node.camera.frameAnalysis", qos: .userInitiated)
     private let motionManager = CMotionManager()
     private var currentInput: AVCaptureDeviceInput?
     private var isPhotoOutputAttached = false
+    private var isVideoOutputAttached = false
     private var captureContinuation: CheckedContinuation<UIImage, Error>?
+
+    /// ライブフレームの受け口。位置合わせ解析が有効なときだけ設定する（`nil` で省電力停止）。
+    /// `nonisolated` な delegate からロック越しに読むため `FrameForwarder` に保持する。
+    private let frameForwarder = FrameForwarder()
+
+    /// ライブフレーム転送先を設定する。video data queue 上で呼ばれるクロージャ。
+    func setFrameHandler(_ handler: ((CVPixelBuffer, CGImagePropertyOrientation) -> Void)?) {
+        frameForwarder.set(handler)
+    }
     weak var previewLayer: AVCaptureVideoPreviewLayer?
     @Published private(set) var previewBounds: CGSize = UIScreen.main.bounds.size
 
@@ -109,6 +121,16 @@ final class CameraService: NSObject, ObservableObject {
             session.addOutput(photoOutput)
             photoOutput.maxPhotoQualityPrioritization = .speed
             isPhotoOutputAttached = true
+        }
+
+        if !isVideoOutputAttached, session.canAddOutput(videoDataOutput) {
+            videoDataOutput.alwaysDiscardsLateVideoFrames = true
+            videoDataOutput.videoSettings = [
+                kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA),
+            ]
+            videoDataOutput.setSampleBufferDelegate(self, queue: videoDataQueue)
+            session.addOutput(videoDataOutput)
+            isVideoOutputAttached = true
         }
 
         setupRotationCoordinator(device: device)
@@ -258,6 +280,14 @@ final class CameraService: NSObject, ObservableObject {
         }
     }
 
+    /// 解析用フレームの向きを撮影と一致させる。`onPixelBuffer` 側でも orientation を渡すが、
+    /// connection 側を撮影と同じ角度に保つことで参照画像（保存写真）と座標系を揃える。
+    private func applyVideoDataRotation(_ angle: CGFloat) {
+        guard let connection = videoDataOutput.connection(with: .video),
+              connection.isVideoRotationAngleSupported(angle) else { return }
+        connection.videoRotationAngle = angle
+    }
+
     private func applyPreviewRotation(_ angle: CGFloat) {
         guard let connection = previewLayer?.connection,
               connection.isVideoRotationAngleSupported(angle) else { return }
@@ -265,9 +295,11 @@ final class CameraService: NSObject, ObservableObject {
     }
 
     private func applyCaptureRotation(_ angle: CGFloat) {
-        guard let connection = photoOutput.connection(with: .video),
-              connection.isVideoRotationAngleSupported(angle) else { return }
-        connection.videoRotationAngle = angle
+        if let connection = photoOutput.connection(with: .video),
+           connection.isVideoRotationAngleSupported(angle) {
+            connection.videoRotationAngle = angle
+        }
+        applyVideoDataRotation(angle)
     }
 }
 
@@ -292,6 +324,38 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
             captureContinuation?.resume(returning: ObservationImageProcessor.prepareForStorage(image))
             captureContinuation = nil
         }
+    }
+}
+
+extension CameraService: AVCaptureVideoDataOutputSampleBufferDelegate {
+    nonisolated func captureOutput(
+        _ output: AVCaptureOutput,
+        didOutput sampleBuffer: CMSampleBuffer,
+        from connection: AVCaptureConnection
+    ) {
+        // 解析が無効（参照なし・撮影中）のときは何もしない＝省電力。
+        guard let handler = frameForwarder.handler(),
+              let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        // connection 側で撮影と同じ回転を当てているため、解析には .up を渡す。
+        handler(pixelBuffer, .up)
+    }
+}
+
+/// video data queue（`nonisolated`）と main の双方からフレーム転送先を安全に読み書きするためのホルダー。
+private final class FrameForwarder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stored: ((CVPixelBuffer, CGImagePropertyOrientation) -> Void)?
+
+    func set(_ handler: ((CVPixelBuffer, CGImagePropertyOrientation) -> Void)?) {
+        lock.lock()
+        stored = handler
+        lock.unlock()
+    }
+
+    func handler() -> ((CVPixelBuffer, CGImagePropertyOrientation) -> Void)? {
+        lock.lock()
+        defer { lock.unlock() }
+        return stored
     }
 }
 

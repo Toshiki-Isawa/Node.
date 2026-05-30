@@ -90,6 +90,65 @@ struct ReticleOverlay: View {
     }
 }
 
+/// 前回写真との位置合わせガイド。`LevelIndicator` のスタイルを踏襲し、
+/// 方向ヒント or 整合（グリーンチェック）を 1 行で提示する。
+struct AlignmentGuideOverlay: View {
+    let guidance: AlignmentGuidance
+
+    private var symbol: String {
+        if guidance.isAligned { return "checkmark.circle.fill" }
+        switch guidance.primaryHint {
+        case .moveLeft: return "arrow.left"
+        case .moveRight: return "arrow.right"
+        case .moveUp: return "arrow.up"
+        case .moveDown: return "arrow.down"
+        case .moveCloser: return "plus.magnifyingglass"
+        case .moveFarther: return "minus.magnifyingglass"
+        case nil: return "viewfinder"
+        }
+    }
+
+    private var message: LocalizedStringKey {
+        if guidance.isAligned { return "位置が合いました" }
+        switch guidance.primaryHint {
+        case .moveLeft: return "もう少し左です"
+        case .moveRight: return "もう少し右です"
+        case .moveUp: return "もう少し上です"
+        case .moveDown: return "もう少し下です"
+        case .moveCloser: return "前回より少し近いようです"
+        case .moveFarther: return "前回より少し遠いようです"
+        case nil: return "前回の位置に合わせています"
+        }
+    }
+
+    private var accentColor: Color {
+        guidance.isAligned ? NodeColor.moss : NodeColor.bone
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(accentColor)
+
+            Text(message)
+                .font(NodeFont.text(12, weight: .semibold))
+                .foregroundStyle(accentColor)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background {
+            Capsule().fill(.ultraThinMaterial)
+        }
+        .overlay {
+            if guidance.isAligned {
+                Capsule().stroke(NodeColor.moss.opacity(0.6), lineWidth: 1)
+            }
+        }
+        .animation(.easeOut(duration: 0.12), value: guidance)
+    }
+}
+
 /// 端末の傾き（ロール）を視覚化する水平インジケーター。
 /// 水平から ±1° 以内で moss カラーに切り替わるフィードバック付き。
 struct LevelIndicator: View {

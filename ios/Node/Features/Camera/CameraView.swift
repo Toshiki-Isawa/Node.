@@ -56,10 +56,32 @@ struct CameraView: View {
             didFinishAuthorizationRequest = CameraService.usesPhotoLibraryFallback
             viewModel.reloadPlants()
             viewModel.prepareForSession()
+            cameraService.setFrameHandler { buffer, orientation in
+                viewModel.ingestFrame(buffer, orientation: orientation)
+            }
+            viewModel.refreshAlignmentReference(active: alignmentGuideActive)
         }
         .onDisappear {
             cancelActiveCapture()
+            cameraService.setFrameHandler(nil)
+            viewModel.refreshAlignmentReference(active: false)
             cameraService.stop()
+        }
+        .onChange(of: cameraService.showReferenceOverlay) { _, _ in
+            viewModel.refreshAlignmentReference(active: alignmentGuideActive)
+        }
+        .onChange(of: viewModel.selectedPlant?.id) { _, _ in
+            viewModel.refreshAlignmentReference(active: alignmentGuideActive)
+        }
+        .onChange(of: viewModel.isBusy) { _, isBusy in
+            // 撮影/保存中はフレーム解析を止める（省電力・無駄なガイド更新防止）。
+            if isBusy {
+                cameraService.setFrameHandler(nil)
+            } else {
+                cameraService.setFrameHandler { buffer, orientation in
+                    viewModel.ingestFrame(buffer, orientation: orientation)
+                }
+            }
         }
         .sheet(isPresented: $showPhotoLibrary) {
             PhotoLibraryPicker { picked in
@@ -79,6 +101,13 @@ struct CameraView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(NodeColor.charcoal)
         }
+    }
+
+    /// 位置合わせガイドを動かすべき状態か。前回写真ゴースト表示（showReferenceOverlay）に相乗りする。
+    private var alignmentGuideActive: Bool {
+        !CameraService.usesPhotoLibraryFallback
+            && cameraService.showReferenceOverlay
+            && viewModel.previousObservationImagePath != nil
     }
 
     private var libraryImportSheetPresented: Binding<Bool> {
@@ -237,6 +266,11 @@ struct CameraView: View {
             if !CameraService.usesPhotoLibraryFallback {
                 LevelIndicator(roll: cameraService.rollDegrees)
                     .frame(maxWidth: .infinity, alignment: .center)
+
+                if viewModel.alignmentGuidance.isActive {
+                    AlignmentGuideOverlay(guidance: viewModel.alignmentGuidance)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
             }
 
             previousObservationPreview

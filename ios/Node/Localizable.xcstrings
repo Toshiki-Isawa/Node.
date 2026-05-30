@@ -105,12 +105,8 @@
         }
       }
     },
-    "%@/年" : {
-
-    },
-    "%@/月" : {
-
-    },
+    "%@/年" : {},
+    "%@/月" : {},
     "%lld" : {
       "shouldTranslate" : false
     },
@@ -3465,6 +3461,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "High-res Timelapse Export"
+          }
+        }
+      }
+    },
+    "もう少し右です" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move a little to the right"
+          }
+        }
+      }
+    },
+    "もう少し左です" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move a little to the left"
+          }
+        }
+      }
+    },
+    "もう少し上です" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move up a little"
+          }
+        }
+      }
+    },
+    "もう少し下です" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move down a little"
+          }
+        }
+      }
+    },
+    "前回より少し遠いようです" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A bit farther than last time"
+          }
+        }
+      }
+    },
+    "前回より少し近いようです" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A bit closer than last time"
+          }
+        }
+      }
+    },
+    "位置が合いました" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aligned with the last photo"
+          }
+        }
+      }
+    },
+    "前回の位置に合わせています" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matching the previous framing"
           }
         }
       }
