@@ -9,8 +9,8 @@ enum ReleaseConfig {
     /// StoreKit 課金 UI を有効にする（`cloudSyncEnabled` と併用）
     static let subscriptionsEnabled = false
 
-    /// タイムラプス機能を露出するか。v1.0 では false（v1.0.1 の Pack で開放）
-    static let timelapseEnabled = false
+    /// タイムラプス機能を露出するか。無料で全ユーザーに開放。
+    static let timelapseEnabled = true
 
     /// コレクション検索を露出するか。v1.0 では false（v1.0.1 の Pack で開放）
     static let searchEnabled = false
