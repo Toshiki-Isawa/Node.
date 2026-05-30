@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC00000000000000000C0001 /* ComparisonShareCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000000000000F0001 /* ComparisonShareCard.swift */; };
+		CC00000000000000000C0002 /* ObservationShareCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000000000000F0002 /* ObservationShareCard.swift */; };
+		CC00000000000000000C0003 /* ShareBrandMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000000000000F0003 /* ShareBrandMark.swift */; };
+		CC00000000000000000C0004 /* ShareCardRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000000000000F0004 /* ShareCardRenderer.swift */; };
+		CC00000000000000000C0005 /* ShareExportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000000000000F0005 /* ShareExportSheet.swift */; };
 		08BB455835FD98B67480F4BF /* CompareObservationCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0D902F5AE65DD571538F9B /* CompareObservationCalendar.swift */; };
 		096C3CFD8730F2245EC0B394 /* ObservationRequirementSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D9D3A5F0A3D71E05DB7A1D /* ObservationRequirementSheet.swift */; };
 		0A464CB536C63C858E13E2A0 /* CameraViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B3BFE7E835AF680B7A35FC /* CameraViewModel.swift */; };
@@ -93,6 +98,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CC00000000000000000F0001 /* ComparisonShareCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonShareCard.swift; sourceTree = "<group>"; };
+		CC00000000000000000F0002 /* ObservationShareCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationShareCard.swift; sourceTree = "<group>"; };
+		CC00000000000000000F0003 /* ShareBrandMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareBrandMark.swift; sourceTree = "<group>"; };
+		CC00000000000000000F0004 /* ShareCardRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCardRenderer.swift; sourceTree = "<group>"; };
+		CC00000000000000000F0005 /* ShareExportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExportSheet.swift; sourceTree = "<group>"; };
 		01D4E7260F1B103C79D3ECEB /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		05713E922927EDC5EE46DEA7 /* NodeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeModels.swift; sourceTree = "<group>"; };
 		0C1E07BA30B9A0900B54FD18 /* CameraOverlays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraOverlays.swift; sourceTree = "<group>"; };
@@ -193,6 +203,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CC00000000000000000A0001 /* ShareExport */ = {
+			isa = PBXGroup;
+			children = (
+				CC00000000000000000F0001 /* ComparisonShareCard.swift */,
+				CC00000000000000000F0002 /* ObservationShareCard.swift */,
+				CC00000000000000000F0003 /* ShareBrandMark.swift */,
+				CC00000000000000000F0004 /* ShareCardRenderer.swift */,
+				CC00000000000000000F0005 /* ShareExportSheet.swift */,
+			);
+			path = ShareExport;
+			sourceTree = "<group>";
+		};
 		0B3AC4D6E0F0298F85D77D50 /* EditObservation */ = {
 			isa = PBXGroup;
 			children = (
@@ -315,6 +337,7 @@
 				AFDF403B413C012EEFC48B22 /* PlantDetail */,
 				B0405F1690D09EFBA81CE1AC /* QuickLog */,
 				CB3DC8E40F970E84A5D37EC6 /* Settings */,
+				CC00000000000000000A0001 /* ShareExport */,
 				5E4F8605D84B28986F4F948C /* Timelapse */,
 				3CC74C0E068739494F512B17 /* Timeline */,
 			);
@@ -580,6 +603,11 @@
 				3E07870EC7E41B6FA1B8F4C5 /* AddPlantViewModel.swift in Sources */,
 				2D798CEA5B2D021832594802 /* AnalyticsConfig.swift in Sources */,
 				5FEB32A3E8DFF5111018D890 /* AnalyticsService.swift in Sources */,
+				CC00000000000000000C0001 /* ComparisonShareCard.swift in Sources */,
+				CC00000000000000000C0002 /* ObservationShareCard.swift in Sources */,
+				CC00000000000000000C0003 /* ShareBrandMark.swift in Sources */,
+				CC00000000000000000C0004 /* ShareCardRenderer.swift in Sources */,
+				CC00000000000000000C0005 /* ShareExportSheet.swift in Sources */,
 				C81996266C7DC4138ECECDF0 /* AppEnvironment.swift in Sources */,
 				3F995938F192BEF0113096F4 /* AppInfo.swift in Sources */,
 				CEBFBBBC95BE4D262BEFD0C2 /* AppTypes.swift in Sources */,
