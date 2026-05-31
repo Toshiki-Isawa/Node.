@@ -111,7 +111,7 @@ struct NodePrimaryButton: View {
                     .font(NodeFont.text(NodeFont.callout, weight: .semibold))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 11)
+            .padding(.vertical, 13)
             .foregroundStyle(NodeColor.graphite)
             .background(Capsule().fill(NodeColor.moss))
         }
@@ -141,7 +141,7 @@ struct NodeSecondaryButton: View {
                     .font(NodeFont.text(NodeFont.callout, weight: .medium))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 11)
+            .padding(.vertical, 13)
             .foregroundStyle(NodeColor.bone)
             .background(
                 Capsule()

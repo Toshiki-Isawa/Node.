@@ -38,6 +38,7 @@ struct NodeCalendarMonthNavigator: View {
         HStack {
             monthStepButton(
                 systemName: "chevron.left",
+                accessibilityLabel: "前の月",
                 isEnabled: canGoToPreviousMonth,
                 action: onPreviousMonth
             )
@@ -64,6 +65,7 @@ struct NodeCalendarMonthNavigator: View {
 
             monthStepButton(
                 systemName: "chevron.right",
+                accessibilityLabel: "次の月",
                 isEnabled: canGoToNextMonth,
                 action: onNextMonth
             )
@@ -75,6 +77,7 @@ struct NodeCalendarMonthNavigator: View {
 
     private func monthStepButton(
         systemName: String,
+        accessibilityLabel: LocalizedStringKey,
         isEnabled: Bool,
         action: @escaping () -> Void
     ) -> some View {
@@ -82,9 +85,11 @@ struct NodeCalendarMonthNavigator: View {
             Image(systemName: systemName)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(isEnabled ? NodeColor.bone : NodeColor.stone)
-                .frame(width: 32, height: 32)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .disabled(!isEnabled)
+        .accessibilityLabel(accessibilityLabel)
     }
 
     private var datePickerSheet: some View {

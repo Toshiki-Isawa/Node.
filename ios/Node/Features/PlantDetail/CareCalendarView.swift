@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CareCalendarView: View {
     @ObservedObject var viewModel: PlantDetailViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
 
@@ -26,7 +27,7 @@ struct CareCalendarView: View {
 
     private var accordionHeader: some View {
         Button {
-            withAnimation(NodeMotion.quietAnimation) {
+            withAnimation(reduceMotion ? nil : NodeMotion.quietAnimation) {
                 viewModel.toggleCalendarExpanded()
             }
         } label: {
@@ -183,6 +184,17 @@ struct CareCalendarView: View {
         }
         .buttonStyle(.plain)
         .disabled(isDisabled)
+        .accessibilityLabel(dayCellAccessibilityLabel(day: day, types: types, isToday: isToday))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func dayCellAccessibilityLabel(day: Date, types: [GrowthLogType], isToday: Bool) -> String {
+        var parts = [day.nodeMonthDayWeekday()]
+        if isToday { parts.append(String(localized: "今日")) }
+        if !types.isEmpty {
+            parts.append(types.map(\.label).joined(separator: "、"))
+        }
+        return parts.joined(separator: ", ")
     }
 
     private var legend: some View {

@@ -12,6 +12,7 @@ struct CollectionView: View {
 
     @State private var isSearchActive = false
     @FocusState private var isSearchFieldFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         GeometryReader { proxy in
@@ -44,7 +45,8 @@ struct CollectionView: View {
                         .allowsHitTesting(false)
                 }
                 .toolbar(.hidden, for: .navigationBar)
-                .animation(.easeOut(duration: NodeMotion.durFast), value: isSearchActive)
+                // 検索バーの出し入れは activate/deactivateSearch の withAnimation +
+                // searchBar の .transition で制御する (画面全体への暗黙アニメは避ける)。
                 .onAppear {
                     viewModel.reload()
                     Task { await planService.refresh() }
@@ -61,14 +63,19 @@ struct CollectionView: View {
 
     private static let topAnchorID = "collection-top"
 
+    /// reduced-motion 有効時は nil を返し、暗黙アニメを無効化する。
+    private var searchAnimation: Animation? {
+        reduceMotion ? nil : .easeOut(duration: NodeMotion.durFast)
+    }
+
     private func scrollToTop(_ proxy: ScrollViewProxy) {
-        withAnimation(NodeMotion.enterAnimation) {
+        withAnimation(reduceMotion ? nil : NodeMotion.enterAnimation) {
             proxy.scrollTo(Self.topAnchorID, anchor: .top)
         }
     }
 
     private func activateSearch() {
-        withAnimation(.easeOut(duration: NodeMotion.durFast)) {
+        withAnimation(searchAnimation) {
             isSearchActive = true
         }
         isSearchFieldFocused = true
@@ -76,7 +83,7 @@ struct CollectionView: View {
 
     private func deactivateSearch() {
         viewModel.searchText = ""
-        withAnimation(.easeOut(duration: NodeMotion.durFast)) {
+        withAnimation(searchAnimation) {
             isSearchActive = false
         }
         isSearchFieldFocused = false
@@ -90,11 +97,14 @@ struct CollectionView: View {
                     color: NodeColor.mist
                 )
                 Spacer()
-                HStack(spacing: NodeSpacing.sp4) {
+                // アイコンは 44pt の hit area を確保しつつ、負の間隔/余白でグリフ間隔と
+                // 右端マージン (sp5) を従来の見た目に保つ。
+                HStack(spacing: -8) {
                     if ReleaseConfig.searchEnabled {
                         Button(action: isSearchActive ? deactivateSearch : activateSearch) {
                             Image(systemName: "magnifyingglass")
                                 .foregroundStyle(isSearchActive ? NodeColor.mossSoft : NodeColor.fog)
+                                .frame(width: 44, height: 44)
                         }
                         .accessibilityLabel(isSearchActive ? "検索を閉じる" : "検索")
                     }
@@ -104,23 +114,29 @@ struct CollectionView: View {
                             .overlay(alignment: .topTrailing) {
                                 if viewModel.plantsNeedingWaterCount > 0 {
                                     Text("\(viewModel.plantsNeedingWaterCount)")
-                                        .font(NodeFont.mono(8))
+                                        .font(NodeFont.mono(9))
                                         .foregroundStyle(NodeColor.graphite)
                                         .padding(.horizontal, viewModel.plantsNeedingWaterCount >= 10 ? 3 : 0)
                                         .frame(minWidth: 14, minHeight: 14)
                                         .background(Capsule().fill(NodeColor.moss))
                                         .offset(x: 7, y: -7)
+                                        .accessibilityHidden(true)
                                 }
                             }
+                            .frame(width: 44, height: 44)
                     }
-                    .accessibilityLabel("一括クイックログ")
+                    .accessibilityLabel(viewModel.plantsNeedingWaterCount > 0
+                        ? "一括クイックログ、\(viewModel.plantsNeedingWaterCount) 株が水やり待ち"
+                        : "一括クイックログ")
                     Button(action: onSettings) {
                         Image(systemName: "gearshape")
                             .foregroundStyle(NodeColor.fog)
+                            .frame(width: 44, height: 44)
                     }
                     .accessibilityLabel("設定")
                 }
                 .font(.system(size: 20, weight: .regular))
+                .padding(.trailing, -12)
             }
 
             HStack(alignment: .center, spacing: NodeSpacing.sp3) {
@@ -144,8 +160,8 @@ struct CollectionView: View {
                             .font(NodeFont.text(12, weight: .medium))
                     }
                     .foregroundStyle(NodeColor.graphite)
-                    .padding(.horizontal, NodeSpacing.sp3)
-                    .padding(.vertical, 7)
+                    .padding(.horizontal, NodeSpacing.sp4)
+                    .padding(.vertical, 11)
                     .background(Capsule().fill(NodeColor.moss))
                 }
                 .buttonStyle(NodePressStyle())
@@ -162,10 +178,19 @@ struct CollectionView: View {
             now.nodeYearMonthDayWeekday(),
         ]
         if !viewModel.plants.isEmpty {
-            parts.append("植物 \(viewModel.plants.count)")
-            parts.append("観測 \(viewModel.totalObservations)")
+            parts.append(String(localized: "植物 \(viewModel.plants.count)"))
+            parts.append(String(localized: "観測 \(viewModel.totalObservations)"))
         }
         return parts.joined(separator: " · ")
+    }
+
+    private func plantCellAccessibilityLabel(_ plant: Plant) -> String {
+        // 育成日数ラベルは言語非依存の "Day N" 形式 (CultivationDayLabel) に揃える。
+        var parts: [String] = [plant.name]
+        if !plant.species.isEmpty { parts.append(plant.species) }
+        parts.append("Day \(plant.dayCount)")
+        if let label = plant.wateringStatusLabel { parts.append(label) }
+        return parts.joined(separator: ", ")
     }
 
     private var searchBar: some View {
@@ -188,17 +213,23 @@ struct CollectionView: View {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(NodeColor.fog)
                         .font(.system(size: 16))
+                        .frame(width: 44)
+                        .frame(maxHeight: .infinity)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("検索文字を消去")
             }
 
             Button("キャンセル", action: deactivateSearch)
                 .font(NodeFont.text(12, weight: .medium))
                 .foregroundStyle(NodeColor.mossSoft)
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
                 .buttonStyle(.plain)
         }
+        .frame(minHeight: 48)
         .padding(.horizontal, NodeSpacing.sp3)
-        .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: NodeRadius.lg)
                 .fill(NodeColor.bark)
@@ -273,13 +304,19 @@ struct CollectionView: View {
                     spacing: NodeSpacing.sp3
                 ) {
                     ForEach(viewModel.filteredPlants, id: \.id) { plant in
-                        PlantGridCell(
-                            plant: plant,
-                            imageStore: imageStore,
-                            observationImageService: observationImageService
-                        )
-                        .contentShape(Rectangle())
-                        .onTapGesture { onPlantTap(plant) }
+                        Button {
+                            onPlantTap(plant)
+                        } label: {
+                            PlantGridCell(
+                                plant: plant,
+                                imageStore: imageStore,
+                                observationImageService: observationImageService
+                            )
+                        }
+                        .buttonStyle(NodePressStyle())
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel(plantCellAccessibilityLabel(plant))
+                        .accessibilityAddTraits(.isButton)
                     }
                 }
                 .padding(.horizontal, NodeSpacing.sp4)

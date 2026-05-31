@@ -138,39 +138,43 @@ struct PlantDetailView: View {
     private var topBar: some View {
         HStack {
             Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .foregroundStyle(NodeColor.bone)
-                    .frame(width: 36, height: 36)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
+                topBarIcon("chevron.left")
             }
+            .buttonStyle(NodePressStyle())
+            .accessibilityLabel("戻る")
             Spacer()
-            HStack(spacing: NodeSpacing.sp2) {
+            // 視覚円は 36pt のまま、ヒット領域は 44pt を確保するため間隔は 0。
+            HStack(spacing: 0) {
                 Button {
                     showShareSheet = true
                 } label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .foregroundStyle(NodeColor.bone)
-                        .frame(width: 36, height: 36)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
+                    topBarIcon("square.and.arrow.up")
                 }
+                .buttonStyle(NodePressStyle())
                 .disabled(viewModel.heroObservation == nil)
                 .accessibilityLabel("画像をシェア")
 
                 Button(action: onEdit) {
-                    Image(systemName: "square.and.pencil")
-                        .foregroundStyle(NodeColor.bone)
-                        .frame(width: 36, height: 36)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
+                    topBarIcon("square.and.pencil")
                 }
+                .buttonStyle(NodePressStyle())
                 .accessibilityLabel("植物を編集")
             }
         }
         .padding(.horizontal, NodeSpacing.sp4)
         .nodeScreenTopPadding()
         .padding(.bottom, NodeSpacing.sp2)
+    }
+
+    /// 視覚 36pt の円形アイコン + 44pt のタップ領域。
+    private func topBarIcon(_ systemName: String) -> some View {
+        Image(systemName: systemName)
+            .foregroundStyle(NodeColor.bone)
+            .frame(width: 36, height: 36)
+            .background(.ultraThinMaterial)
+            .clipShape(Circle())
+            .frame(width: 44, height: 44)
+            .contentShape(Circle())
     }
 
     private var heroSection: some View {
@@ -191,6 +195,7 @@ struct PlantDetailView: View {
                         showsBrandMark: false
                     )
                 }
+                .accessibilityElement(children: .combine)
             )
         )
         .frame(height: 380)
@@ -242,7 +247,7 @@ struct PlantDetailView: View {
     }
 
     private var timelineSection: some View {
-        let items = timelineItems
+        let items = viewModel.timelineItems
 
         return VStack(alignment: .leading, spacing: NodeSpacing.sp4) {
             HStack {
@@ -290,12 +295,6 @@ struct PlantDetailView: View {
             return "履歴 · 観測 \(plant.observationCount) · ログ \(logCount)"
         }
         return "観測 · \(plant.observationCount)回"
-    }
-
-    private var timelineItems: [PlantDetailTimelineItem] {
-        let observations = plant.observations.map { PlantDetailTimelineItem.observation($0) }
-        let logs = plant.growthLogs.map { PlantDetailTimelineItem.growthLog($0) }
-        return (observations + logs).sorted { $0.createdAt > $1.createdAt }
     }
 }
 
@@ -370,6 +369,12 @@ struct ObservationTimelineRow: View {
     var onEditDate: () -> Void
     var onDelete: () -> Void
 
+    private var accessibilityLabel: String {
+        var parts = [observation.createdAt.nodeMonthDayTime()]
+        if !observation.note.isEmpty { parts.append(observation.note) }
+        return parts.joined(separator: ", ")
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: NodeSpacing.sp4) {
             VStack(spacing: 4) {
@@ -384,30 +389,35 @@ struct ObservationTimelineRow: View {
             .frame(width: 36)
 
             HStack(spacing: NodeSpacing.sp3) {
-                HStack(spacing: NodeSpacing.sp3) {
-                    ObservationThumbnail(
-                        imagePath: observationImageService.displayThumbnailPath(for: observation),
-                        imageStore: imageStore,
-                        size: 72
-                    )
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        MetaLabel(
-                            text: "\(observation.createdAt.nodeMonthDayTime())",
-                            color: NodeColor.fog,
-                            size: 9
+                Button(action: onTap) {
+                    HStack(spacing: NodeSpacing.sp3) {
+                        ObservationThumbnail(
+                            imagePath: observationImageService.displayThumbnailPath(for: observation),
+                            imageStore: imageStore,
+                            size: 72
                         )
-                        if !observation.note.isEmpty {
-                            Text(observation.note)
-                                .font(NodeFont.text(NodeFont.callout))
-                                .foregroundStyle(NodeColor.paper)
-                        }
-                    }
 
-                    Spacer(minLength: 0)
+                        VStack(alignment: .leading, spacing: 4) {
+                            MetaLabel(
+                                text: "\(observation.createdAt.nodeMonthDayTime())",
+                                color: NodeColor.fog,
+                                size: 9
+                            )
+                            if !observation.note.isEmpty {
+                                Text(observation.note)
+                                    .font(NodeFont.text(NodeFont.callout))
+                                    .foregroundStyle(NodeColor.paper)
+                            }
+                        }
+
+                        Spacer(minLength: 0)
+                    }
+                    .contentShape(Rectangle())
                 }
-                .contentShape(Rectangle())
-                .onTapGesture(perform: onTap)
+                .buttonStyle(NodePressStyle())
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel(accessibilityLabel)
 
                 TimelineRowActionsMenu(
                     editLabel: "日時を変更",
@@ -435,8 +445,11 @@ private struct TimelineRowActionsMenu: View {
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(NodeColor.bark))
                 .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
+                .frame(width: 44, height: 44)
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("その他の操作")
     }
 }
 
