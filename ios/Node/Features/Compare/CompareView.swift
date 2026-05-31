@@ -220,25 +220,12 @@ struct CompareView: View {
     }
 
     private func calendarSheet(for side: CompareSide) -> some View {
-        NavigationStack {
-            CompareObservationCalendar(
-                viewModel: viewModel,
-                side: side,
-                imageStore: imageStore,
-                showsHeader: false
-            )
-            .navigationTitle(side == .before ? "Before を選択" : "After を選択")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") {
-                        viewModel.closeCalendar()
-                    }
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        CompareObservationPickerSheet(
+            viewModel: viewModel,
+            side: side,
+            imageStore: imageStore,
+            navigationTitle: side == .before ? "Before を選択" : "After を選択"
+        )
     }
 
     private var intervalCard: some View {
@@ -258,6 +245,8 @@ struct CompareView: View {
                     color: NodeColor.fog,
                     size: 9
                 )
+
+                CompareObservationDualStepControls(viewModel: viewModel)
             }
 
             HStack(spacing: NodeSpacing.sp3) {

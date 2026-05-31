@@ -7,6 +7,18 @@ enum CompareSide: String, Identifiable {
     var id: String { rawValue }
 }
 
+enum CompareObservationBoundary {
+    case earliest
+    case latest
+}
+
+struct CompareObservationYearSection: Identifiable {
+    let year: Int
+    let observations: [PlantObservation]
+
+    var id: Int { year }
+}
+
 @MainActor
 final class CompareViewModel: ObservableObject {
     @Published var plant: Plant?
@@ -176,6 +188,7 @@ final class CompareViewModel: ObservableObject {
     }
 
     func selectObservation(_ observation: PlantObservation, for side: CompareSide) {
+        guard isObservationSelectable(observation, for: side) else { return }
         guard let index = sortedObservations.firstIndex(where: { $0.id == observation.id }) else { return }
         switch side {
         case .before:
@@ -184,6 +197,83 @@ final class CompareViewModel: ObservableObject {
             setAfterIndex(index)
         }
         closeCalendar()
+    }
+
+    func observationIndex(_ observation: PlantObservation) -> Int? {
+        sortedObservations.firstIndex(where: { $0.id == observation.id })
+    }
+
+    func isObservationSelectable(_ observation: PlantObservation, for side: CompareSide) -> Bool {
+        guard let index = observationIndex(observation) else { return false }
+        switch side {
+        case .before:
+            return index <= afterIndex
+        case .after:
+            return index >= beforeIndex
+        }
+    }
+
+    var observationMonths: [Date] {
+        var seen = Set<String>()
+        var months: [Date] = []
+        for observation in sortedObservations {
+            let month = calendar.startOfMonth(for: observation.createdAt)
+            let key = "\(calendar.component(.year, from: month))-\(calendar.component(.month, from: month))"
+            if seen.insert(key).inserted {
+                months.append(month)
+            }
+        }
+        return months
+    }
+
+    var observationSectionsByYear: [CompareObservationYearSection] {
+        var grouped: [Int: [PlantObservation]] = [:]
+        for observation in sortedObservations {
+            let year = calendar.component(.year, from: observation.createdAt)
+            grouped[year, default: []].append(observation)
+        }
+        return grouped.keys.sorted().map { year in
+            CompareObservationYearSection(year: year, observations: grouped[year] ?? [])
+        }
+    }
+
+    func canStepObservation(delta: Int, for side: CompareSide) -> Bool {
+        let count = sortedObservations.count
+        guard count > 0 else { return false }
+        let currentIndex = side == .before ? beforeIndex : afterIndex
+        let newIndex = currentIndex + delta
+        guard newIndex >= 0, newIndex < count else { return false }
+        switch side {
+        case .before:
+            return newIndex <= afterIndex
+        case .after:
+            return newIndex >= beforeIndex
+        }
+    }
+
+    func stepObservation(delta: Int, for side: CompareSide) {
+        guard canStepObservation(delta: delta, for: side) else { return }
+        switch side {
+        case .before:
+            setBeforeIndex(beforeIndex + delta)
+        case .after:
+            setAfterIndex(afterIndex + delta)
+        }
+    }
+
+    func jumpToBoundaryObservation(for side: CompareSide, boundary: CompareObservationBoundary) {
+        let count = sortedObservations.count
+        guard count > 0 else { return }
+        switch (side, boundary) {
+        case (.before, .earliest):
+            setBeforeIndex(0)
+        case (.before, .latest):
+            setBeforeIndex(afterIndex)
+        case (.after, .earliest):
+            setAfterIndex(beforeIndex)
+        case (.after, .latest):
+            setAfterIndex(count - 1)
+        }
     }
 
     func openCalendar(for side: CompareSide) {

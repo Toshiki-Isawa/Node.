@@ -23,6 +23,15 @@ enum NodeDateFormat {
         date.formatted(.dateTime.year().month(.wide))
     }
 
+    /// 月チップ用のコンパクト形式 (例: 2026/05)。
+    static func compactYearMonth(_ date: Date) -> String {
+        var calendar = Calendar.current
+        calendar.locale = .current
+        let year = calendar.component(.year, from: date)
+        let month = calendar.component(.month, from: date)
+        return String(format: "%04d/%02d", year, month)
+    }
+
     static func yearMonthDayWeekday(_ date: Date) -> String {
         date.formatted(.dateTime.year().month(.wide).day().weekday(.abbreviated))
     }
@@ -49,6 +58,7 @@ extension Date {
     func nodeYearMonthDay() -> String { NodeDateFormat.yearMonthDay(self) }
     func nodeDotYearMonthDay() -> String { NodeDateFormat.dotYearMonthDay(self) }
     func nodeYearMonth() -> String { NodeDateFormat.yearMonth(self) }
+    func nodeCompactYearMonth() -> String { NodeDateFormat.compactYearMonth(self) }
     func nodeYearMonthDayWeekday() -> String { NodeDateFormat.yearMonthDayWeekday(self) }
     func nodeMonthDayWeekday() -> String { NodeDateFormat.monthDayWeekday(self) }
     func nodeTime() -> String { NodeDateFormat.time(self) }

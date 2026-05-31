@@ -21,6 +21,7 @@ struct CompareObservationCalendar: View {
             if showsHeader {
                 header
             }
+            observationMonthChips
             monthNavigator
             weekdayHeader
             dayGrid
@@ -72,6 +73,42 @@ struct CompareObservationCalendar: View {
     }
 
     @ViewBuilder
+    private var observationMonthChips: some View {
+        let months = viewModel.observationMonths
+        if months.count > 1 {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: NodeSpacing.sp2) {
+                    ForEach(months, id: \.self) { month in
+                        let isSelected = Calendar.current.isDate(
+                            month,
+                            equalTo: viewModel.displayedMonth(for: side),
+                            toGranularity: .month
+                        )
+                        Button {
+                            viewModel.setDisplayedMonth(month, for: side)
+                            viewModel.setPickerDay(nil, for: side)
+                        } label: {
+                            Text(month.nodeCompactYearMonth())
+                                .font(NodeFont.mono(NodeFont.micro))
+                                .tracking(0.6)
+                                .foregroundStyle(isSelected ? NodeColor.mossSoft : NodeColor.fog)
+                                .padding(.horizontal, NodeSpacing.sp3)
+                                .padding(.vertical, 10)
+                                .background(isSelected ? NodeColor.moss.opacity(0.18) : NodeColor.charcoal)
+                                .clipShape(Capsule())
+                                .overlay {
+                                    Capsule()
+                                        .stroke(isSelected ? NodeColor.moss.opacity(0.45) : NodeColor.hairline, lineWidth: 1)
+                                }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
     private var monthNavigator: some View {
         if let dateRange = viewModel.calendarDateRange(for: side) {
             NodeCalendarMonthNavigator(
@@ -114,13 +151,17 @@ struct CompareObservationCalendar: View {
 
     private func dayCell(for day: Date) -> some View {
         let isDisabled = viewModel.isFuture(day) || viewModel.isBeforeAcquisition(day)
-        let hasObservations = viewModel.hasObservations(on: day)
+        let dayObservations = viewModel.observations(on: day)
+        let hasObservations = !dayObservations.isEmpty
+        let hasSelectableObservations = dayObservations.contains {
+            viewModel.isObservationSelectable($0, for: side)
+        }
         let isSelected = viewModel.isSelected(day, for: side)
         let isActive = viewModel.isActiveObservationDay(day, for: side)
         let isToday = viewModel.isToday(day)
 
         return Button {
-            guard !isDisabled, hasObservations else { return }
+            guard !isDisabled, hasSelectableObservations else { return }
             viewModel.selectDay(day, for: side)
         } label: {
             VStack(spacing: 3) {
@@ -128,12 +169,14 @@ struct CompareObservationCalendar: View {
                     .font(NodeFont.text(NodeFont.caption, weight: isToday ? .semibold : .regular))
                     .foregroundStyle(
                         isDisabled ? NodeColor.stone :
-                            hasObservations ? NodeColor.bone : NodeColor.mist
+                            hasSelectableObservations ? NodeColor.bone :
+                            hasObservations ? NodeColor.mist : NodeColor.mist
                     )
 
                 Circle()
                     .fill(hasObservations ? NodeColor.moss : .clear)
                     .frame(width: 4, height: 4)
+                    .opacity(hasSelectableObservations ? 1 : 0.35)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 40)
@@ -154,7 +197,7 @@ struct CompareObservationCalendar: View {
             )
         }
         .buttonStyle(.plain)
-        .disabled(isDisabled || !hasObservations)
+        .disabled(isDisabled || !hasSelectableObservations)
     }
 
     @ViewBuilder
@@ -165,6 +208,7 @@ struct CompareObservationCalendar: View {
                 MetaLabel(text: "\(day.nodeMonthDayWeekday())", color: NodeColor.fog, size: 9)
 
                 ForEach(observations, id: \.id) { observation in
+                    let isSelectable = viewModel.isObservationSelectable(observation, for: side)
                     Button {
                         viewModel.selectObservation(observation, for: side)
                     } label: {
@@ -190,8 +234,10 @@ struct CompareObservationCalendar: View {
                             }
                         }
                         .padding(.vertical, NodeSpacing.sp1)
+                        .opacity(isSelectable ? 1 : 0.35)
                     }
                     .buttonStyle(.plain)
+                    .disabled(!isSelectable)
                 }
             }
             .padding(.top, NodeSpacing.sp2)

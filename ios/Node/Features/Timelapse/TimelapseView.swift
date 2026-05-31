@@ -256,25 +256,12 @@ struct TimelapseView: View {
     }
 
     private func calendarSheet(for side: CompareSide) -> some View {
-        NavigationStack {
-            CompareObservationCalendar(
-                viewModel: rangePicker,
-                side: side,
-                imageStore: imageStore,
-                showsHeader: false
-            )
-            .navigationTitle(side == .before ? "開始を選択" : "終了を選択")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") {
-                        rangePicker.closeCalendar()
-                    }
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        CompareObservationPickerSheet(
+            viewModel: rangePicker,
+            side: side,
+            imageStore: imageStore,
+            navigationTitle: side == .before ? "開始を選択" : "終了を選択"
+        )
     }
 
     private var requirementCard: some View {
