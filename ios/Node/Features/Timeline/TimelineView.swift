@@ -127,14 +127,12 @@ struct TimelineView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: NodeSpacing.sp3) {
-            Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .foregroundStyle(NodeColor.bone)
-                    .frame(width: 36, height: 36)
-                    .background(NodeColor.charcoal)
-                    .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
-                    .clipShape(Circle())
-            }
+            NodeTopBarIconButton(
+                systemName: "chevron.left",
+                accessibilityLabel: "戻る",
+                style: .solid,
+                action: onBack
+            )
 
             VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
                 MetaLabel(text: "タイムライン", size: NodeFont.caption)

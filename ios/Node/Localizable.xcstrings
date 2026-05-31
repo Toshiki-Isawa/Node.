@@ -1307,6 +1307,7 @@
       }
     },
     "シェア" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1402,6 +1403,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Compare with slider"
+          }
+        }
+      }
+    },
+    "その他の操作" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More actions"
           }
         }
       }
@@ -2152,6 +2163,16 @@
         }
       }
     },
+    "前の月" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous month"
+          }
+        }
+      }
+    },
     "前の観測" : {
       "localizations" : {
         "en" : {
@@ -2471,26 +2492,6 @@
             "value" : "History · %#@observations@ · %#@logs@"
           },
           "substitutions" : {
-            "observations" : {
-              "argNum" : 1,
-              "formatSpecifier" : "lld",
-              "variations" : {
-                "plural" : {
-                  "one" : {
-                    "stringUnit" : {
-                      "state" : "translated",
-                      "value" : "%arg observation"
-                    }
-                  },
-                  "other" : {
-                    "stringUnit" : {
-                      "state" : "translated",
-                      "value" : "%arg observations"
-                    }
-                  }
-                }
-              }
-            },
             "logs" : {
               "argNum" : 2,
               "formatSpecifier" : "lld",
@@ -2510,47 +2511,27 @@
                   }
                 }
               }
+            },
+            "observations" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg observation"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg observations"
+                    }
+                  }
+                }
+              }
             }
-          }
-        }
-      }
-    },
-    "戻る" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back"
-          }
-        }
-      }
-    },
-    "その他の操作" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "More actions"
-          }
-        }
-      }
-    },
-    "前の月" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Previous month"
-          }
-        }
-      }
-    },
-    "次の月" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next month"
           }
         }
       }
@@ -2581,6 +2562,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Required"
+          }
+        }
+      }
+    },
+    "戻る" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
           }
         }
       }
@@ -2944,6 +2935,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clear search text"
+          }
+        }
+      }
+    },
+    "次の月" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next month"
           }
         }
       }

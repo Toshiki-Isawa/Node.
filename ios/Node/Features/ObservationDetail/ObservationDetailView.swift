@@ -103,34 +103,27 @@ struct ObservationDetailView: View {
 
     private var topBar: some View {
         HStack {
-            Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .foregroundStyle(NodeColor.bone)
-                    .frame(width: 36, height: 36)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
-            }
+            NodeTopBarIconButton(
+                systemName: "chevron.left",
+                accessibilityLabel: "戻る",
+                action: onBack
+            )
             Spacer()
             HStack(spacing: NodeSpacing.sp2) {
-                Button { showShareSheet = true } label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .foregroundStyle(NodeColor.bone)
-                        .frame(width: 36, height: 36)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
+                NodeTopBarIconButton(
+                    systemName: "square.and.arrow.up",
+                    accessibilityLabel: "画像をシェア"
+                ) {
+                    showShareSheet = true
                 }
-                .accessibilityLabel("画像をシェア")
 
                 Menu {
                     Button("日時を変更") { showEditSheet = true }
                     Button("削除", role: .destructive) { showDeleteConfirmation = true }
                 } label: {
-                    Image(systemName: "ellipsis")
-                        .foregroundStyle(NodeColor.bone)
-                        .frame(width: 36, height: 36)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
+                    NodeTopBarIconCircle(systemName: "ellipsis")
                 }
+                .accessibilityLabel("その他の操作")
             }
         }
         .padding(.horizontal, NodeSpacing.sp4)

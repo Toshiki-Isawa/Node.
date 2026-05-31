@@ -22,7 +22,6 @@ struct CompareView: View {
                     }
                     comparisonBlock
                     intervalCard
-                    shareButton
                     if ReleaseConfig.timelapseEnabled {
                         timelapseSection
                     }
@@ -42,13 +41,6 @@ struct CompareView: View {
         .sheet(isPresented: $showShareSheet) {
             shareSheet
         }
-    }
-
-    private var shareButton: some View {
-        NodeSecondaryButton("シェア", systemImage: "square.and.arrow.up") {
-            showShareSheet = true
-        }
-        .disabled(viewModel.beforeImagePath == nil || viewModel.afterImagePath == nil)
     }
 
     private var shareSheet: some View {
@@ -80,14 +72,12 @@ struct CompareView: View {
 
     private var header: some View {
         HStack {
-            Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .foregroundStyle(NodeColor.bone)
-                    .frame(width: 36, height: 36)
-                    .background(NodeColor.charcoal)
-                    .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
-                    .clipShape(Circle())
-            }
+            NodeTopBarIconButton(
+                systemName: "chevron.left",
+                accessibilityLabel: "戻る",
+                style: .solid,
+                action: onBack
+            )
             Spacer()
             VStack(spacing: 2) {
                 if let plant = viewModel.plant {
@@ -98,7 +88,14 @@ struct CompareView: View {
                     .foregroundStyle(NodeColor.bone)
             }
             Spacer()
-            Color.clear.frame(width: 36, height: 36)
+            NodeTopBarIconButton(
+                systemName: "square.and.arrow.up",
+                accessibilityLabel: "画像をシェア",
+                style: .solid,
+                isDisabled: viewModel.beforeImagePath == nil || viewModel.afterImagePath == nil
+            ) {
+                showShareSheet = true
+            }
         }
     }
 

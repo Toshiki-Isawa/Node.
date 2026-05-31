@@ -161,6 +161,67 @@ struct NodePressStyle: ButtonStyle {
     }
 }
 
+// MARK: - Top Bar Icon Button
+
+/// ヘッダー円形アイコンの背景スタイル。
+enum NodeTopBarIconStyle {
+    /// ヒーロー画像の上に浮かせるヘッダー (例: 植物詳細 / 観測詳細)
+    case material
+    /// 単色背景のヘッダー (例: 比較 / タイムライン)
+    case solid
+}
+
+/// ヘッダーアイコンの円形ビジュアル。視覚 36pt / タップ領域 44pt。
+/// Button だけでなく Menu のラベルにも使えるよう、ビジュアルを独立させている。
+struct NodeTopBarIconCircle: View {
+    let systemName: String
+    var style: NodeTopBarIconStyle = .material
+
+    var body: some View {
+        circle
+            .frame(width: 44, height: 44)
+            .contentShape(Circle())
+    }
+
+    @ViewBuilder
+    private var circle: some View {
+        let glyph = Image(systemName: systemName)
+            .foregroundStyle(NodeColor.bone)
+            .frame(width: 36, height: 36)
+        switch style {
+        case .material:
+            glyph
+                .background(.ultraThinMaterial)
+                .clipShape(Circle())
+        case .solid:
+            glyph
+                .background(NodeColor.charcoal)
+                .overlay(Circle().stroke(NodeColor.hairline, lineWidth: 1))
+                .clipShape(Circle())
+        }
+    }
+}
+
+/// 各画面ヘッダーの円形アイコンボタン。視覚 36pt / タップ領域 44pt を確保する。
+/// 戻る/閉じるは左上、シェア・編集などのアクションは右上に置く。
+struct NodeTopBarIconButton: View {
+    let systemName: String
+    let accessibilityLabel: LocalizedStringKey
+    var style: NodeTopBarIconStyle = .material
+    var isDisabled: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            NodeTopBarIconCircle(systemName: systemName, style: style)
+                .opacity(isDisabled ? 0.4 : 1)
+        }
+        .buttonStyle(NodePressStyle())
+        .disabled(isDisabled)
+        .accessibilityLabel(accessibilityLabel)
+    }
+}
+
 struct NodeTextField: View {
     let label: LocalizedStringKey
     var hint: LocalizedStringKey? = nil

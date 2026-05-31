@@ -137,44 +137,31 @@ struct PlantDetailView: View {
 
     private var topBar: some View {
         HStack {
-            Button(action: onBack) {
-                topBarIcon("chevron.left")
-            }
-            .buttonStyle(NodePressStyle())
-            .accessibilityLabel("戻る")
+            NodeTopBarIconButton(
+                systemName: "chevron.left",
+                accessibilityLabel: "戻る",
+                action: onBack
+            )
             Spacer()
             // 視覚円は 36pt のまま、ヒット領域は 44pt を確保するため間隔は 0。
             HStack(spacing: 0) {
-                Button {
+                NodeTopBarIconButton(
+                    systemName: "square.and.arrow.up",
+                    accessibilityLabel: "画像をシェア",
+                    isDisabled: viewModel.heroObservation == nil
+                ) {
                     showShareSheet = true
-                } label: {
-                    topBarIcon("square.and.arrow.up")
                 }
-                .buttonStyle(NodePressStyle())
-                .disabled(viewModel.heroObservation == nil)
-                .accessibilityLabel("画像をシェア")
-
-                Button(action: onEdit) {
-                    topBarIcon("square.and.pencil")
-                }
-                .buttonStyle(NodePressStyle())
-                .accessibilityLabel("植物を編集")
+                NodeTopBarIconButton(
+                    systemName: "square.and.pencil",
+                    accessibilityLabel: "植物を編集",
+                    action: onEdit
+                )
             }
         }
         .padding(.horizontal, NodeSpacing.sp4)
         .nodeScreenTopPadding()
         .padding(.bottom, NodeSpacing.sp2)
-    }
-
-    /// 視覚 36pt の円形アイコン + 44pt のタップ領域。
-    private func topBarIcon(_ systemName: String) -> some View {
-        Image(systemName: systemName)
-            .foregroundStyle(NodeColor.bone)
-            .frame(width: 36, height: 36)
-            .background(.ultraThinMaterial)
-            .clipShape(Circle())
-            .frame(width: 44, height: 44)
-            .contentShape(Circle())
     }
 
     private var heroSection: some View {
