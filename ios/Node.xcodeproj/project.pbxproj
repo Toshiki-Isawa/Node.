@@ -87,6 +87,7 @@
 		C8874DDE32E6EC333E2C49D7 /* CompareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2A1C1F7EDFB8FBAD4441EA /* CompareView.swift */; };
 		CEBFBBBC95BE4D262BEFD0C2 /* AppTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB44A47DD8FBCD85B28DED9 /* AppTypes.swift */; };
 		D1D1318F0E96AD885CF7AC9E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 31085A570CF2D48C986525E5 /* Assets.xcassets */; };
+		D28230CE869FA0DF21946047 /* TimelapseShareOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF5D03034F7E0A974576FF69 /* TimelapseShareOverlay.swift */; };
 		D3B3B76303C8E0CBC6B80DE8 /* EditObservationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A3F2726954C09CA5E7EB98F /* EditObservationViewModel.swift */; };
 		D48DA4BBA82D0A6A0CE17E5A /* PrivacyPolicyWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C328E474E58EDDEDE3A2A9 /* PrivacyPolicyWebView.swift */; };
 		D81AC9C40560EA4D66F1CA5F /* privacy.html in Resources */ = {isa = PBXBuildFile; fileRef = 72CE44D9237E8BC2FB59E903 /* privacy.html */; };
@@ -181,6 +182,7 @@
 		C92E6ABAD63F2AD84E1F5AF1 /* ShareCardRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCardRenderer.swift; sourceTree = "<group>"; };
 		CAFBE067BBB0849B385267BC /* ShareBrandMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareBrandMark.swift; sourceTree = "<group>"; };
 		CDAD6269AF7E77B2A1C82F13 /* NodeDesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeDesignTokens.swift; sourceTree = "<group>"; };
+		CF5D03034F7E0A974576FF69 /* TimelapseShareOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelapseShareOverlay.swift; sourceTree = "<group>"; };
 		D123E997C054EA70A134B167 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		D2C0B75B5E0C59729C33761E /* TimelinePlantFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelinePlantFilterSheet.swift; sourceTree = "<group>"; };
 		D38DDCA33DA67C28E2017AE2 /* AddPlantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPlantViewModel.swift; sourceTree = "<group>"; };
@@ -395,6 +397,7 @@
 				CAFBE067BBB0849B385267BC /* ShareBrandMark.swift */,
 				C92E6ABAD63F2AD84E1F5AF1 /* ShareCardRenderer.swift */,
 				B2BA09CD5610D4CD895AE6C1 /* ShareExportSheet.swift */,
+				CF5D03034F7E0A974576FF69 /* TimelapseShareOverlay.swift */,
 			);
 			path = ShareExport;
 			sourceTree = "<group>";
@@ -687,6 +690,7 @@
 				4153D938A4F1841F2FAAA378 /* SupabaseService.swift in Sources */,
 				5A53BCE689FE86CD4E1D20B0 /* SyncEngine.swift in Sources */,
 				0F3F215D66FCE24F25130D34 /* TimelapseService.swift in Sources */,
+				D28230CE869FA0DF21946047 /* TimelapseShareOverlay.swift in Sources */,
 				14C4B8B495E2710CD517CFC7 /* TimelapseVideoGenerator.swift in Sources */,
 				A45E1FEB2F54601A3E2E749E /* TimelapseView.swift in Sources */,
 				12D0129C0DE4874AA3954074 /* TimelinePlantFilterSheet.swift in Sources */,

@@ -21,7 +21,8 @@ final class TimelapseService: ObservableObject {
         lastIndex: Int,
         excludedObservationIDs: Set<UUID> = [],
         durationSeconds: Double,
-        maxLongEdge: CGFloat
+        maxLongEdge: CGFloat,
+        overlay: TimelapseVideoOverlayInfo
     ) async {
         let chronological = observations.sorted { $0.createdAt < $1.createdAt }
         guard firstIndex >= 0, lastIndex < chronological.count, firstIndex <= lastIndex else {
@@ -70,11 +71,15 @@ final class TimelapseService: ObservableObject {
         }
 
         do {
+            let outputSize = TimelapseVideoGenerator.outputSize(maxLongEdge: maxLongEdge)
+            let overlayImage = TimelapseShareOverlayRenderer.render(info: overlay, size: outputSize)
+
             let url = try await TimelapseVideoGenerator.generate(
                 imagePaths: imagePaths,
                 imageStore: imageStore,
                 maxLongEdge: maxLongEdge,
-                secondsPerFrame: secondsPerFrame
+                secondsPerFrame: secondsPerFrame,
+                overlay: overlayImage
             ) { [weak self] value in
                 Task { @MainActor in
                     self?.generationProgress = 0.2 + value * 0.8

@@ -14,6 +14,15 @@ struct TimelapseView: View {
     @State private var isSavingToPhotos = false
     @State private var saveMessage: String?
     @State private var excludedObservationIDs: Set<UUID> = []
+    @State private var previewPlayer: AVPlayer?
+
+    private var timelapseAspectRatio: CGFloat {
+        TimelapseRequirements.aspectRatioWidth / TimelapseRequirements.aspectRatioHeight
+    }
+
+    private var isShowingCompletion: Bool {
+        timelapseService.outputURL != nil && !timelapseService.isGenerating
+    }
 
     init(
         viewModel: PlantDetailViewModel,
@@ -36,38 +45,16 @@ struct TimelapseView: View {
             ZStack {
                 NodeColor.graphite.ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: NodeSpacing.sp6) {
-                        MetaLabel(text: "\(viewModel.plant.name)", size: 9)
-                        Text("タイムラプス")
-                            .font(NodeFont.display(NodeFont.title1, weight: .light))
-                            .foregroundStyle(NodeColor.bone)
-
-                        if !timelapseService.isGenerating && timelapseService.outputURL == nil {
-                            frameSelectionSection
-                        }
-
-                        content
-
-                        if let error = timelapseService.errorMessage {
-                            MetaLabel(text: "\(error)", color: NodeColor.syncFail)
-                        }
-
-                        if let saveMessage {
-                            MetaLabel(text: "\(saveMessage)", color: NodeColor.mossSoft)
-                        }
-
-                        MetaLabel(
-                            text: "\(planService.plan.timelapseQualityLabel) · 9:16 · 端末内生成 · 最大\(TimelapseVideoGenerator.maxFrames)フレーム",
-                            color: NodeColor.fog
-                        )
-                    }
-                    .padding(NodeSpacing.sp6)
+                if isShowingCompletion, let url = timelapseService.outputURL {
+                    completionLayout(url: url)
+                } else {
+                    configurationScrollContent
                 }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("閉じる") {
+                        stopPreviewPlayback()
                         timelapseService.reset()
                         dismiss()
                     }
@@ -78,12 +65,45 @@ struct TimelapseView: View {
         .onAppear {
             rangePicker.configureForTimelapse(plant: viewModel.plant)
         }
+        .onChange(of: timelapseService.outputURL) { _, url in
+            syncPreviewPlayer(with: url)
+        }
         .onChange(of: rangePicker.comparisonSelectionKey) { _, _ in
             pruneExcludedObservations()
         }
-        .onDisappear { timelapseService.discardOutput() }
+        .onDisappear {
+            stopPreviewPlayback()
+            timelapseService.discardOutput()
+        }
         .sheet(item: $rangePicker.activeCalendarSide) { side in
             calendarSheet(for: side)
+        }
+    }
+
+    private var configurationScrollContent: some View {
+        ScrollView {
+            VStack(spacing: NodeSpacing.sp6) {
+                MetaLabel(text: "\(viewModel.plant.name)", size: 9)
+                Text("タイムラプス")
+                    .font(NodeFont.display(NodeFont.title1, weight: .light))
+                    .foregroundStyle(NodeColor.bone)
+
+                if !timelapseService.isGenerating && timelapseService.outputURL == nil {
+                    frameSelectionSection
+                }
+
+                content
+
+                if let error = timelapseService.errorMessage {
+                    MetaLabel(text: "\(error)", color: NodeColor.syncFail)
+                }
+
+                MetaLabel(
+                    text: "\(planService.plan.timelapseQualityLabel) · 9:16 · 端末内生成 · 最大\(TimelapseVideoGenerator.maxFrames)フレーム",
+                    color: NodeColor.fog
+                )
+            }
+            .padding(NodeSpacing.sp6)
         }
     }
 
@@ -93,8 +113,6 @@ struct TimelapseView: View {
             requirementCard
         } else if timelapseService.isGenerating {
             generatingCard
-        } else if let url = timelapseService.outputURL {
-            completedCard(url: url)
         } else {
             configurationCard
         }
@@ -408,22 +426,125 @@ struct TimelapseView: View {
         return "端末内で生成中… \(Int(encodeProgress * 100))%"
     }
 
-    private func completedCard(url: URL) -> some View {
-        VStack(spacing: NodeSpacing.sp4) {
-            VideoPlayer(player: AVPlayer(url: url))
-                .aspectRatio(
-                    TimelapseRequirements.aspectRatioWidth / TimelapseRequirements.aspectRatioHeight,
-                    contentMode: .fit
-                )
-                .frame(maxWidth: 220)
-                .clipShape(RoundedRectangle(cornerRadius: NodeRadius.lg))
+    private func completionLayout(url: URL) -> some View {
+        VStack(spacing: 0) {
+            completionVideoPreview
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(NodeColor.void)
+
+            completionBottomSheet(url: url)
+        }
+        .background(NodeColor.void.ignoresSafeArea())
+        .onAppear {
+            if previewPlayer == nil {
+                syncPreviewPlayer(with: url)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var completionVideoPreview: some View {
+        if let previewPlayer {
+            VideoPlayer(player: previewPlayer)
+                .aspectRatio(timelapseAspectRatio, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .clipped()
+        }
+    }
+
+    private func completionBottomSheet(url: URL) -> some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp4) {
+            VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(viewModel.plant.name)
+                        .font(NodeFont.display(NodeFont.title2, weight: .light))
+                        .foregroundStyle(NodeColor.bone)
+                        .lineLimit(2)
+                    if !viewModel.plant.species.isEmpty {
+                        Text(viewModel.plant.species)
+                            .font(NodeFont.display(14, weight: .light))
+                            .italic()
+                            .foregroundStyle(NodeColor.paper)
+                            .lineLimit(2)
+                    }
+                }
+
+                if let before = rangePicker.beforeObservation, let after = rangePicker.afterObservation {
+                    HStack(spacing: 6) {
+                        CultivationDayLabel(
+                            count: rangePicker.observationDayNumber(before),
+                            labelFont: NodeFont.mono(11),
+                            numberFont: NodeFont.display(24, weight: .light),
+                            labelColor: NodeColor.mist,
+                            numberColor: NodeColor.bone,
+                            spacing: 5
+                        )
+                        Text("→")
+                            .font(NodeFont.mono(14, weight: .medium))
+                            .foregroundStyle(NodeColor.moss)
+                        CultivationDayLabel(
+                            count: rangePicker.observationDayNumber(after),
+                            labelFont: NodeFont.mono(11),
+                            numberFont: NodeFont.display(24, weight: .light),
+                            labelColor: NodeColor.mist,
+                            numberColor: NodeColor.bone,
+                            spacing: 5
+                        )
+                    }
+                }
+
+                MetaLabel(text: completionSummaryText, color: NodeColor.fog, size: 11)
+            }
 
             exportActions(url: url)
 
+            if let saveMessage {
+                MetaLabel(text: "\(saveMessage)", color: NodeColor.mossSoft)
+            }
+
             NodeSecondaryButton("もう一度生成", systemImage: "arrow.clockwise") {
+                saveMessage = nil
+                stopPreviewPlayback()
                 timelapseService.discardOutput()
             }
         }
+        .padding(.horizontal, NodeSpacing.sp5)
+        .padding(.top, NodeSpacing.sp5)
+        .padding(.bottom, NodeSpacing.sp3)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            UnevenRoundedRectangle(
+                topLeadingRadius: NodeRadius.xl,
+                topTrailingRadius: NodeRadius.xl
+            )
+            .fill(NodeColor.charcoal)
+            .ignoresSafeArea(edges: .bottom)
+        )
+        .overlay(alignment: .top) {
+            UnevenRoundedRectangle(
+                topLeadingRadius: NodeRadius.xl,
+                topTrailingRadius: NodeRadius.xl
+            )
+            .stroke(NodeColor.hairline, lineWidth: 1)
+            .ignoresSafeArea(edges: .bottom)
+        }
+    }
+
+    private var completionSummaryText: LocalizedStringKey {
+        "\(includedObservationCount)枚 · \(rangePicker.intervalDays)日間 · \(Int(durationSeconds))秒 · \(planService.plan.timelapseQualityLabel)"
+    }
+
+    private func syncPreviewPlayer(with url: URL?) {
+        stopPreviewPlayback()
+        guard let url else { return }
+        let player = AVPlayer(url: url)
+        previewPlayer = player
+        player.play()
+    }
+
+    private func stopPreviewPlayback() {
+        previewPlayer?.pause()
+        previewPlayer = nil
     }
 
     @ViewBuilder
@@ -455,14 +576,29 @@ struct TimelapseView: View {
         }
     }
 
+    private var timelapseOverlayInfo: TimelapseVideoOverlayInfo? {
+        guard let first = includedObservations.first,
+              let last = includedObservations.last else {
+            return nil
+        }
+        return TimelapseVideoOverlayInfo(
+            plantName: viewModel.plant.name,
+            species: viewModel.plant.species,
+            beforeDayNumber: rangePicker.observationDayNumber(first),
+            afterDayNumber: rangePicker.observationDayNumber(last)
+        )
+    }
+
     private func generateTimelapse() async {
+        guard let overlay = timelapseOverlayInfo else { return }
         await timelapseService.generate(
             observations: viewModel.plant.observations,
             firstIndex: rangePicker.beforeIndex,
             lastIndex: rangePicker.afterIndex,
             excludedObservationIDs: excludedObservationIDs,
             durationSeconds: durationSeconds,
-            maxLongEdge: planService.plan.timelapseMaxLongEdge
+            maxLongEdge: planService.plan.timelapseMaxLongEdge,
+            overlay: overlay
         )
     }
 

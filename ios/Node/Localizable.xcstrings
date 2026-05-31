@@ -400,6 +400,23 @@
         }
       }
     },
+    "%lld枚 · %lld日間 · %lld秒 · %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld photos · %2$lld days · %3$llds · %4$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld枚 · %2$lld日間 · %3$lld秒 · %4$@"
+          }
+        }
+      }
+    },
     "%lld枚除外": {
       "extractionState": "manual",
       "localizations": {

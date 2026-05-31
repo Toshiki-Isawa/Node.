@@ -21,11 +21,16 @@ enum TimelapseVideoError: LocalizedError {
 enum TimelapseVideoGenerator {
     static let maxFrames = 60
 
+    static func outputSize(maxLongEdge: CGFloat) -> CGSize {
+        portraitOutputSize(maxLongEdge: maxLongEdge)
+    }
+
     static func generate(
         imagePaths: [String],
         imageStore: ImageStore,
         maxLongEdge: CGFloat,
         secondsPerFrame: Double,
+        overlay: UIImage? = nil,
         progress: (@Sendable (Double) -> Void)? = nil
     ) async throws -> URL {
         let images = try loadImages(paths: imagePaths, imageStore: imageStore)
@@ -39,6 +44,7 @@ enum TimelapseVideoGenerator {
             to: outputURL,
             size: outputSize,
             secondsPerFrame: secondsPerFrame,
+            overlay: overlay,
             progress: progress
         )
         return outputURL
@@ -83,6 +89,7 @@ enum TimelapseVideoGenerator {
         to outputURL: URL,
         size: CGSize,
         secondsPerFrame: Double,
+        overlay: UIImage?,
         progress: (@Sendable (Double) -> Void)?
     ) async throws {
         try await Task.detached(priority: .userInitiated) {
@@ -91,6 +98,7 @@ enum TimelapseVideoGenerator {
                 to: outputURL,
                 size: size,
                 secondsPerFrame: secondsPerFrame,
+                overlay: overlay,
                 progress: progress
             )
         }.value
@@ -101,6 +109,7 @@ enum TimelapseVideoGenerator {
         to outputURL: URL,
         size: CGSize,
         secondsPerFrame: Double,
+        overlay: UIImage?,
         progress: (@Sendable (Double) -> Void)?
     ) throws {
         if FileManager.default.fileExists(atPath: outputURL.path) {
@@ -142,7 +151,7 @@ enum TimelapseVideoGenerator {
             while !input.isReadyForMoreMediaData {
                 Thread.sleep(forTimeInterval: 0.005)
             }
-            guard let buffer = pixelBuffer(from: image, size: size) else {
+            guard let buffer = pixelBuffer(from: image, size: size, overlay: overlay) else {
                 throw TimelapseVideoError.writerFailed(String(localized: "フレーム変換失敗"))
             }
             let presentationTime = CMTimeMultiply(frameDuration, multiplier: Int32(index))
@@ -172,7 +181,7 @@ enum TimelapseVideoGenerator {
         }
     }
 
-    private static func pixelBuffer(from image: UIImage, size: CGSize) -> CVPixelBuffer? {
+    private static func pixelBuffer(from image: UIImage, size: CGSize, overlay: UIImage?) -> CVPixelBuffer? {
         let width = Int(size.width)
         let height = Int(size.height)
         var buffer: CVPixelBuffer?
@@ -213,6 +222,7 @@ enum TimelapseVideoGenerator {
         UIColor.black.setFill()
         UIRectFill(CGRect(origin: .zero, size: size))
         image.draw(in: drawRect)
+        overlay?.draw(in: CGRect(origin: .zero, size: size))
         UIGraphicsPopContext()
 
         return pixelBuffer
