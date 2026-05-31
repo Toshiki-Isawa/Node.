@@ -19,6 +19,7 @@ final class TimelapseService: ObservableObject {
         observations: [PlantObservation],
         firstIndex: Int,
         lastIndex: Int,
+        excludedObservationIDs: Set<UUID> = [],
         durationSeconds: Double,
         maxLongEdge: CGFloat
     ) async {
@@ -29,6 +30,7 @@ final class TimelapseService: ObservableObject {
         }
 
         let ranged = Array(chronological[firstIndex...lastIndex])
+            .filter { !excludedObservationIDs.contains($0.id) }
         let sampled = Self.sampleObservations(ranged, maxFrames: TimelapseVideoGenerator.maxFrames)
 
         guard sampled.count >= TimelapseRequirements.minimumObservations else {

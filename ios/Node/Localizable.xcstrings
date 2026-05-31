@@ -383,6 +383,46 @@
         }
       }
     },
+    "%lld枚（%lld枚中） · %lld日間": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld photos · %3$lld days"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld枚（%2$lld枚中） · %3$lld日間"
+          }
+        }
+      }
+    },
+    "%lld枚除外": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld excluded"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld excluded"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld秒": {
       "extractionState": "manual",
       "localizations": {
@@ -1367,6 +1407,16 @@
         }
       }
     },
+    "タップで除外": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to exclude"
+          }
+        }
+      }
+    },
     "タップして一括ケアログを開く": {
       "localizations": {
         "en": {
@@ -2047,6 +2097,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Video length"
+          }
+        }
+      }
+    },
+    "動画から除外中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluded from video"
+          }
+        }
+      }
+    },
+    "動画に含める": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Included in video"
+          }
+        }
+      }
+    },
+    "含める画像": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos to include"
           }
         }
       }

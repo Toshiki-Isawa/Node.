@@ -13,6 +13,7 @@ struct TimelapseView: View {
     @State private var durationSeconds = TimelapseRequirements.defaultDurationSeconds
     @State private var isSavingToPhotos = false
     @State private var saveMessage: String?
+    @State private var excludedObservationIDs: Set<UUID> = []
 
     init(
         viewModel: PlantDetailViewModel,
@@ -42,7 +43,9 @@ struct TimelapseView: View {
                             .font(NodeFont.display(NodeFont.title1, weight: .light))
                             .foregroundStyle(NodeColor.bone)
 
-                        previewStrip
+                        if !timelapseService.isGenerating && timelapseService.outputURL == nil {
+                            frameSelectionSection
+                        }
 
                         content
 
@@ -75,6 +78,9 @@ struct TimelapseView: View {
         .onAppear {
             rangePicker.configureForTimelapse(plant: viewModel.plant)
         }
+        .onChange(of: rangePicker.comparisonSelectionKey) { _, _ in
+            pruneExcludedObservations()
+        }
         .onDisappear { timelapseService.discardOutput() }
         .sheet(item: $rangePicker.activeCalendarSide) { side in
             calendarSheet(for: side)
@@ -99,7 +105,7 @@ struct TimelapseView: View {
             rangeSelectionCard
             durationCard
 
-            if rangePicker.selectedObservationCount < TimelapseRequirements.minimumObservations {
+            if includedObservationCount < TimelapseRequirements.minimumObservations {
                 MetaLabel(
                     text: "選択範囲には\(TimelapseRequirements.minimumObservations)回以上の観測が必要です。",
                     color: NodeColor.syncFail
@@ -109,7 +115,7 @@ struct TimelapseView: View {
             NodePrimaryButton("タイムラプスを生成") {
                 Task { await generateTimelapse() }
             }
-            .disabled(rangePicker.selectedObservationCount < TimelapseRequirements.minimumObservations)
+            .disabled(includedObservationCount < TimelapseRequirements.minimumObservations)
         }
     }
 
@@ -148,7 +154,7 @@ struct TimelapseView: View {
                 }
 
                 MetaLabel(
-                    text: "\(rangePicker.selectedObservationCount)枚 · \(rangePicker.intervalDays)日間",
+                    text: rangeSummaryText,
                     color: NodeColor.fog,
                     size: 9
                 )
@@ -243,16 +249,116 @@ struct TimelapseView: View {
     }
 
     private var durationSummaryText: LocalizedStringKey {
-        let frameCount = max(rangePicker.estimatedFrameCount, 1)
+        let frameCount = max(estimatedFrameCount, 1)
         let secondsPerFrame = durationSeconds / Double(frameCount)
         let formatted = secondsPerFrame >= 0.1
             ? String(format: "%.1f", secondsPerFrame)
             : String(format: "%.2f", secondsPerFrame)
 
-        if rangePicker.selectedObservationCount > TimelapseVideoGenerator.maxFrames {
-            return "\(frameCount)フレーム(\(rangePicker.selectedObservationCount)枚から間引き) · 1枚あたり\(formatted)秒"
+        if includedObservationCount > TimelapseVideoGenerator.maxFrames {
+            return "\(frameCount)フレーム(\(includedObservationCount)枚から間引き) · 1枚あたり\(formatted)秒"
         }
         return "\(frameCount)フレーム · 1枚あたり\(formatted)秒"
+    }
+
+    private var includedObservations: [PlantObservation] {
+        rangePicker.selectedObservations.filter { !excludedObservationIDs.contains($0.id) }
+    }
+
+    private var includedObservationCount: Int {
+        includedObservations.count
+    }
+
+    private var estimatedFrameCount: Int {
+        min(TimelapseVideoGenerator.maxFrames, includedObservationCount)
+    }
+
+    private var canExcludeObservations: Bool {
+        includedObservationCount > TimelapseRequirements.minimumObservations
+    }
+
+    private var rangeSummaryText: LocalizedStringKey {
+        if excludedObservationIDs.isEmpty {
+            return "\(rangePicker.selectedObservationCount)枚 · \(rangePicker.intervalDays)日間"
+        }
+        return "\(includedObservationCount)枚（\(rangePicker.selectedObservationCount)枚中） · \(rangePicker.intervalDays)日間"
+    }
+
+    private var frameSelectionSection: some View {
+        VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
+            HStack {
+                MetaLabel(text: "含める画像", size: 9)
+                Spacer()
+                if !excludedObservationIDs.isEmpty {
+                    MetaLabel(
+                        text: "\(excludedObservationIDs.count)枚除外",
+                        color: NodeColor.mossSoft,
+                        size: 9
+                    )
+                } else if canExcludeObservations {
+                    MetaLabel(text: "タップで除外", color: NodeColor.fog, size: 9)
+                }
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: NodeSpacing.sp2) {
+                    ForEach(rangePicker.selectedObservations, id: \.id) { observation in
+                        frameSelectionThumbnail(for: observation)
+                    }
+                }
+            }
+            .frame(height: 72)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func frameSelectionThumbnail(for observation: PlantObservation) -> some View {
+        let isExcluded = excludedObservationIDs.contains(observation.id)
+
+        return Button {
+            toggleExclusion(for: observation)
+        } label: {
+            ZStack {
+                ObservationThumbnail(
+                    imagePath: viewModel.displayThumbnailPath(for: observation),
+                    imageStore: imageStore,
+                    size: 64
+                )
+                .opacity(isExcluded ? 0.35 : 1)
+
+                if isExcluded {
+                    RoundedRectangle(cornerRadius: NodeRadius.sm)
+                        .stroke(NodeColor.syncFail.opacity(0.8), lineWidth: 1.5)
+
+                    Image(systemName: "eye.slash.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(NodeColor.bone)
+                        .padding(6)
+                        .background(Circle().fill(NodeColor.void.opacity(0.75)))
+                } else {
+                    RoundedRectangle(cornerRadius: NodeRadius.sm)
+                        .stroke(NodeColor.hairline, lineWidth: 1)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isExcluded ? String(localized: "動画から除外中") : String(localized: "動画に含める"))
+        .accessibilityValue(observation.createdAt.nodeMonthDay())
+    }
+
+    private func toggleExclusion(for observation: PlantObservation) {
+        if excludedObservationIDs.contains(observation.id) {
+            excludedObservationIDs.remove(observation.id)
+            return
+        }
+
+        guard includedObservationCount > TimelapseRequirements.minimumObservations else { return }
+        excludedObservationIDs.insert(observation.id)
+    }
+
+    private func pruneExcludedObservations() {
+        let selectedIDs = Set(rangePicker.selectedObservations.map(\.id))
+        excludedObservationIDs = excludedObservationIDs.intersection(selectedIDs)
     }
 
     private func calendarSheet(for side: CompareSide) -> some View {
@@ -349,26 +455,12 @@ struct TimelapseView: View {
         }
     }
 
-    private var previewStrip: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: NodeSpacing.sp2) {
-                ForEach(rangePicker.selectedObservations.reversed(), id: \.id) { observation in
-                    ObservationThumbnail(
-                        imagePath: viewModel.displayThumbnailPath(for: observation),
-                        imageStore: imageStore,
-                        size: 64
-                    )
-                }
-            }
-        }
-        .frame(height: 72)
-    }
-
     private func generateTimelapse() async {
         await timelapseService.generate(
             observations: viewModel.plant.observations,
             firstIndex: rangePicker.beforeIndex,
             lastIndex: rangePicker.afterIndex,
+            excludedObservationIDs: excludedObservationIDs,
             durationSeconds: durationSeconds,
             maxLongEdge: planService.plan.timelapseMaxLongEdge
         )
