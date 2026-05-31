@@ -145,9 +145,10 @@ final class CompareViewModel: ObservableObject {
     }
 
     func observationDayNumber(_ observation: PlantObservation) -> Int {
-        guard let plant else { return 1 }
-        let days = calendar.dateComponents([.day], from: plant.acquiredAt, to: observation.createdAt).day ?? 0
-        return days + 1
+        guard let plant else { return 0 }
+        let from = calendar.startOfDay(for: plant.acquiredAt)
+        let to = calendar.startOfDay(for: observation.createdAt)
+        return calendar.dateComponents([.day], from: from, to: to).day ?? 0
     }
 
     func setBeforeIndex(_ index: Int) {

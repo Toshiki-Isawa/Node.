@@ -130,7 +130,13 @@ struct ImageComparisonSlider: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 2) {
                 if let dayNumber {
-                    MetaLabel(text: "\(dayNumber)日目", color: NodeColor.fog, size: 9)
+                    CultivationDayLabel(
+                        count: dayNumber,
+                        labelFont: NodeFont.mono(9),
+                        numberFont: NodeFont.mono(9, weight: .medium),
+                        labelColor: NodeColor.fog,
+                        numberColor: NodeColor.fog
+                    )
                 }
                 HStack(spacing: 4) {
                     Text(dateText)

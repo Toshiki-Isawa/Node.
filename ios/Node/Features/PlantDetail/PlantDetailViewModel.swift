@@ -72,9 +72,33 @@ final class PlantDetailViewModel: ObservableObject {
         return (observations + logs).sorted { $0.createdAt > $1.createdAt }
     }
 
+    var heroObservation: PlantObservation? {
+        sortedObservations.first
+    }
+
     var heroImagePath: String? {
-        guard let observation = sortedObservations.first else { return nil }
+        guard let observation = heroObservation else { return nil }
         return observationImageService.displayThumbnailPath(for: observation)
+    }
+
+    /// コレクション一覧の `plant.dayCount` と同じく、今日時点の育成日数。
+    /// ヒーロー画像は最新観測だが、日数は観測当時ではなく現在のカウントを表示する。
+    var heroDayNumber: Int {
+        plant.dayCount
+    }
+
+    var heroDateText: String {
+        heroObservation?.createdAt.nodeDotYearMonthDay() ?? ""
+    }
+
+    var heroNote: String {
+        heroObservation?.note ?? ""
+    }
+
+    func observationDayNumber(for observation: PlantObservation) -> Int {
+        let from = calendar.startOfDay(for: plant.acquiredAt)
+        let to = calendar.startOfDay(for: observation.createdAt)
+        return calendar.dateComponents([.day], from: from, to: to).day ?? 0
     }
 
     func displayThumbnailPath(for observation: PlantObservation) -> String? {

@@ -53,9 +53,13 @@ struct CompareObservationCalendar: View {
                     )
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("\(viewModel.observationDayNumber(observation))日目")
-                            .font(NodeFont.display(18, weight: .light))
-                            .foregroundStyle(NodeColor.bone)
+                        CultivationDayLabel(
+                            count: viewModel.observationDayNumber(observation),
+                            labelFont: NodeFont.mono(10),
+                            numberFont: NodeFont.display(18, weight: .light),
+                            labelColor: NodeColor.mist,
+                            numberColor: NodeColor.bone
+                        )
                         MetaLabel(
                             text: "\(observation.createdAt.nodeYearMonthDayTime())",
                             color: NodeColor.fog,

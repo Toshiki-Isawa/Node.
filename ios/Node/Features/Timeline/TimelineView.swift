@@ -198,26 +198,28 @@ struct TimelineView: View {
                 imageStore: imageStore,
                 aspectRatio: 16 / 10,
                 overlay: AnyView(
-                    VStack {
-                        Spacer()
-                        HStack {
-                            MetaLabel(
-                                text: "\(formattedDateTime(observation.createdAt))",
-                                color: NodeColor.bone,
-                                size: 9
-                            )
-                            .padding(.horizontal, NodeSpacing.sp2)
-                            .padding(.vertical, 4)
-                            .background(
-                                Capsule().fill(NodeColor.surfaceOverlay)
-                            )
-                            .overlay(
-                                Capsule().stroke(NodeColor.hairline, lineWidth: 1)
-                            )
+                    ZStack(alignment: .bottom) {
+                        BottomGradientOverlay(heightRatio: 0.45)
+                        VStack {
                             Spacer()
+                            HStack {
+                                MetaLabel(
+                                    text: "\(formattedDateTime(observation.createdAt))",
+                                    color: NodeColor.bone,
+                                    size: 9
+                                )
+                                .padding(.horizontal, NodeSpacing.sp2)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule().fill(NodeColor.surfaceOverlay)
+                                )
+                                .overlay(
+                                    Capsule().stroke(NodeColor.hairline, lineWidth: 1)
+                                )
+                                Spacer()
+                            }
+                            .padding(12)
                         }
-                        .padding(12)
-                        BottomGradientOverlay()
                     }
                 )
             )

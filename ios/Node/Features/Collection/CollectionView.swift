@@ -334,6 +334,7 @@ private struct PlantGridCell: View {
                 imageStore: imageStore,
                 overlay: AnyView(
                     ZStack(alignment: .topTrailing) {
+                        BottomGradientOverlay(heightRatio: 0.45)
                         VStack {
                             HStack {
                                 Spacer()
@@ -343,12 +344,17 @@ private struct PlantGridCell: View {
                             }
                             Spacer()
                             HStack {
-                                MetaLabel(text: "\(plant.dayCount)日目", color: NodeColor.fog, size: 9)
+                                CultivationDayLabel(
+                                    count: plant.dayCount,
+                                    labelFont: NodeFont.mono(10),
+                                    numberFont: NodeFont.mono(15, weight: .medium),
+                                    labelColor: NodeColor.mist,
+                                    numberColor: NodeColor.bone
+                                )
                                 Spacer()
                             }
                             .padding(12)
                         }
-                        BottomGradientOverlay()
                     }
                 )
             )

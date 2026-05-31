@@ -9,6 +9,16 @@ enum NodeDateFormat {
         date.formatted(.dateTime.year().month(.wide).day())
     }
 
+    /// 観測日ラベル用の固定形式 (例: 2026.05.31)。暦は `Calendar.current` に従う。
+    static func dotYearMonthDay(_ date: Date) -> String {
+        var calendar = Calendar.current
+        calendar.locale = .current
+        let year = calendar.component(.year, from: date)
+        let month = calendar.component(.month, from: date)
+        let day = calendar.component(.day, from: date)
+        return String(format: "%04d.%02d.%02d", year, month, day)
+    }
+
     static func yearMonth(_ date: Date) -> String {
         date.formatted(.dateTime.year().month(.wide))
     }
@@ -37,6 +47,7 @@ enum NodeDateFormat {
 extension Date {
     func nodeMonthDay() -> String { NodeDateFormat.monthDay(self) }
     func nodeYearMonthDay() -> String { NodeDateFormat.yearMonthDay(self) }
+    func nodeDotYearMonthDay() -> String { NodeDateFormat.dotYearMonthDay(self) }
     func nodeYearMonth() -> String { NodeDateFormat.yearMonth(self) }
     func nodeYearMonthDayWeekday() -> String { NodeDateFormat.yearMonthDayWeekday(self) }
     func nodeMonthDayWeekday() -> String { NodeDateFormat.monthDayWeekday(self) }

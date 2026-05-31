@@ -127,14 +127,24 @@ struct TimelapseView: View {
 
             if let before = rangePicker.beforeObservation, let after = rangePicker.afterObservation {
                 HStack(spacing: 4) {
-                    Text("\(rangePicker.observationDayNumber(before))日目")
-                        .font(NodeFont.display(22, weight: .light))
-                        .foregroundStyle(NodeColor.bone)
+                    CultivationDayLabel(
+                        count: rangePicker.observationDayNumber(before),
+                        labelFont: NodeFont.mono(9.5),
+                        numberFont: NodeFont.display(22, weight: .light),
+                        labelColor: NodeColor.mist,
+                        numberColor: NodeColor.bone,
+                        spacing: 4
+                    )
                     Text("→")
                         .foregroundStyle(NodeColor.moss)
-                    Text("\(rangePicker.observationDayNumber(after))日目")
-                        .font(NodeFont.display(22, weight: .light))
-                        .foregroundStyle(NodeColor.bone)
+                    CultivationDayLabel(
+                        count: rangePicker.observationDayNumber(after),
+                        labelFont: NodeFont.mono(9.5),
+                        numberFont: NodeFont.display(22, weight: .light),
+                        labelColor: NodeColor.mist,
+                        numberColor: NodeColor.bone,
+                        spacing: 4
+                    )
                 }
 
                 MetaLabel(

@@ -62,10 +62,10 @@ struct CompareView: View {
                 species: viewModel.plant?.species ?? "",
                 beforeImage: loadedImage(viewModel.beforeImagePath),
                 afterImage: loadedImage(viewModel.afterImagePath),
-                beforeDayNumber: viewModel.beforeObservation.map(viewModel.observationDayNumber) ?? 1,
-                afterDayNumber: viewModel.afterObservation.map(viewModel.observationDayNumber) ?? 1,
-                beforeDateText: viewModel.beforeObservation?.createdAt.nodeMonthDay() ?? "—",
-                afterDateText: viewModel.afterObservation?.createdAt.nodeMonthDay() ?? "—"
+                beforeDayNumber: viewModel.beforeObservation.map(viewModel.observationDayNumber) ?? 0,
+                afterDayNumber: viewModel.afterObservation.map(viewModel.observationDayNumber) ?? 0,
+                beforeDateText: viewModel.beforeObservation?.createdAt.nodeDotYearMonthDay() ?? "—",
+                afterDateText: viewModel.afterObservation?.createdAt.nodeDotYearMonthDay() ?? "—"
             )
         }
         .presentationDetents([.large])
@@ -247,14 +247,10 @@ struct CompareView: View {
 
             if let before = viewModel.beforeObservation, let after = viewModel.afterObservation {
                 HStack(spacing: 4) {
-                    Text("\(viewModel.observationDayNumber(before))日目")
-                        .font(NodeFont.display(28, weight: .light))
-                        .foregroundStyle(NodeColor.bone)
+                    observationDayLabel(viewModel.observationDayNumber(before), size: 28)
                     Text("→")
                         .foregroundStyle(NodeColor.moss)
-                    Text("\(viewModel.observationDayNumber(after))日目")
-                        .font(NodeFont.display(28, weight: .light))
-                        .foregroundStyle(NodeColor.bone)
+                    observationDayLabel(viewModel.observationDayNumber(after), size: 28)
                 }
 
                 MetaLabel(
@@ -336,5 +332,16 @@ struct CompareView: View {
                 .foregroundStyle(NodeColor.bone)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func observationDayLabel(_ count: Int, size: CGFloat) -> some View {
+        CultivationDayLabel(
+            count: count,
+            labelFont: NodeFont.mono(size * 0.43),
+            numberFont: NodeFont.display(size, weight: .light),
+            labelColor: NodeColor.mist,
+            numberColor: NodeColor.bone,
+            spacing: 4
+        )
     }
 }

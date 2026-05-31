@@ -224,7 +224,13 @@ struct CameraView: View {
                             Text(plant.name)
                                 .font(NodeFont.text(12, weight: .medium))
                                 .foregroundStyle(NodeColor.bone)
-                            MetaLabel(text: "\(plant.dayCount)日目", size: 9)
+                            CultivationDayLabel(
+                                count: plant.dayCount,
+                                labelFont: NodeFont.mono(9),
+                                numberFont: NodeFont.mono(9, weight: .medium),
+                                labelColor: NodeColor.fog,
+                                numberColor: NodeColor.fog
+                            )
                         }
                     }
                     .padding(.horizontal, 14)

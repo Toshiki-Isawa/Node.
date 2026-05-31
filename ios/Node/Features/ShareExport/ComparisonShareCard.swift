@@ -100,13 +100,18 @@ struct ComparisonShareCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     paneLabel(label)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("\(dayNumber)日目")
+                        CultivationDayLabel(
+                            count: dayNumber,
+                            labelFont: NodeFont.mono(9),
+                            numberFont: NodeFont.mono(9, weight: .medium),
+                            labelColor: NodeColor.mossSoft.opacity(0.75),
+                            numberColor: NodeColor.mossSoft,
+                            tracking: 0.4
+                        )
+                        Text(dateText)
                             .font(NodeFont.mono(9))
                             .tracking(0.4)
-                            .foregroundStyle(NodeColor.mossSoft)
-                        Text(dateText)
-                            .font(NodeFont.text(NodeFont.callout, weight: .medium))
-                            .foregroundStyle(NodeColor.bone)
+                            .foregroundStyle(NodeColor.mossSoft.opacity(0.75))
                     }
                 }
                 .padding(10)

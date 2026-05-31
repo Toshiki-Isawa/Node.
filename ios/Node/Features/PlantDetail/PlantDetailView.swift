@@ -16,6 +16,7 @@ struct PlantDetailView: View {
     var onObservationTap: (PlantObservation) -> Void
 
     @State private var showCompareRequirement = false
+    @State private var showShareSheet = false
     @State private var deleteTarget: DeleteRecordTarget?
     @State private var editObservationTarget: ObservationEditTarget?
     @State private var editGrowthLogTarget: GrowthLogEditTarget?
@@ -101,6 +102,37 @@ struct PlantDetailView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(NodeColor.charcoal)
         }
+        .sheet(isPresented: $showShareSheet) {
+            shareSheet
+        }
+    }
+
+    private var shareSheet: some View {
+        ShareExportSheet(
+            fileName: "Node-observation",
+            analyticsKind: "observation",
+            analyticsService: nil
+        ) {
+            if let observation = viewModel.heroObservation {
+                ObservationShareCard(
+                    plantName: plant.name,
+                    species: plant.species,
+                    image: heroShareImage(for: observation),
+                    dateText: observation.createdAt.nodeDotYearMonthDay(),
+                    dayNumber: viewModel.observationDayNumber(for: observation),
+                    note: observation.note
+                )
+            }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        .presentationBackground(NodeColor.graphite)
+    }
+
+    private func heroShareImage(for observation: PlantObservation) -> UIImage? {
+        imageStore.loadImage(path: observation.localImagePath)
+            ?? observationImageService.displayThumbnailPath(for: observation)
+                .flatMap { imageStore.loadImage(path: $0) }
     }
 
     private var topBar: some View {
@@ -113,12 +145,27 @@ struct PlantDetailView: View {
                     .clipShape(Circle())
             }
             Spacer()
-            Button(action: onEdit) {
-                Image(systemName: "square.and.pencil")
-                    .foregroundStyle(NodeColor.bone)
-                    .frame(width: 36, height: 36)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
+            HStack(spacing: NodeSpacing.sp2) {
+                Button {
+                    showShareSheet = true
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(NodeColor.bone)
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                }
+                .disabled(viewModel.heroObservation == nil)
+                .accessibilityLabel("画像をシェア")
+
+                Button(action: onEdit) {
+                    Image(systemName: "square.and.pencil")
+                        .foregroundStyle(NodeColor.bone)
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                }
+                .accessibilityLabel("植物を編集")
             }
         }
         .padding(.horizontal, NodeSpacing.sp4)
@@ -127,38 +174,26 @@ struct PlantDetailView: View {
     }
 
     private var heroSection: some View {
-        ZStack(alignment: .bottomLeading) {
-            PhotoCard(
-                imagePath: viewModel.heroImagePath,
-                imageStore: imageStore,
-                aspectRatio: 390 / 380,
-                cornerRadius: 0,
-                overlay: AnyView(
-                    LinearGradient(
-                        colors: [NodeColor.void.opacity(0.5), .clear, NodeColor.void.opacity(0.9)],
-                        startPoint: .top,
-                        endPoint: .bottom
+        PhotoCard(
+            imagePath: viewModel.heroImagePath,
+            imageStore: imageStore,
+            aspectRatio: 390 / 380,
+            cornerRadius: 0,
+            overlay: AnyView(
+                ZStack(alignment: .bottomLeading) {
+                    ObservationHeroOverlayGradient()
+                    ObservationHeroOverlayContent(
+                        plantName: plant.name,
+                        species: plant.species,
+                        dayNumber: viewModel.heroDayNumber,
+                        dateText: viewModel.heroDateText,
+                        note: viewModel.heroNote,
+                        showsBrandMark: false
                     )
-                )
-            )
-            .frame(height: 380)
-
-            VStack(alignment: .leading, spacing: NodeSpacing.sp2) {
-                MetaLabel(text: "\(plant.dayCount)日目 · 観測 \(plant.observationCount)回")
-                Text(plant.name)
-                    .font(NodeFont.display(32, weight: .light))
-                    .tracking(-0.5)
-                    .foregroundStyle(NodeColor.bone)
-                if !plant.species.isEmpty {
-                    Text(plant.species)
-                        .font(NodeFont.display(15, weight: .light))
-                        .italic()
-                        .foregroundStyle(NodeColor.fog)
                 }
-            }
-            .padding(.horizontal, NodeSpacing.sp5)
-            .padding(.bottom, NodeSpacing.sp5)
-        }
+            )
+        )
+        .frame(height: 380)
     }
 
     private var actionRow: some View {

@@ -77,7 +77,7 @@ struct ObservationDetailView: View {
                 plantName: plant.name,
                 species: plant.species,
                 image: observationImage(),
-                dateText: observation.createdAt.nodeYearMonthDay(),
+                dateText: observation.createdAt.nodeDotYearMonthDay(),
                 dayNumber: observationDayNumber,
                 note: observation.note
             )
@@ -94,10 +94,11 @@ struct ObservationDetailView: View {
     }
 
     private var observationDayNumber: Int {
-        var calendar = Calendar(identifier: .gregorian)
+        var calendar = Calendar.current
         calendar.locale = .current
-        let days = calendar.dateComponents([.day], from: plant.acquiredAt, to: observation.createdAt).day ?? 0
-        return days + 1
+        let from = calendar.startOfDay(for: plant.acquiredAt)
+        let to = calendar.startOfDay(for: observation.createdAt)
+        return calendar.dateComponents([.day], from: from, to: to).day ?? 0
     }
 
     private var topBar: some View {

@@ -244,12 +244,19 @@ struct ObservationThumbnail: View {
 }
 
 struct BottomGradientOverlay: View {
+    /// グラデーションがカードの高さに対して占める割合 (1 = 全高)。
+    var heightRatio: CGFloat = 1
+
     var body: some View {
-        LinearGradient(
-            colors: [NodeColor.void.opacity(0.9), .clear],
-            startPoint: .bottom,
-            endPoint: .top
-        )
+        GeometryReader { geo in
+            LinearGradient(
+                colors: [NodeColor.void.opacity(0.9), .clear],
+                startPoint: .bottom,
+                endPoint: .top
+            )
+            .frame(height: geo.size.height * heightRatio)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        }
     }
 }
 

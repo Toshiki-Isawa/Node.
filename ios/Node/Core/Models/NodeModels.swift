@@ -47,7 +47,13 @@ final class Plant {
     }
 
     var dayCount: Int {
-        Calendar.current.dateComponents([.day], from: acquiredAt, to: .now).day ?? 0
+        var calendar = Calendar.current
+        calendar.locale = .current
+        // 経過時間 (24時間単位) ではなく暦日の差でカウントする。
+        // 取得日を 0 とし、日付が変わるたびに 1 ずつ増える。
+        let from = calendar.startOfDay(for: acquiredAt)
+        let to = calendar.startOfDay(for: .now)
+        return calendar.dateComponents([.day], from: from, to: to).day ?? 0
     }
 
     var observationCount: Int { observations.count }

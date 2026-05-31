@@ -114,6 +114,23 @@
     "%lld" : {
       "shouldTranslate" : false
     },
+    "%lld day · 観測 %lld回" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld day · %2$lld observations"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld day · 観測 %2$lld回"
+          }
+        }
+      }
+    },
     "%lld 件" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -330,34 +347,6 @@
         }
       }
     },
-    "%lld日目" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Day %lld"
-          }
-        }
-      }
-    },
-    "%lld日目 · 観測 %lld回" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Day %1$lld · %2$lld observations"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld日目 · 観測 %2$lld回"
-          }
-        }
-      }
-    },
     "%lld日遅れ" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -412,16 +401,6 @@
     "→" : {
       "shouldTranslate" : false
     },
-    "4:5 · 1080×1350px · 端末内生成" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4:5 · 1080×1350px · Generated on device"
-          }
-        }
-      }
-    },
     "1枚で終了" : {
       "localizations" : {
         "en" : {
@@ -438,6 +417,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "At least 2 observations required"
+          }
+        }
+      }
+    },
+    "4:5 · 1080×1350px · 端末内生成" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4:5 · 1080×1350px · Generated on device"
           }
         }
       }
@@ -560,6 +549,25 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Upgrade to Conservatory · %@"
+          }
+        }
+      }
+    },
+    "Day" : {
+      "shouldTranslate" : false
+    },
+    "Shot on %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shot on %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撮影 %@"
           }
         }
       }
